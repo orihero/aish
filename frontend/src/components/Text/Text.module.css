@@ -1,0 +1,69 @@
+.text {
+    font-size: 16px;
+}
+.twelve {
+    font-size: 12px;
+}
+.fourteen {
+    font-size: 14px;
+}
+.sixteen {
+    font-size: 16px;
+}
+.eighteen {
+    font-size: 18px;
+}
+.twenty {
+    font-size: 20px;
+}
+.twentyTwo {
+    font-size: 22px;
+}
+.twentyEight {
+    font-size: 28px;
+}
+.thirtySix {
+    font-size: 36px;
+}
+.forty {
+    font-size: 40px;
+}
+.fifty {
+    font-size: 50px;
+}
+.sixty {
+    font-size: 60px;
+}
+.seventy {
+    font-size: 70px;
+}
+
+@media (max-width: 576px) {
+    .eighteen {
+        font-size: 16px;
+    }
+    .twenty {
+        font-size: 18px;
+    }
+    .twentyTwo {
+        font-size: 20px;
+    }
+    .twentyEight {
+        font-size: 22px;
+    }
+    .thirtySix {
+        font-size: 32px;
+    }
+    .forty {
+        font-size: 32px;
+    }
+    .fifty {
+        font-size: 32px;
+    }
+    .sixty {
+        font-size: 40px;
+    }
+    .seventy {
+        font-size: 55px;
+    }
+}
