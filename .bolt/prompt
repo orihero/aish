@@ -7,3 +7,5 @@ Use icons from lucide-react for logos.
 Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
 
 We have three folders admin, frontend and backend and while operating please work on the following folders and do not create any excessive folders.
+
+When editing any file try to divide into chunks! Try to create resusable component and make sure that you are not dublicating the components as well. For every page you can create a folder and hold components that relate to the page in the components folder created in the current page folder

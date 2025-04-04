@@ -2,13 +2,24 @@ import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Facebook, Twitter, Github, Mail } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
+import { useEffect } from 'react'
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState(import.meta.env.DEV ? 'admin@admin.com' : '')
+  const [password, setPassword] = useState(import.meta.env.DEV ? 'admin' : '')
   const { login, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      const notice = document.createElement('div');
+      notice.className = 'fixed bottom-4 left-4 bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow-lg text-sm';
+      notice.innerHTML = '🔑 Development Mode: Use <b>admin@admin.com</b> / <b>admin</b>';
+      document.body.appendChild(notice);
+      return () => notice.remove();
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()

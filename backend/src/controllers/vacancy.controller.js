@@ -39,11 +39,18 @@ export const getVacancies = async (req, res) => {
       workType,
       salaryMin,
       salaryMax,
+      featured,
+      sort = 'newest',
       page = 1,
       limit = 10
     } = req.query;
 
     const query = {};
+
+    // Featured jobs filter
+    if (featured === 'true') {
+      query.isFeatured = true;
+    }
 
     if (search) {
       query.$or = [
@@ -60,6 +67,19 @@ export const getVacancies = async (req, res) => {
       if (salaryMax) query.salary.$lte = Number(salaryMax);
     }
 
+    // Determine sort order
+    let sortOptions = {};
+    switch (sort) {
+      case 'newest':
+        sortOptions = { createdAt: -1 };
+        break;
+      case 'mostViewed':
+        sortOptions = { views: -1 };
+        break;
+      default:
+        sortOptions = { createdAt: -1 };
+    }
+
     const skip = (page - 1) * limit;
 
     const vacancies = await Vacancy.find(query)
@@ -67,7 +87,7 @@ export const getVacancies = async (req, res) => {
       .populate('category', 'title')
       .skip(skip)
       .limit(Number(limit))
-      .sort({ createdAt: -1 });
+      .sort(sortOptions);
 
     const total = await Vacancy.countDocuments(query);
 
@@ -153,6 +173,34 @@ export const deleteVacancy = async (req, res) => {
 
     await vacancy.deleteOne();
     res.json({ message: 'Vacancy deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getFeaturedVacancies = async (req, res) => {
+  try {
+    const vacancies = await Vacancy.find({ isFeatured: true })
+      .populate('creator', 'firstName lastName')
+      .populate('category', 'title')
+      .sort({ createdAt: -1 })
+      .limit(6);
+
+    res.json(vacancies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getNewestVacancies = async (req, res) => {
+  try {
+    const vacancies = await Vacancy.find()
+      .populate('creator', 'firstName lastName')
+      .populate('category', 'title')
+      .sort({ createdAt: -1 })
+      .limit(8);
+
+    res.json(vacancies);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

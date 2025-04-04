@@ -1,4 +1,5 @@
 import { Category } from '../models/category.model.js';
+import { Vacancy } from '../models/vacancy.model.js';
 
 export const createCategory = async (req, res) => {
   try {
@@ -67,6 +68,38 @@ export const deleteCategory = async (req, res) => {
 
     await category.deleteOne();
     res.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getCategoryStats = async (req, res) => {
+  try {
+    // Get all parent categories (those without parentId)
+    const categories = await Category.find({ parentId: null });
+    
+    // Get vacancy counts for each category
+    const categoryStats = await Promise.all(categories.map(async (category) => {
+      // Get all subcategories for this category
+      const subcategoryIds = category.subcategories.map(sub => sub._id);
+      
+      // Count vacancies for both the main category and its subcategories
+      const vacancyCount = await Vacancy.countDocuments({
+        $or: [
+          { category: category._id },
+          { subcategory: { $in: subcategoryIds } }
+        ]
+      });
+
+      return {
+        id: category._id,
+        title: category.title,
+        icon: category.icon,
+        jobCount: vacancyCount
+      };
+    }));
+
+    res.json(categoryStats);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

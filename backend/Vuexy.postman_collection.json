@@ -113,7 +113,175 @@
     },
     {
       "name": "Categories",
+      "description": "Category management endpoints",
       "item": [
+        {
+          "name": "Get Category Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Create Initial Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const categories = [",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Software Development' }],",
+                  "        icon: 'Code',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Frontend Development' }], icon: 'Layout' },",
+                  "            { title: [{ language: 'en', value: 'Backend Development' }], icon: 'Database' },",
+                  "            { title: [{ language: 'en', value: 'Mobile Development' }], icon: 'Smartphone' },",
+                  "            { title: [{ language: 'en', value: 'DevOps' }], icon: 'Settings' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Design' }],",
+                  "        icon: 'Palette',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'UI/UX Design' }], icon: 'Figma' },",
+                  "            { title: [{ language: 'en', value: 'Graphic Design' }], icon: 'Image' },",
+                  "            { title: [{ language: 'en', value: 'Motion Design' }], icon: 'Video' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Marketing' }],",
+                  "        icon: 'TrendingUp',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Digital Marketing' }], icon: 'Globe' },",
+                  "            { title: [{ language: 'en', value: 'Content Marketing' }], icon: 'FileText' },",
+                  "            { title: [{ language: 'en', value: 'Social Media' }], icon: 'Share2' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Sales' }],",
+                  "        icon: 'DollarSign',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Business Development' }], icon: 'Briefcase' },",
+                  "            { title: [{ language: 'en', value: 'Account Management' }], icon: 'Users' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Customer Service' }],",
+                  "        icon: 'Headphones',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Customer Support' }], icon: 'MessageCircle' },",
+                  "            { title: [{ language: 'en', value: 'Technical Support' }], icon: 'Tool' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Data' }],",
+                  "        icon: 'BarChart2',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Data Analysis' }], icon: 'PieChart' },",
+                  "            { title: [{ language: 'en', value: 'Data Science' }], icon: 'Activity' },",
+                  "            { title: [{ language: 'en', value: 'Machine Learning' }], icon: 'Brain' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Human Resources' }],",
+                  "        icon: 'Users',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Recruitment' }], icon: 'UserPlus' },",
+                  "            { title: [{ language: 'en', value: 'HR Management' }], icon: 'ClipboardList' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Project Management' }],",
+                  "        icon: 'Target',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Agile' }], icon: 'GitBranch' },",
+                  "            { title: [{ language: 'en', value: 'Scrum Master' }], icon: 'Clock' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Finance' }],",
+                  "        icon: 'DollarSign',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Accounting' }], icon: 'Calculator' },",
+                  "            { title: [{ language: 'en', value: 'Financial Analysis' }], icon: 'TrendingUp' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Legal' }],",
+                  "        icon: 'Scale',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Corporate Law' }], icon: 'Building' },",
+                  "            { title: [{ language: 'en', value: 'Legal Counsel' }], icon: 'FileText' }",
+                  "        ]",
+                  "    }",
+                  "];",
+                  "",
+                  "// Function to create a category",
+                  "const createCategory = async (category) => {",
+                  "    try {",
+                  "        const response = await pm.sendRequest({",
+                  "            url: pm.variables.get('baseUrl') + '/api/categories',",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'Content-Type': 'application/json',",
+                  "                'Authorization': 'Bearer ' + pm.variables.get('token')",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify(category)",
+                  "            }",
+                  "        });",
+                  "",
+                  "        console.log(`Created category: ${category.title[0].value}`);",
+                  "        return response;",
+                  "    } catch (error) {",
+                  "        console.error(`Failed to create category: ${category.title[0].value}`, error);",
+                  "    }",
+                  "};",
+                  "",
+                  "// Create all categories sequentially",
+                  "const createCategories = async () => {",
+                  "    for (const category of categories) {",
+                  "        await createCategory(category);",
+                  "    }",
+                  "    console.log('All categories created successfully!');",
+                  "};",
+                  "",
+                  "// Execute the creation",
+                  "createCategories();"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
         {
           "name": "Create Category",
           "request": {
@@ -227,6 +395,28 @@
       "name": "Vacancies",
       "item": [
         {
+          "name": "Get Featured Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Get Newest Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/newest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", "newest"]
+            }
+          }
+        },
+        {
           "name": "Create Vacancy",
           "request": {
             "method": "POST",
@@ -256,7 +446,7 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/vacancies?search=react&category=tech&employmentType=full-time&workType=remote&salaryMin=80000&salaryMax=120000&page=1&limit=10",
+              "raw": "{{baseUrl}}/api/vacancies?search=react&category=tech&employmentType=full-time&workType=remote&salaryMin=80000&salaryMax=120000&featured=true&sort=newest&page=1&limit=10",
               "host": ["{{baseUrl}}"],
               "path": ["api", "vacancies"],
               "query": [
@@ -283,6 +473,15 @@
                 {
                   "key": "salaryMax",
                   "value": "120000"
+                },
+                {
+                  "key": "featured",
+                  "value": "true"
+                },
+                {
+                  "key": "sort",
+                  "value": "newest",
+                  "description": "Options: newest, mostViewed"
                 },
                 {
                   "key": "page",

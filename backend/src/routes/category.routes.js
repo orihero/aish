@@ -1,6 +1,6 @@
 import express from 'express';
 import { auth } from '../middleware/auth.middleware.js';
-import { createCategory, getCategories, getCategory, updateCategory, deleteCategory } from '../controllers/category.controller.js';
+import { createCategory, getCategories, getCategory, updateCategory, deleteCategory, getCategoryStats } from '../controllers/category.controller.js';
 
 const router = express.Router();
 
@@ -20,6 +20,7 @@ const adminAuth = async (req, res, next) => {
 
 router.post('/', adminAuth, createCategory);
 router.get('/', getCategories);
+router.get('/stats', getCategoryStats);
 router.get('/:id', getCategory);
 router.put('/:id', adminAuth, updateCategory);
 router.delete('/:id', adminAuth, deleteCategory);

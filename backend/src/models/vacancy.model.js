@@ -10,6 +10,11 @@ const vacancySchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: true
+  },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -34,7 +39,8 @@ const vacancySchema = new mongoose.Schema({
     },
     currency: {
       type: String,
-      default: 'USD'
+      default: 'USD',
+      enum: ['USD', 'EUR', 'GBP', 'UZS', 'RUB', 'UAH']
     }
   },
   employmentType: {
@@ -46,6 +52,14 @@ const vacancySchema = new mongoose.Schema({
     type: String,
     enum: ['remote', 'hybrid', 'onsite'],
     required: true
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  views: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

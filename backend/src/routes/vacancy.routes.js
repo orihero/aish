@@ -6,7 +6,9 @@ import {
   getVacancies,
   getVacancy,
   updateVacancy,
-  deleteVacancy
+  deleteVacancy,
+  getFeaturedVacancies,
+  getNewestVacancies
 } from '../controllers/vacancy.controller.js';
 
 const router = express.Router();
@@ -27,6 +29,8 @@ const employerAuth = async (req, res, next) => {
 
 router.post('/', employerAuth, validate(vacancyValidation), createVacancy);
 router.get('/', getVacancies);
+router.get('/featured', getFeaturedVacancies);
+router.get('/newest', getNewestVacancies);
 router.get('/:id', getVacancy);
 router.put('/:id', employerAuth, validate(vacancyValidation), updateVacancy);
 router.delete('/:id', employerAuth, deleteVacancy);

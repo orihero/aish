@@ -7,12 +7,12 @@ import authRoutes from './routes/auth.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import vacancyRoutes from './routes/vacancy.routes.js';
 import resumeRoutes from './routes/resume.routes.js';
+import companyRoutes from './routes/company.routes.js';
 import * as models from './models/index.js';
 
-// Load environment variables
 dotenv.config();
 
-const app = express();
+export const app = express();
 
 // Middleware
 app.use(cors());
@@ -23,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/vacancies', vacancyRoutes);
 app.use('/api/resumes', resumeRoutes);
+app.use('/api/companies', companyRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -37,8 +38,10 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
