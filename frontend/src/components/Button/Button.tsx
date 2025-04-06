@@ -9,14 +9,23 @@ type Props = {
     disabled?: boolean;
     primary?: boolean;
     icon?: string | React.ReactNode | undefined;
+    className?: string;
 };
 
-const ButtonComp: FC<Props> = ({ title, onPress, disabled, primary, icon }) => {
+const ButtonComp: FC<Props> = ({
+    title,
+    onPress,
+    disabled,
+    primary,
+    icon,
+    className,
+}) => {
     return (
         <ButtonContainer
             disabled={disabled}
             onClick={onPress}
             $primary={primary}
+            className={className}
         >
             <Text
                 text={title}

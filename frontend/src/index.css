@@ -3,6 +3,11 @@
     margin: 0;
     box-sizing: border-box;
     font-family: "Epilogue-Medium";
+    scroll-behavior: smooth;
+}
+
+a {
+    text-decoration: none;
 }
 
 @font-face {

@@ -4,15 +4,28 @@ import Text from "../Text/Text";
 import ButtonComp from "../Button/Button";
 import { Colors } from "../../shared/utils/color";
 import { Images } from "../../shared/assets";
+import { CreatorType, SalaryType, translationType } from "../../types";
+import { observer } from "mobx-react-lite";
+import Avatar from "../Avatar/Avatar";
+import { Tag } from "../Tag/Tag";
 
 type Props = {
-    jobTitle: string;
-    companyName: string;
-    location: string;
-    jobType: string;
-    jobTags: string[];
-    logo: string;
+    title: string;
+    creator: CreatorType;
+    company: string;
+    category: {
+        title: translationType[];
+    };
+    subcategory: string;
     description: string;
+    salary: SalaryType;
+    employmentType: string;
+    workType: string;
+    isFeatured: boolean;
+    views: number;
+    timestamps: boolean;
+    onPress?: () => void;
+    isborder?: boolean;
 };
 
 const tagColors: { [key: string]: string } = {
@@ -27,80 +40,74 @@ const tagColors: { [key: string]: string } = {
 };
 
 const ShortJobCard: FC<Props> = ({
-    jobTitle,
-    companyName,
-    location,
-    jobType,
-    jobTags,
-    logo,
+    title,
+    creator,
+    company,
+    category,
+    subcategory,
+    salary,
+    employmentType,
+    workType,
+    isFeatured,
+    views,
+    timestamps,
     description,
+    onPress,
+    isborder,
 }) => {
     return (
-        <JobCardContainer>
-            <Logo src={logo} alt={companyName} />
+        <JobCardContainer
+            onClick={onPress}
+            style={{
+                border: isborder ? `1px solid ${Colors.lineColor}` : "none",
+                borderRadius: 10,
+                cursor: "pointer",
+            }}
+        >
+            <Avatar
+                imageUrl={
+                    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                }
+            />
             <Content>
                 <JobTitle>
                     <Text
-                        text={jobTitle}
+                        text={title}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
                     <Text
-                        text={`${companyName} - ${location}`}
+                        text={`${creator.firstName} - ${creator.lastName}`}
                         textSize="twelve"
                         color={Colors.textGray}
                         family="Epilogue-Regular"
                     />
                 </JobTitle>
-                <Text
-                    text={description}
-                    textSize="twelve"
-                    color={Colors.textGray}
-                    family="Epilogue-Regular"
-                    lineHeight={18}
-                />
                 <Tags>
-                    <Tag
-                        style={{
-                            color: Colors.green,
-                            backgroundColor: Colors.lightGreen,
-                        }}
-                    >
-                        {jobType}
-                    </Tag>
+                    <Tag text={employmentType} />
                     <img src={Images.divider} height={20} alt="" />
-                    {jobTags.map((tag, index) => (
-                        <Tag
-                            key={index}
-                            style={{
-                                color: tagColors[tag] || Colors.green,
-                                backgroundColor:
-                                    tagColors[`${tag}Back`] ||
-                                    Colors.lightGreen,
-                            }}
-                        >
-                            {tag}
-                        </Tag>
-                    ))}
+
+                    <Tag text={workType} />
                 </Tags>
             </Content>
         </JobCardContainer>
     );
 };
 
-export default ShortJobCard;
+export default observer(ShortJobCard);
 
 const JobCardContainer = styled.div`
     display: flex;
     gap: 15px;
     padding: 20px;
     background: white;
-`;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border-radius: 10px;
 
-const Logo = styled.img`
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+    &:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
 `;
 
 const Content = styled.div`
@@ -121,8 +128,8 @@ const Tags = styled.div`
     flex-wrap: wrap;
 `;
 
-const Tag = styled.span`
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 12px;
-`;
+// const Tag = styled.span`
+//     padding: 5px 10px;
+//     border-radius: 10px;
+//     font-size: 12px;
+// `;

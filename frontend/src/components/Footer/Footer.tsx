@@ -158,13 +158,14 @@ const FooterContainer = styled.footer`
 
 const FooterContent = styled.div`
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 2rem;
 
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
-        text-align: center;
+    @media (min-width: 768px) {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
     }
 `;
 
@@ -241,4 +242,12 @@ const Copyright = styled.div`
     justify-content: space-between;
     height: 10vh;
     border-top: 1px solid #374151;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        height: 15vh;
+    }
 `;
