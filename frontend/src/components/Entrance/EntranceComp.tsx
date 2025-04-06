@@ -23,7 +23,7 @@ const EntranceComp = () => {
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
                     />
-                    <img src={Images.line} alt="Line" />
+                    <img src={Images.line} alt="Line" className="line" />
                 </div>
                 <Text
                     text="Great platform for the job seeker that searching for new career heights and passionate about startups."
@@ -35,9 +35,13 @@ const EntranceComp = () => {
                 <div className="searchBx">
                     <SearchInput
                         placeholder="Job title or keyword"
-                        width="60%"
+                        className="searchInput"
                     />
-                    <ButtonComp title="Search my job" primary />
+                    <ButtonComp
+                        title="Search my job"
+                        primary
+                        className="searchBtn"
+                    />
                 </div>
                 <Text
                     text="Popular : UI Designer, UX Researcher, Android, Admin"
@@ -91,8 +95,47 @@ const EntranceContainer = styled.div`
         align-items: center;
         justify-content: space-between;
         width: auto;
-        height: 70px;
         background-color: ${Colors.white};
-        padding: 0 10px;
+        padding: 10px;
+    }
+
+    .line {
+        width: 100%;
+    }
+
+    .searchInput {
+        width: 60%;
+    }
+
+    @media (max-width: 768px) {
+        .left {
+            width: 100%;
+        }
+        .pattern {
+            display: none;
+        }
+        .pic {
+            display: none;
+        }
+    }
+
+    @media (max-width: 425px) {
+        .searchBx {
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .searchInput {
+            width: 100%;
+        }
+
+        .searchBtn {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 45px;
+        }
     }
 `;

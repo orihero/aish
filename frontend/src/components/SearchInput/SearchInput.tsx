@@ -8,17 +8,17 @@ type Props = {
     placeholder?: string;
     value?: string;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    width?: string;
+    className?: string;
 };
 
 const SearchInput: FC<Props> = ({
     placeholder,
     value,
     onChange,
-    width = "100%",
+    className,
 }) => {
     return (
-        <InputContainer style={{ width }}>
+        <InputContainer className={className}>
             <IconBtn icon={<FiSearch size={20} color={Colors.titleColor} />} />
             <input
                 type="text"

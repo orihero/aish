@@ -3,9 +3,11 @@ import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
 import { FiArrowRight } from "react-icons/fi";
+import { DynamicIcon } from "lucide-react/dynamic";
+import { toKebabCase } from "../../shared/helper/replicate";
 
 type Props = {
-    icon?: string | React.ReactNode | undefined;
+    icon?: string;
     title: string;
     vacancies: string;
 };
@@ -13,7 +15,12 @@ type Props = {
 const CategoryCard: FC<Props> = ({ icon, title, vacancies }) => {
     return (
         <CategoryCardContainer>
-            <div className="white icon">{icon}</div>
+            <div className="white icon">
+                <DynamicIcon
+                    name={toKebabCase(icon || "") as never}
+                    size={48}
+                />
+            </div>
             <Text
                 text={title}
                 textSize="eighteen"

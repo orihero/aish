@@ -29,13 +29,26 @@ const CompaniesContainer = styled.div`
     display: flex;
     justify-content: center;
     flex-direction: column;
-    height: 30vh;
-    padding: 0 5%;
+    padding: 60px 5%;
     gap: 30px;
 
     .logos {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        padding: 60px 4%;
+
+        .logos {
+            justify-content: center;
+            gap: 30px;
+        }
+    }
+
+    @media (max-width: 425px) {
+        padding: 60px 3%;
     }
 `;

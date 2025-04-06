@@ -15,9 +15,17 @@ export default AdminBanner;
 const AdminBannerContainer = styled.div`
     height: 60vh;
     padding: 0px 5%;
-    margin-top: 50px;
+    margin: 50px 0;
 
     img {
         width: 100%;
+    }
+
+    @media (max-width: 992px) {
+        height: 40vh;
+    }
+
+    @media (max-width: 768px) {
+        height: 20vh;
     }
 `;

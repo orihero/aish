@@ -7,6 +7,7 @@ import AdminBanner from "../../components/AdminBanner/AdminBanner";
 import FeaturesJobs from "../../components/FeaturedJobs/FeaturesJobs";
 import Footer from "../../components/Footer/Footer";
 import LatestJobs from "../../components/LatestJobs/LatestJobs";
+import { observer } from "mobx-react-lite";
 
 const HomeView = () => {
     return (
@@ -23,4 +24,4 @@ const HomeView = () => {
     );
 };
 
-export default HomeView;
+export default observer(HomeView);

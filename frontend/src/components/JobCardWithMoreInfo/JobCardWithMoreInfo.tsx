@@ -1,59 +1,83 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 import Text from "../Text/Text";
-import ButtonComp from "../Button/Button";
 import { Colors } from "../../shared/utils/color";
+import { CreatorType, SalaryType, translationType } from "../../types";
+import Avatar from "../Avatar/Avatar";
+import { Tag } from "../Tag/Tag";
 
 type Props = {
-    jobTitle: string;
-    companyName: string;
-    location: string;
-    jobType: string;
-    jobTags: string[];
-    logo: string;
+    title: string;
+    creator: CreatorType;
+    company: string;
+    category: {
+        title: translationType[];
+    };
+    subcategory: string;
     description: string;
+    salary: SalaryType;
+    employmentType: string;
+    workType: string;
+    isFeatured: boolean;
+    views: number;
+    timestamps: boolean;
+    onPress?: () => void;
 };
 
-const tagColors: { [key: string]: string } = {
-    Marketing: Colors.yellow,
-    MarketingBack: Colors.lightYellow,
-    Design: Colors.green,
-    DesignBack: Colors.lightGreen,
-    Business: Colors.mainBlue,
-    BusinessBack: Colors.mainBlueLight,
-    Technology: Colors.tomato,
-    TechnologyBack: Colors.lightTomato,
-};
+// const tagColors: { [key: string]: string } = {
+//     Marketing: Colors.yellow,
+//     MarketingBack: Colors.lightYellow,
+//     Design: Colors.green,
+//     DesignBack: Colors.lightGreen,
+//     Business: Colors.mainBlue,
+//     BusinessBack: Colors.mainBlueLight,
+//     Technology: Colors.tomato,
+//     TechnologyBack: Colors.lightTomato,
+// };
 
 const JobCard: FC<Props> = ({
-    jobTitle,
-    companyName,
-    location,
-    jobType,
-    jobTags,
-    logo,
+    category,
+    subcategory,
+    title,
+    creator,
+    company,
+    salary,
+    employmentType,
+    workType,
+    isFeatured,
+    views,
+    timestamps,
     description,
+    onPress,
 }) => {
     return (
-        <JobCardContainer>
+        <JobCardContainer onClick={onPress}>
             <Header>
-                <Logo src={logo} alt={companyName} />
-                <JobTypeButton>{jobType}</JobTypeButton>
+                <Avatar
+                    imageUrl={
+                        "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                    }
+                />
+                <JobTypeButton>{employmentType}</JobTypeButton>
             </Header>
             <Content>
                 <Text
-                    text={jobTitle}
+                    text={title}
                     textSize="sixteen"
                     color={Colors.textBlack}
                 />
                 <Text
-                    text={`${companyName} - ${location}`}
+                    text={`${creator.firstName} - ${creator.firstName}`}
                     textSize="twelve"
                     color={Colors.textGray}
                     family="Epilogue-Regular"
                 />
                 <Text
-                    text={description}
+                    text={
+                        description.length > 50
+                            ? `${description.slice(0, 50)}...`
+                            : description
+                    }
                     textSize="twelve"
                     color={Colors.textGray}
                     margin="10px 0 0 0"
@@ -62,18 +86,7 @@ const JobCard: FC<Props> = ({
                 />
             </Content>
             <Tags>
-                {jobTags.map((tag, index) => (
-                    <Tag
-                        key={index}
-                        style={{
-                            color: tagColors[tag] || Colors.green,
-                            backgroundColor:
-                                tagColors[`${tag}Back`] || Colors.lightGreen,
-                        }}
-                    >
-                        {tag}
-                    </Tag>
-                ))}
+                <Tag text={workType} />
             </Tags>
         </JobCardContainer>
     );
@@ -88,18 +101,25 @@ const JobCardContainer = styled.div`
     padding: 20px;
     border: 1px solid ${Colors.lineColor};
     background: white;
+    cursor: pointer;
+
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border-radius: 10px;
+
+    &:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 1200px) {
+        min-width: 320px;
+    }
 `;
 
 const Header = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-`;
-
-const Logo = styled.img`
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
 `;
 
 const JobTypeButton = styled.button`
@@ -122,10 +142,4 @@ const Tags = styled.div`
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
-`;
-
-const Tag = styled.span`
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 12px;
 `;

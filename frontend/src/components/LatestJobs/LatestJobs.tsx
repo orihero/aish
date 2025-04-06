@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import JobCard from "../JobCardWithMoreInfo/JobCardWithMoreInfo";
 import { jobListings } from "../../shared/constants/exampleData";
 import styled from "styled-components";
@@ -8,50 +8,80 @@ import ButtonComp from "../Button/Button";
 import { FiArrowRight } from "react-icons/fi";
 import ShortJobCard from "../ShortInfoJobCard/ShortInfoJobCard";
 import { Images } from "../../shared/assets";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { observer } from "mobx-react-lite";
+import { useNavigate } from "react-router-dom";
 
 const LatestJobs = () => {
+    const { vacanciesStore } = useRootStore();
+    const navigation = useNavigate();
+
+    const renderJobs = useCallback(() => {
+        if (!vacanciesStore.vacancies?.vacancies?.length) return null;
+        return vacanciesStore.vacancies?.vacancies
+            .slice(0, 10)
+            ?.map((job, index) => {
+                return (
+                    <ShortJobCard
+                        key={index}
+                        title={job.title}
+                        creator={job.creator}
+                        company={job.company}
+                        category={job.category}
+                        subcategory={job.subcategory}
+                        salary={job.salary}
+                        employmentType={job.employmentType}
+                        workType={job.workType}
+                        isFeatured={job.isFeatured}
+                        views={job.views}
+                        timestamps={job.timestamps}
+                        description={job.description}
+                        onPress={() =>
+                            vacanciesStore.getVacancyById(job._id, () =>
+                                navigation(`/vacancy/${job._id}`)
+                            )
+                        }
+                    />
+                );
+            });
+    }, [navigation, vacanciesStore]);
+
     return (
         <LatestJobsContainer>
             <div className="top">
                 <div className="title">
                     <Text
-                        text="Featured"
+                        text="Latest"
                         textSize="thirtySix"
                         color={Colors.textBlack}
                         family="ClashDisplay-Semibold"
                     />
                     <Text
-                        text="jobs"
+                        text="jobs open"
                         textSize="thirtySix"
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
                     />
                 </div>
                 <ButtonComp
+                    className="seeAll"
                     title="See all jobs"
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                    onPress={() => navigation("/vacancies")}
                 />
             </div>
-            <div className="cards">
-                {jobListings.map((job, index) => (
-                    <ShortJobCard
-                        jobTitle={job.position}
-                        companyName={job.company}
-                        jobTags={job.categories}
-                        key={index}
-                        jobType={job.jobType}
-                        location={job.location}
-                        logo={job.logo}
-                        description={job.description}
-                    />
-                ))}
-            </div>
+            <div className="cards">{renderJobs()}</div>
             <img className="pattern" src={Images.walcomePatter} alt="pattern" />
+            <ButtonComp
+                className="seeAllMobile"
+                title="See all jobs"
+                icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+            />
         </LatestJobsContainer>
     );
 };
 
-export default LatestJobs;
+export default observer(LatestJobs);
 
 const LatestJobsContainer = styled.div`
     display: flex;
@@ -82,7 +112,7 @@ const LatestJobsContainer = styled.div`
     .title {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 10px;
     }
 
     .cards {
@@ -90,5 +120,28 @@ const LatestJobsContainer = styled.div`
         grid-template-columns: repeat(2, 1fr);
         gap: 30px;
         z-index: 1;
+    }
+
+    .seeAllMobile {
+        display: none;
+    }
+
+    .seeAll {
+        display: flex;
+        align-items: center;
+    }
+
+    @media (max-width: 992px) {
+        .cards {
+            grid-template-columns: repeat(1, 1fr);
+        }
+        .seeAllMobile {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .seeAll {
+            display: none;
+        }
     }
 `;
