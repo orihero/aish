@@ -1,53 +1,122 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/auth.store';
-import { BarChart3, DollarSign, ShoppingCart, TrendingUp, Users, MoreVertical } from 'lucide-react';
+import { useDashboardStore } from '../stores/dashboard.store';
+import { useCategoriesStore } from '../stores/categories.store';
+import { useJobsStore } from '../stores/jobs.store';
+import { BarChart3, Briefcase, FileText, CheckCircle, Clock, XCircle, MoreVertical } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { JobCard } from './Jobs/components/JobCard';
+import { JobFilters } from './Jobs/components/JobFilters';
+import { useTranslation } from '../hooks/useTranslation';
 
-const salesData = [
-  { name: 'Jan', value: 5000 },
-  { name: 'Feb', value: 9000 },
-  { name: 'Mar', value: 12000 },
-  { name: 'Apr', value: 18000 },
-  { name: 'May', value: 20000 },
-  { name: 'Jun', value: 25000 },
-  { name: 'Jul', value: 30000 },
-  { name: 'Aug', value: 36000 },
-  { name: 'Sep', value: 48000 },
-];
-
-const revenueData = [
-  { day: 'M', value: 45 },
-  { day: 'T', value: 52 },
-  { day: 'W', value: 38 },
-  { day: 'T', value: 24 },
-  { day: 'F', value: 33 },
-  { day: 'S', value: 26 },
-  { day: 'S', value: 21 },
-];
-
-const radarData = [
-  { subject: 'Jan', sales: 80, visits: 90 },
-  { subject: 'Feb', sales: 85, visits: 75 },
-  { subject: 'Mar', sales: 60, visits: 70 },
-  { subject: 'Apr', sales: 70, visits: 85 },
-  { subject: 'May', sales: 75, visits: 65 },
-  { subject: 'Jun', sales: 85, visits: 80 },
-];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function Dashboard() {
   const { user } = useAuthStore();
-  const [selectedChart, setSelectedChart] = useState<'orders' | 'sales' | 'profit' | 'income'>('income');
+  const { company, stats, isLoading, getEmployerDashboard } = useDashboardStore();
+  const { jobs, filters, setFilters } = useJobsStore();
+  const { getCategories } = useCategoriesStore();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (user?.role === 'employer') {
+      getEmployerDashboard();
+    }
+  }, [user?.role]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 shadow-lg rounded-lg border border-gray-100">
-          <p className="text-sm text-gray-600">{`${payload[0].value}`}</p>
+          <p className="text-sm text-gray-600">
+            {payload[0].name}: {payload[0].value} applications
+          </p>
         </div>
       );
     }
     return null;
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-amber-50 text-amber-700';
+      case 'reviewed': return 'bg-blue-50 text-blue-700';
+      case 'accepted': return 'bg-emerald-50 text-emerald-700';
+      case 'rejected': return 'bg-red-50 text-red-700';
+      default: return 'bg-gray-50 text-gray-700';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'reviewed': return <FileText className="w-4 h-4" />;
+      case 'accepted': return <CheckCircle className="w-4 h-4" />;
+      case 'rejected': return <XCircle className="w-4 h-4" />;
+      default: return null;
+    }
+  };
+
+  if (user?.role === 'employee') {
+    return (
+      <div className="flex gap-8">
+        {/* Filters Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <JobFilters
+            filters={filters}
+            onFilterChange={(key, value) => setFilters({ [key]: value })}
+          />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {t('dashboard.welcome')}, {user?.firstName}! 👋
+            </h1>
+            <p className="mt-1 text-gray-600">
+              {t('jobs.matchingOpportunities')}
+            </p>
+          </div>
+
+          {/* Jobs List */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">{t('common.loading')}</div>
+            ) : jobs.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">{t('jobs.noJobsFound')}</div>
+            ) : (
+              jobs.map(job => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!company || !stats) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-lg font-medium text-gray-900">No Company Profile</h2>
+        <p className="mt-2 text-gray-600">Please create your company profile first.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -57,7 +126,7 @@ export function Dashboard() {
             Welcome back, {user?.firstName}! 👋
           </h1>
           <p className="mt-1 text-gray-600">
-            Here's what's happening with your business today.
+            Here's what's happening with your job postings
           </p>
         </div>
       </div>
@@ -67,13 +136,15 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center">
             <div className="p-2 bg-purple-50 rounded-lg">
-              <ShoppingCart className="h-6 w-6 text-purple-600" />
+              <Briefcase className="h-6 w-6 text-purple-600" />
             </div>
             <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-500">Orders</p>
+              <p className="text-sm font-medium text-gray-500">Total Vacancies</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900">124k</p>
-                <p className="ml-2 text-sm font-medium text-emerald-600">+12.6%</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.totalVacancies}</p>
+                <p className="ml-2 text-sm font-medium text-emerald-600">
+                  {stats.activeVacancies} active
+                </p>
               </div>
             </div>
           </div>
@@ -82,13 +153,12 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center">
             <div className="p-2 bg-emerald-50 rounded-lg">
-              <DollarSign className="h-6 w-6 text-emerald-600" />
+              <FileText className="h-6 w-6 text-emerald-600" />
             </div>
             <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-500">Sales</p>
+              <p className="text-sm font-medium text-gray-500">Total Applications</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900">175k</p>
-                <p className="ml-2 text-sm font-medium text-red-600">-16.2%</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.totalApplications}</p>
               </div>
             </div>
           </div>
@@ -97,13 +167,14 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center">
             <div className="p-2 bg-blue-50 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
+              <CheckCircle className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-500">Total Profit</p>
+              <p className="text-sm font-medium text-gray-500">Accepted</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900">1.28k</p>
-                <p className="ml-2 text-sm font-medium text-red-600">-12.2%</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.applicationsByStatus.accepted}
+                </p>
               </div>
             </div>
           </div>
@@ -112,13 +183,14 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center">
             <div className="p-2 bg-orange-50 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-orange-600" />
+              <Clock className="h-6 w-6 text-orange-600" />
             </div>
             <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-500">Total Sales</p>
+              <p className="text-sm font-medium text-gray-500">Pending Review</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-semibold text-gray-900">$4,673</p>
-                <p className="ml-2 text-sm font-medium text-emerald-600">+25.2%</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.applicationsByStatus.pending}
+                </p>
               </div>
             </div>
           </div>
@@ -130,31 +202,18 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-medium text-[#625F6E]">Earning Reports</h2>
-              <p className="text-sm text-gray-500">Yearly Earnings Overview</p>
-            </div>
-            <div className="flex gap-2">
-              {(['orders', 'sales', 'profit', 'income'] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedChart(type)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md ${
-                    selectedChart === type
-                      ? 'bg-purple-50 text-purple-600'
-                      : 'text-[#625F6E] hover:bg-gray-50'
-                  }`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
-              <button className="p-1.5 text-[#625F6E]">
-                <MoreVertical className="h-5 w-5" />
-              </button>
+              <h2 className="text-lg font-medium text-[#625F6E]">Applications Overview</h2>
+              <p className="text-sm text-gray-500">Monthly application trends</p>
             </div>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={salesData}>
+              <AreaChart
+                data={stats.monthlyApplications.map((value, index) => ({
+                  name: months[index],
+                  value
+                }))}
+              >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#7367F0" stopOpacity={0.1}/>
@@ -180,36 +239,65 @@ export function Dashboard() {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-medium text-[#625F6E]">Revenue Growth</h2>
-              <p className="text-sm text-gray-500">Weekly Report</p>
+              <h2 className="text-lg font-medium text-[#625F6E]">Recent Applications</h2>
+              <p className="text-sm text-gray-500">Latest candidates</p>
             </div>
-            <button className="p-1.5 text-[#625F6E]">
-              <MoreVertical className="h-5 w-5" />
-            </button>
           </div>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#28C76F"
-                  strokeWidth={2}
-                  dot={{ fill: '#28C76F', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="space-y-4">
+            {stats.recentApplications.map((application, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900">{application.candidate.name}</h3>
+                  <p className="text-sm text-gray-500">{application.candidate.email}</p>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${getStatusColor(application.status)}`}>
+                  {getStatusIcon(application.status)}
+                  <span className="capitalize">{application.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Vacancy Stats */}
+        <div className="col-span-2 bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-medium text-[#625F6E]">Vacancy Statistics</h2>
+              <p className="text-sm text-gray-500">Applications by vacancy</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {stats.vacancyStats.map((vacancy) => (
+              <div key={vacancy.id} className="border border-gray-100 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-gray-900">{vacancy.title}</h3>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    vacancy.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-700'
+                  }`}>
+                    {vacancy.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-500">Total</div>
+                    <div className="font-medium">{vacancy.totalApplications}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-amber-500">Pending</div>
+                    <div className="font-medium">{vacancy.applicationsByStatus.pending}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-blue-500">Reviewed</div>
+                    <div className="font-medium">{vacancy.applicationsByStatus.reviewed}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-emerald-500">Accepted</div>
+                    <div className="font-medium">{vacancy.applicationsByStatus.accepted}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

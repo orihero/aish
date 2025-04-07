@@ -4,6 +4,7 @@ import {
   createCompany,
   getCompanies,
   getCompany,
+  getMyCompany,
   updateCompany,
   deleteCompany
 } from '../controllers/company.controller.js';
@@ -26,6 +27,7 @@ const employerAuth = async (req, res, next) => {
 
 router.post('/', employerAuth, createCompany);
 router.get('/', getCompanies);
+router.get('/my', auth, getMyCompany);
 router.get('/:id', getCompany);
 router.put('/:id', employerAuth, updateCompany);
 router.delete('/:id', employerAuth, deleteCompany);

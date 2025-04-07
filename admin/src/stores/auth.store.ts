@@ -19,15 +19,29 @@ interface AuthState {
 }
 
 const isDev = import.meta.env.DEV;
-const TEMP_EMAIL = 'admin@admin.com';
-const TEMP_PASSWORD = 'admin';
 
-const TEMP_USER = {
-  id: '1',
-  email: TEMP_EMAIL,
-  firstName: 'Admin',
-  lastName: 'User',
-  role: 'admin' as const
+const TEST_ACCOUNTS = {
+  admin: {
+    email: 'admin@admin.com',
+    password: 'admin',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin' as const
+  },
+  employer: {
+    email: 'employer@test.com',
+    password: 'employer',
+    firstName: 'John',
+    lastName: 'Employer',
+    role: 'employer' as const
+  },
+  employee: {
+    email: 'employee@test.com',
+    password: 'employee',
+    firstName: 'Jane',
+    lastName: 'Employee',
+    role: 'employee' as const
+  }
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -40,18 +54,28 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Development mode temporary login
-      if (isDev && email === TEMP_EMAIL && password === TEMP_PASSWORD) {
-        const tempToken = 'temp-token';
-        localStorage.setItem('token', tempToken);
-        set({ user: TEMP_USER, token: tempToken, isLoading: false });
-        return;
-      }
-
-      // In development, simulate a delay and error for non-temp credentials
+      // Development mode test accounts
       if (isDev) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        throw new Error('Please use the temporary admin account for development');
+        const testAccount = Object.values(TEST_ACCOUNTS).find(
+          account => account.email === email && account.password === password
+        );
+
+        if (testAccount) {
+          const tempToken = 'temp-token';
+          localStorage.setItem('token', tempToken);
+          set({
+            user: {
+              id: '1',
+              ...testAccount
+            },
+            token: tempToken,
+            isLoading: false
+          });
+          return;
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          throw new Error('Please use one of the test accounts for development');
+        }
       }
 
       // Production login logic (disabled in development)

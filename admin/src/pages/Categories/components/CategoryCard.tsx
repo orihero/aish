@@ -1,7 +1,22 @@
 import { useState } from 'react';
-import { MoreVertical, Pencil, Trash2, FolderKanban, Plus } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import type { Category } from '../../../stores/categories.store';
 import { useCategoriesStore } from '../../../stores/categories.store';
+
+interface IconProps {
+  name: string;
+  className?: string;
+}
+
+function DynamicIcon({ name, className }: IconProps) {
+  const Icon = LucideIcons[name as keyof typeof LucideIcons];
+  
+  if (!Icon) {
+    return <LucideIcons.HelpCircle className={className} />;
+  }
+  
+  return <Icon className={className} />;
+}
 
 interface CategoryCardProps {
   category: Category;
@@ -18,7 +33,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center text-2xl">
-              {category.icon}
+              <DynamicIcon name={category.icon} className="w-6 h-6 text-purple-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
@@ -33,20 +48,20 @@ export function CategoryCard({ category }: CategoryCardProps) {
               onClick={() => setShowActions(!showActions)}
               className="p-2 hover:bg-gray-50 rounded-lg"
             >
-              <MoreVertical className="w-5 h-5 text-gray-500" />
+              <LucideIcons.MoreVertical className="w-5 h-5 text-gray-500" />
             </button>
             
             {showActions && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                 <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                  <Pencil className="w-4 h-4" />
+                  <LucideIcons.Pencil className="w-4 h-4" />
                   Edit Category
                 </button>
                 <button
                   onClick={() => deleteCategory(category.id)}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <LucideIcons.Trash2 className="w-4 h-4" />
                   Delete Category
                 </button>
               </div>
@@ -69,7 +84,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
               <div key={sub.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <FolderKanban className="w-4 h-4 text-gray-400" />
+                    <DynamicIcon name={sub.icon} className="w-4 h-4 text-gray-400" />
                   </div>
                   <span className="text-sm text-gray-900">
                     {sub.title.find(t => t.language === 'en')?.value}
@@ -79,7 +94,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
             ))}
             
             <button className="w-full mt-4 py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-purple-500 hover:text-purple-500 flex items-center justify-center gap-2">
-              <Plus className="w-4 h-4" />
+              <LucideIcons.Plus className="w-4 h-4" />
               Add Subcategory
             </button>
           </div>

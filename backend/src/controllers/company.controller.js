@@ -1,4 +1,5 @@
 import { Company } from '../models/company.model.js';
+import { Vacancy } from '../models/vacancy.model.js';
 
 export const createCompany = async (req, res) => {
   try {
@@ -15,6 +16,14 @@ export const createCompany = async (req, res) => {
       social,
       benefits
     } = req.body;
+
+    // Check if user already has a company (for employers)
+    if (req.user.role === 'employer') {
+      const existingCompany = await Company.findOne({ creator: req.user._id });
+      if (existingCompany) {
+        return res.status(400).json({ message: 'You already have a registered company' });
+      }
+    }
 
     const company = new Company({
       name,
@@ -44,6 +53,7 @@ export const getCompanies = async (req, res) => {
       search,
       industry,
       size,
+      country,
       status,
       page = 1,
       limit = 10
@@ -59,6 +69,7 @@ export const getCompanies = async (req, res) => {
     }
     if (industry) query.industry = industry;
     if (size) query.size = size;
+    if (country) query['location.country'] = country;
     if (status) query.status = status;
 
     const skip = (page - 1) * limit;
@@ -66,6 +77,7 @@ export const getCompanies = async (req, res) => {
     const companies = await Company.find(query)
       .populate('creator', 'firstName lastName')
       .skip(skip)
+      .select('-__v')
       .limit(Number(limit))
       .sort({ createdAt: -1 });
 
@@ -85,7 +97,8 @@ export const getCompanies = async (req, res) => {
 export const getCompany = async (req, res) => {
   try {
     const company = await Company.findById(req.params.id)
-      .populate('creator', 'firstName lastName');
+      .populate('creator', 'firstName lastName')
+      .select('-__v');
 
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });
@@ -97,6 +110,28 @@ export const getCompany = async (req, res) => {
   }
 };
 
+export const getMyCompany = async (req, res) => {
+  try {
+    const company = await Company.findOne({ creator: req.user._id })
+      .populate('creator', 'firstName lastName')
+      .select('-__v');
+
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // Get company's vacancies
+    const vacancies = await Vacancy.find({ company: company._id })
+      .sort({ createdAt: -1 })
+      .select('title status createdAt');
+
+    res.json({ company, vacancies });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 export const updateCompany = async (req, res) => {
   try {
     const company = await Company.findById(req.params.id);
@@ -105,7 +140,7 @@ export const updateCompany = async (req, res) => {
       return res.status(404).json({ message: 'Company not found' });
     }
 
-    // Check if user is the creator or an admin
+    // Check authorization
     if (company.creator.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to update this company' });
     }
@@ -140,6 +175,7 @@ export const updateCompany = async (req, res) => {
       status: status || company.status
     });
 
+    await company.validate();
     await company.save();
     res.json(company);
   } catch (error) {
@@ -155,7 +191,7 @@ export const deleteCompany = async (req, res) => {
       return res.status(404).json({ message: 'Company not found' });
     }
 
-    // Check if user is the creator or an admin
+    // Check authorization
     if (company.creator.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to delete this company' });
     }

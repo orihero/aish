@@ -1,5 +1,6 @@
 import { ArrowUpDown } from 'lucide-react';
 import { useCategoriesStore } from '../../../stores/categories.store';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface JobFiltersProps {
   filters: {
@@ -18,18 +19,19 @@ const employmentTypes = ['full-time', 'part-time', 'contract'];
 const workTypes = ['remote', 'hybrid', 'onsite'];
 
 export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
+  const { t } = useTranslation();
   const { categories } = useCategoriesStore();
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('jobs.filters')}</h2>
       </div>
 
       {/* Categories */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Categories
+          {t('jobs.filters.categories')}
         </label>
         <div className="space-y-2">
           {categories.map(category => (
@@ -56,7 +58,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
       {/* Employment Type */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Employment Type
+          {t('jobs.filters.employmentType')}
         </label>
         <div className="space-y-2">
           {employmentTypes.map(type => (
@@ -73,7 +75,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <span className="ml-2 text-sm text-gray-600">
-                {type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ')}
+                {t(`jobs.employmentType.${type}`)}
               </span>
             </label>
           ))}
@@ -83,7 +85,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
       {/* Work Type */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Work Type
+          {t('jobs.filters.workType')}
         </label>
         <div className="space-y-2">
           {workTypes.map(type => (
@@ -100,7 +102,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <span className="ml-2 text-sm text-gray-600">
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {t(`jobs.workType.${type}`)}
               </span>
             </label>
           ))}
@@ -110,7 +112,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
       {/* Salary Range */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Salary Range
+          {t('jobs.filters.salaryRange')}
         </label>
         <div className="space-y-2">
           <input

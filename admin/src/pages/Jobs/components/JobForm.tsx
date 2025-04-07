@@ -1,4 +1,5 @@
-import { X, ArrowUpDown } from 'lucide-react';
+import { X, ArrowUpDown, HelpCircle } from 'lucide-react';
+import { useEffect } from 'react';
 import type { Job } from '../../../stores/jobs.store';
 import { useCategoriesStore } from '../../../stores/categories.store';
 
@@ -14,6 +15,7 @@ interface JobFormProps {
     description: string;
     employmentType: string;
     workType: string;
+    aiAssist: boolean;
     salary: {
       min: number;
       max: number;
@@ -39,9 +41,17 @@ export function JobForm({
   error,
   onClearError
 }: JobFormProps) {
-  const { categories } = useCategoriesStore();
+  const { categories, getCategories } = useCategoriesStore();
+
+  useEffect(() => {
+    if (isOpen) {
+      getCategories();
+    }
+  }, [isOpen, getCategories]);
 
   if (!isOpen) return null;
+
+  const selectedCategory = categories.find(c => c.id === formData.category);
 
   return (
     <div className="fixed inset-0 overflow-hidden z-50">
@@ -103,7 +113,7 @@ export function JobForm({
                           setFormData({
                             ...formData,
                             category: e.target.value,
-                            subcategory: undefined // Reset subcategory when category changes
+                            subcategory: '' // Reset subcategory when category changes
                           });
                         }}
                       >
@@ -116,7 +126,7 @@ export function JobForm({
                       </select>
                     </div>
 
-                    {formData.category && (
+                    {selectedCategory && selectedCategory.subcategories.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
                           Subcategory
@@ -127,10 +137,8 @@ export function JobForm({
                           onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
                         >
                           <option value="">Select Subcategory</option>
-                          {categories
-                            .find(c => c.id === formData.category)
-                            ?.subcategories.map(sub => (
-                              <option key={sub.id} value={sub.id}>
+                          {selectedCategory.subcategories.map(sub => (
+                              <option key={sub._id} value={sub._id}>
                                 {sub.title.find(t => t.language === 'en')?.value}
                               </option>
                             ))}
@@ -219,7 +227,54 @@ export function JobForm({
                         </select>
                       </div>
                     </div>
+
+                    <div className="border-t border-gray-100 pt-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.aiAssist}
+                              onChange={(e) => setFormData({ ...formData, aiAssist: e.target.checked })}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <span className="text-sm font-medium text-gray-700">Enable AI assist</span>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none group"
+                            >
+                              <HelpCircle className="w-4 h-4" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 hidden group-hover:block shadow-lg">
+                                <p className="font-medium mb-2">AI-Powered Recruitment Assistant</p>
+                                <ul className="space-y-1.5">
+                                  <li className="flex items-start gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>Conducts initial AI-powered screening interviews with candidates</span>
+                                  </li>
+                                  <li className="flex items-start gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>Automatically evaluates and ranks candidates based on qualifications and experience</span>
+                                  </li>
+                                  <li className="flex items-start gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>Filters out unqualified candidates to save your time</span>
+                                  </li>
+                                  <li className="flex items-start gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>Performs preliminary technical assessments and personality fit analysis</span>
+                                  </li>
+                                </ul>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
                   <div className="flex-shrink-0 px-6 py-6 border-t border-gray-200">
                     <div className="flex justify-end gap-3">
                       <button
@@ -233,7 +288,7 @@ export function JobForm({
                         type="submit"
                         onClick={onSubmit}
                         disabled={!formData.title || !formData.category || !formData.description || !formData.employmentType || !formData.workType || !formData.salary.min || !formData.salary.max}
-                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-lg"
+                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {editingJob ? 'Save Changes' : 'Add Job'}
                       </button>

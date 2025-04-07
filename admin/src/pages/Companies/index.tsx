@@ -1,37 +1,19 @@
-import { Search, X, Plus, Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Search, ArrowUpDown, Download, Plus } from 'lucide-react';
 import { useCompaniesStore } from '../../stores/companies.store';
+import { CompanyFilters } from './components/CompanyFilters';
 import { CompanyCard } from './components/CompanyCard';
 import { CompanyForm } from './components/CompanyForm';
-
-const industries = [
-  'Technology',
-  'Finance',
-  'Healthcare',
-  'Media'
-];
-
-const companySizes = [
-  '1-50',
-  '51-200',
-  '201-1000',
-  '1000-5000',
-  '5000+'
-];
-
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-6">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-}
+import { useTranslation } from '../../hooks/useTranslation';
+import { useAuthStore } from '../../stores/auth.store';
 
 export function Companies() {
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const {
     companies,
     filters,
+    pagination,
     isLoading,
     error,
     getCompanies,
@@ -39,6 +21,7 @@ export function Companies() {
     updateCompany,
     deleteCompany,
     setFilters,
+    setPagination,
     clearError
   } = useCompaniesStore();
 
@@ -70,19 +53,53 @@ export function Companies() {
     benefits: []
   });
 
-  const handleIndustryToggle = (industry: string) => {
-    setFilters(prev => ({
-      ...prev,
-      industry: prev.industry === industry ? '' : industry
-    }));
-  };
+  useEffect(() => {
+    getCompanies();
+  }, []);
 
-  const handleSizeToggle = (size: string) => {
-    setFilters(prev => ({
-      ...prev,
-      size: prev.size === size ? '' : size
-    }));
-  };
+  useEffect(() => {
+    if (editingCompany) {
+      setFormData({
+        name: editingCompany.name,
+        logo: editingCompany.logo,
+        description: editingCompany.description,
+        industry: editingCompany.industry,
+        size: editingCompany.size,
+        founded: editingCompany.founded,
+        website: editingCompany.website,
+        location: editingCompany.location,
+        contact: editingCompany.contact,
+        social: editingCompany.social,
+        benefits: editingCompany.benefits
+      });
+    } else {
+      setFormData({
+        name: '',
+        logo: '',
+        description: '',
+        industry: '',
+        size: '',
+        founded: undefined,
+        website: '',
+        location: {
+          country: '',
+          city: '',
+          address: ''
+        },
+        contact: {
+          email: '',
+          phone: ''
+        },
+        social: {
+          linkedin: '',
+          twitter: '',
+          facebook: '',
+          instagram: ''
+        },
+        benefits: []
+      });
+    }
+  }, [editingCompany]);
 
   const handleSubmit = async () => {
     try {
@@ -99,129 +116,98 @@ export function Companies() {
   };
 
   return (
-    <div className="flex gap-6 p-6">
-      {/* Filters Sidebar */}
-      <div className="w-64 flex-shrink-0">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            <button
-              onClick={() => setFilters({})}
-              className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+    <div className="space-y-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">{t('companies.title')}</h1>
+        <p className="mt-1 text-gray-600">
+          {t('companies.manage')}
+        </p>
+      </div>
+
+      {/* Filters */}
+      <CompanyFilters
+        filters={filters}
+        onFilterChange={(key, value) => setFilters({ [key]: value })}
+      />
+
+      {/* Table Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <select
+              value={pagination.limit}
+              onChange={(e) => setPagination({ limit: Number(e.target.value) })}
+              className="appearance-none bg-gray-50 border-0 px-4 py-2.5 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-purple-500"
             >
-              <X className="w-4 h-4" />
-              Clear all
-            </button>
-          </div>
-
-          {/* Search */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search companies..."
-                value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+              <ArrowUpDown className="h-4 w-4 text-gray-400" />
             </div>
           </div>
-
-          {/* Industries */}
-          <FilterSection title="Industries">
-            <div className="space-y-2">
-              {industries.map(industry => (
-                <label key={industry} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={filters.industry === industry}
-                    onChange={() => handleIndustryToggle(industry)}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{industry}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Company Size */}
-          <FilterSection title="Company Size">
-            <div className="space-y-2">
-              {companySizes.map(size => (
-                <label key={size} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={filters.size === size}
-                    onChange={() => handleSizeToggle(size)}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{size}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search Company"
+              value={filters.search}
+              onChange={(e) => setFilters({ search: e.target.value })}
+              className="pl-9 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+          <button
+            onClick={() => {
+              setEditingCompany(null);
+              setIsFormOpen(true);
+            }}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-500 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add New Company
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Companies</h1>
-            <p className="mt-1 text-gray-600">
-              Browse and manage company profiles
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-            <button
-              onClick={() => {
-                setEditingCompany(null);
+      {/* Companies Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {isLoading ? (
+          <div className="col-span-2 text-center py-12 text-gray-500">Loading...</div>
+        ) : companies.length === 0 ? (
+          <div className="col-span-2 text-center py-12 text-gray-500">No companies found</div>
+        ) : (
+          companies.map(company => (
+            <CompanyCard
+              key={company.id}
+              company={company}
+              onEdit={(company) => {
+                setEditingCompany(company);
                 setIsFormOpen(true);
               }}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 font-medium flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add New Company
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-12 text-gray-500">Loading...</div>
-          ) : companies.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">No companies found</div>
-          ) : (
-            companies.map(company => (
-              <CompanyCard
-                key={company.id}
-                company={company}
-                onEdit={(company) => {
-                  setEditingCompany(company);
-                  setIsFormOpen(true);
-                }}
-                onDelete={deleteCompany}
-              />
-            ))
-          )}
-        </div>
-
-        <CompanyForm
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          onSubmit={handleSubmit}
-          editingCompany={editingCompany}
-          formData={formData}
-          setFormData={setFormData}
-          error={error}
-          onClearError={clearError}
-        />
+              onDelete={deleteCompany}
+            />
+          ))
+        )}
       </div>
+
+      {/* Form */}
+      <CompanyForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSubmit}
+        editingCompany={editingCompany}
+        formData={formData}
+        setFormData={setFormData}
+        error={error}
+        onClearError={clearError}
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Resume } from '../models/resume.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
+import { sendApplicationStatusNotification } from '../config/telegram.js';
 
 export const createResume = async (req, res) => {
   try {
@@ -155,6 +156,7 @@ export const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await resume.save();
 
+    await sendApplicationStatusNotification(application);
     res.json(resume);
   } catch (error) {
     res.status(400).json({ message: error.message });

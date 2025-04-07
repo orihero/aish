@@ -3,8 +3,10 @@ import { Plus, Search } from 'lucide-react';
 import { useCategoriesStore, type Category } from '../../stores/categories.store';
 import { CategoryCard } from './components/CategoryCard';
 import { CategoryForm } from './components/CategoryForm';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export function Categories() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -45,9 +47,9 @@ export function Categories() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">{t('categories.title')}</h1>
           <p className="mt-1 text-gray-600">
-            Manage job categories and subcategories
+            {t('categories.manage')}
           </p>
         </div>
         <button
@@ -58,7 +60,7 @@ export function Categories() {
           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 font-medium flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Add Category
+          {t('categories.addNew')}
         </button>
       </div>
 
@@ -67,7 +69,7 @@ export function Categories() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search categories..."
+            placeholder={t('common.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"

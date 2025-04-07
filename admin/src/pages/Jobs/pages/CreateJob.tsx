@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NumericFormat } from 'react-number-format';
+import { HelpCircle } from 'lucide-react';
 import { useJobsStore } from '../../../stores/jobs.store';
 import { useCategoriesStore } from '../../../stores/categories.store';
 
@@ -18,6 +19,7 @@ export function CreateJob() {
     category: '',
     subcategory: '',
     description: '',
+    aiAssist: false,
     employmentType: '',
     workType: '',
     salary: {
@@ -173,6 +175,52 @@ export function CreateJob() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.aiAssist}
+                    onChange={(e) => setFormData({ ...formData, aiAssist: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+                <span className="text-sm font-medium text-gray-700">Enable AI assist</span>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none group"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 hidden group-hover:block shadow-lg">
+                      <p className="font-medium mb-2">AI-Powered Recruitment Assistant</p>
+                      <ul className="space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-400">•</span>
+                          <span>Conducts initial AI-powered screening interviews with candidates</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-400">•</span>
+                          <span>Automatically evaluates and ranks candidates based on qualifications and experience</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-400">•</span>
+                          <span>Filters out unqualified candidates to save your time</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-400">•</span>
+                          <span>Performs preliminary technical assessments and personality fit analysis</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

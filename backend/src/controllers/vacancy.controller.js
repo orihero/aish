@@ -1,4 +1,5 @@
 import { Vacancy } from '../models/vacancy.model.js';
+import { sendNewJobNotification } from '../config/telegram.js';
 
 export const createVacancy = async (req, res) => {
   try {
@@ -24,6 +25,7 @@ export const createVacancy = async (req, res) => {
     });
 
     await vacancy.save();
+    await sendNewJobNotification(vacancy);
     res.status(201).json(vacancy);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -84,7 +86,18 @@ export const getVacancies = async (req, res) => {
 
     const vacancies = await Vacancy.find(query)
       .populate('creator', 'firstName lastName')
-      .populate('category', 'title')
+      .populate({
+        path: 'category',
+        select: 'title subcategories',
+        populate: {
+          path: 'subcategories',
+          match: { _id: { $eq: '$subcategory' } }
+        }
+      })
+      .populate({
+        path: 'company',
+        select: 'name logo industry size location contact'
+      })
       .skip(skip)
       .limit(Number(limit))
       .sort(sortOptions);
@@ -106,7 +119,18 @@ export const getVacancy = async (req, res) => {
   try {
     const vacancy = await Vacancy.findById(req.params.id)
       .populate('creator', 'firstName lastName')
-      .populate('category', 'title');
+      .populate({
+        path: 'category',
+        select: 'title subcategories',
+        populate: {
+          path: 'subcategories',
+          match: { _id: { $eq: '$subcategory' } }
+        }
+      })
+      .populate({
+        path: 'company',
+        select: 'name logo industry size location contact website social benefits'
+      });
 
     if (!vacancy) {
       return res.status(404).json({ message: 'Vacancy not found' });
@@ -182,7 +206,18 @@ export const getFeaturedVacancies = async (req, res) => {
   try {
     const vacancies = await Vacancy.find({ isFeatured: true })
       .populate('creator', 'firstName lastName')
-      .populate('category', 'title')
+      .populate({
+        path: 'category',
+        select: 'title subcategories',
+        populate: {
+          path: 'subcategories',
+          match: { _id: { $eq: '$subcategory' } }
+        }
+      })
+      .populate({
+        path: 'company',
+        select: 'name logo industry size location contact'
+      })
       .sort({ createdAt: -1 })
       .limit(6);
 
@@ -196,7 +231,18 @@ export const getNewestVacancies = async (req, res) => {
   try {
     const vacancies = await Vacancy.find()
       .populate('creator', 'firstName lastName')
-      .populate('category', 'title')
+      .populate({
+        path: 'category',
+        select: 'title subcategories',
+        populate: {
+          path: 'subcategories',
+          match: { _id: { $eq: '$subcategory' } }
+        }
+      })
+      .populate({
+        path: 'company',
+        select: 'name logo industry size location contact'
+      })
       .sort({ createdAt: -1 })
       .limit(8);
 

@@ -5,8 +5,10 @@ import { StatCard } from './components/StatCard';
 import { UserFilters } from './components/UserFilters';
 import { UserTable } from './components/UserTable';
 import { UserForm } from './components/UserForm';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export function Users() {
+  const { t } = useTranslation();
   const {
     users,
     stats,
@@ -76,6 +78,25 @@ export function Users() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">{t('users.title')}</h1>
+          <p className="mt-1 text-gray-600">
+            {t('users.manage')}
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setEditingUser(null);
+            setIsSlideOverOpen(true);
+          }}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-500 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t('users.addNew')}
+        </button>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard

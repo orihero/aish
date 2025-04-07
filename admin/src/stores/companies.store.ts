@@ -40,6 +40,7 @@ interface CompaniesState {
     search: string;
     industry: string;
     size: string;
+    country: string;
     status: string;
   };
   pagination: {
@@ -51,8 +52,8 @@ interface CompaniesState {
   createCompany: (companyData: Partial<Company>) => Promise<void>;
   updateCompany: (id: string, companyData: Partial<Company>) => Promise<void>;
   deleteCompany: (id: string) => Promise<void>;
-  setFilters: (filters: Partial<typeof CompaniesState['filters']>) => void;
-  setPagination: (pagination: Partial<typeof CompaniesState['pagination']>) => void;
+  setFilters: (filters: Partial<CompaniesState['filters']>) => void;
+  setPagination: (pagination: Partial<CompaniesState['pagination']>) => void;
   clearError: () => void;
 }
 
@@ -64,6 +65,7 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
     search: '',
     industry: '',
     size: '',
+    country: '',
     status: ''
   },
   pagination: {
@@ -83,6 +85,7 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
         ...(filters.search && { search: filters.search }),
         ...(filters.industry && { industry: filters.industry }),
         ...(filters.size && { size: filters.size }),
+        ...(filters.country && { country: filters.country }),
         ...(filters.status && { status: filters.status })
       });
 
