@@ -1,0 +1,749 @@
+{
+  "info": {
+    "name": "Vuexy API",
+    "description": "Collection for Vuexy job board API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"employer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"reset-token\",\n    \"password\": \"newpassword123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "description": "Category management endpoints",
+      "item": [
+        {
+          "name": "Get Category Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Create Initial Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const categories = [",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Software Development' }],",
+                  "        icon: 'Code',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Frontend Development' }], icon: 'Layout' },",
+                  "            { title: [{ language: 'en', value: 'Backend Development' }], icon: 'Database' },",
+                  "            { title: [{ language: 'en', value: 'Mobile Development' }], icon: 'Smartphone' },",
+                  "            { title: [{ language: 'en', value: 'DevOps' }], icon: 'Settings' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Design' }],",
+                  "        icon: 'Palette',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'UI/UX Design' }], icon: 'Figma' },",
+                  "            { title: [{ language: 'en', value: 'Graphic Design' }], icon: 'Image' },",
+                  "            { title: [{ language: 'en', value: 'Motion Design' }], icon: 'Video' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Marketing' }],",
+                  "        icon: 'TrendingUp',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Digital Marketing' }], icon: 'Globe' },",
+                  "            { title: [{ language: 'en', value: 'Content Marketing' }], icon: 'FileText' },",
+                  "            { title: [{ language: 'en', value: 'Social Media' }], icon: 'Share2' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Sales' }],",
+                  "        icon: 'DollarSign',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Business Development' }], icon: 'Briefcase' },",
+                  "            { title: [{ language: 'en', value: 'Account Management' }], icon: 'Users' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Customer Service' }],",
+                  "        icon: 'Headphones',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Customer Support' }], icon: 'MessageCircle' },",
+                  "            { title: [{ language: 'en', value: 'Technical Support' }], icon: 'Tool' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Data' }],",
+                  "        icon: 'BarChart2',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Data Analysis' }], icon: 'PieChart' },",
+                  "            { title: [{ language: 'en', value: 'Data Science' }], icon: 'Activity' },",
+                  "            { title: [{ language: 'en', value: 'Machine Learning' }], icon: 'Brain' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Human Resources' }],",
+                  "        icon: 'Users',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Recruitment' }], icon: 'UserPlus' },",
+                  "            { title: [{ language: 'en', value: 'HR Management' }], icon: 'ClipboardList' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Project Management' }],",
+                  "        icon: 'Target',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Agile' }], icon: 'GitBranch' },",
+                  "            { title: [{ language: 'en', value: 'Scrum Master' }], icon: 'Clock' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Finance' }],",
+                  "        icon: 'DollarSign',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Accounting' }], icon: 'Calculator' },",
+                  "            { title: [{ language: 'en', value: 'Financial Analysis' }], icon: 'TrendingUp' }",
+                  "        ]",
+                  "    },",
+                  "    {",
+                  "        title: [{ language: 'en', value: 'Legal' }],",
+                  "        icon: 'Scale',",
+                  "        subcategories: [",
+                  "            { title: [{ language: 'en', value: 'Corporate Law' }], icon: 'Building' },",
+                  "            { title: [{ language: 'en', value: 'Legal Counsel' }], icon: 'FileText' }",
+                  "        ]",
+                  "    }",
+                  "];",
+                  "",
+                  "// Function to create a category",
+                  "const createCategory = async (category) => {",
+                  "    try {",
+                  "        const response = await pm.sendRequest({",
+                  "            url: pm.variables.get('baseUrl') + '/api/categories',",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'Content-Type': 'application/json',",
+                  "                'Authorization': 'Bearer ' + pm.variables.get('token')",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify(category)",
+                  "            }",
+                  "        });",
+                  "",
+                  "        console.log(`Created category: ${category.title[0].value}`);",
+                  "        return response;",
+                  "    } catch (error) {",
+                  "        console.error(`Failed to create category: ${category.title[0].value}`, error);",
+                  "    }",
+                  "};",
+                  "",
+                  "// Create all categories sequentially",
+                  "const createCategories = async () => {",
+                  "    for (const category of categories) {",
+                  "        await createCategory(category);",
+                  "    }",
+                  "    console.log('All categories created successfully!');",
+                  "};",
+                  "",
+                  "// Execute the creation",
+                  "createCategories();"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Technology\"\n    }],\n    \"icon\": \"computer\",\n    \"subcategories\": [{\n        \"title\": [{\n            \"language\": \"en\",\n            \"value\": \"Web Development\"\n        }],\n        \"icon\": \"code\"\n    }]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category-id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category-id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Updated Technology\"\n    }],\n    \"icon\": \"laptop\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category-id"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vacancies",
+      "item": [
+        {
+          "name": "Get Featured Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Get Newest Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/newest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", "newest"]
+            }
+          }
+        },
+        {
+          "name": "Create Vacancy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Senior React Developer\",\n    \"category\": \"category-id\",\n    \"subcategory\": \"subcategory-id\",\n    \"description\": \"We are looking for a Senior React Developer...\",\n    \"salary\": {\n        \"min\": 80000,\n        \"max\": 120000,\n        \"currency\": \"USD\"\n    },\n    \"employmentType\": \"full-time\",\n    \"workType\": \"remote\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies?search=react&category=tech&employmentType=full-time&workType=remote&salaryMin=80000&salaryMax=120000&featured=true&sort=newest&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "react"
+                },
+                {
+                  "key": "category",
+                  "value": "tech"
+                },
+                {
+                  "key": "employmentType",
+                  "value": "full-time"
+                },
+                {
+                  "key": "workType",
+                  "value": "remote"
+                },
+                {
+                  "key": "salaryMin",
+                  "value": "80000"
+                },
+                {
+                  "key": "salaryMax",
+                  "value": "120000"
+                },
+                {
+                  "key": "featured",
+                  "value": "true"
+                },
+                {
+                  "key": "sort",
+                  "value": "newest",
+                  "description": "Options: newest, mostViewed"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vacancy",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "vacancy-id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vacancy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "vacancy-id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated Senior React Developer\",\n    \"description\": \"Updated job description...\",\n    \"salary\": {\n        \"min\": 90000,\n        \"max\": 130000\n    }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Vacancy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "vacancy-id"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "item": [
+        {
+          "name": "Create Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "My Software Engineer Resume",
+                  "type": "text"
+                },
+                {
+                  "key": "cvFile",
+                  "type": "file",
+                  "src": "/path/to/resume.pdf"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Resumes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "my"]
+            }
+          }
+        },
+        {
+          "name": "Get Resume",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "resume-id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Resume",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "resume-id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Updated Resume Name",
+                  "type": "text"
+                },
+                {
+                  "key": "cvFile",
+                  "type": "file",
+                  "src": "/path/to/updated-resume.pdf"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Resume",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "resume-id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Apply to Vacancy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:resumeId/apply/:vacancyId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":resumeId", "apply", ":vacancyId"],
+              "variable": [
+                {
+                  "key": "resumeId",
+                  "value": "resume-id"
+                },
+                {
+                  "key": "vacancyId",
+                  "value": "vacancy-id"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your-jwt-token",
+      "type": "string"
+    }
+  ]
+}

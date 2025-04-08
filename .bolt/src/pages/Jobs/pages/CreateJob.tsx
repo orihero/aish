@@ -9,7 +9,7 @@ const employmentTypes = ['full-time', 'part-time', 'contract'];
 const workTypes = ['remote', 'hybrid', 'onsite'];
 const currencies = ['USD', 'EUR', 'GBP', 'UZS', 'RUB', 'UAH'];
 
-function CreateJob() {
+export default function CreateJob() {
   const navigate = useNavigate();
   const { createJob, error, clearError } = useJobsStore();
   const { categories, getCategories } = useCategoriesStore();
@@ -302,5 +302,3 @@ function CreateJob() {
     </div>
   );
 }
-
-export { CreateJob }
