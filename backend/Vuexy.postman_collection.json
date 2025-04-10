@@ -591,6 +591,49 @@
       "name": "Resumes",
       "item": [
         {
+          "name": "Analyze Resume",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "analyze"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cvFile",
+                  "type": "file",
+                  "src": "/path/to/resume.pdf"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register with Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"password123\",\n  \"parsedData\": {\n    \"basics\": {\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"phone\": \"+1234567890\",\n      \"summary\": \"Experienced software engineer...\"\n    },\n    \"skills\": [\n      {\n        \"name\": \"JavaScript\",\n        \"level\": \"Advanced\",\n        \"keywords\": [\"React\", \"Node.js\", \"TypeScript\"]\n      }\n    ],\n    \"languages\": [\n      {\n        \"language\": \"English\",\n        \"fluency\": \"Native\"\n      }\n    ],\n    \"work\": [\n      {\n        \"name\": \"Tech Company\",\n        \"position\": \"Senior Developer\",\n        \"startDate\": \"2020-01\",\n        \"endDate\": \"2023-12\",\n        \"summary\": \"Led development of...\"\n      }\n    ],\n    \"education\": [\n      {\n        \"institution\": \"University of Technology\",\n        \"area\": \"Computer Science\",\n        \"studyType\": \"Bachelor\",\n        \"startDate\": \"2016-09\",\n        \"endDate\": \"2020-06\"\n      }\n    ]\n  }\n}"
+            }
+          }
+        },
+        {
           "name": "Create Resume",
           "request": {
             "method": "POST",
@@ -714,6 +757,60 @@
               "raw": "{{baseUrl}}/api/resumes/:id",
               "host": ["{{baseUrl}}"],
               "path": ["api", "resumes", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "resume-id"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Parsed Data",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:id/parsed-data",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":id", "parsed-data"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "resume-id"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basics\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"summary\": \"Updated professional summary...\"\n  },\n  \"skills\": [\n    {\n      \"name\": \"JavaScript\",\n      \"level\": \"Expert\",\n      \"keywords\": [\"React\", \"Node.js\"]\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Download Resume PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes/:id/download-pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes", ":id", "download-pdf"],
               "variable": [
                 {
                   "key": "id",

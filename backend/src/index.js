@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { requestLogger } from './middleware/logger.middleware.js';
 import mongoose from 'mongoose';
 import { errorHandler } from './middleware/error.middleware.js';
 import './config/telegram.js';
@@ -20,6 +22,8 @@ export const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
+app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', authRoutes);

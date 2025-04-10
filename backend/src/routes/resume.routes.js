@@ -1,9 +1,12 @@
 import express from 'express';
+import { body } from 'express-validator';
 import { auth } from '../middleware/auth.middleware.js';
 import { upload } from '../middleware/upload.middleware.js';
 import { validate, resumeValidation, applicationStatusValidation } from '../middleware/validate.middleware.js';
 import {
   createResume,
+  createManualResumeWithRegistration,
+  analyzeResumeFile,
   getMyResumes,
   getResume,
   updateResume,
@@ -30,8 +33,43 @@ const employeeAuth = async (req, res, next) => {
   }
 };
 
+// Public resume analysis endpoint
+router.post('/analyze', upload.single('cvFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'CV file is required' });
+    }
+    const result = await analyzeResumeFile(req.file);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Public endpoint to create resume and register user
+router.post('/register', [
+  validate([
+    body('password').trim().notEmpty().withMessage('Password is required'),
+    body('parsedData').isObject().withMessage('Resume data is required'),
+    body('parsedData.basics.email').isEmail().withMessage('Valid email is required'),
+    body('parsedData.basics.name').notEmpty().withMessage('Name is required')
+  ])
+], createManualResumeWithRegistration);
+
 // Basic CRUD operations (employee only)
-router.post('/', employeeAuth, upload.single('cvFile'), validate(resumeValidation), createResume);
+router.post('/', [
+  employeeAuth,
+  upload.single('cvFile'),
+  validate([
+    ...resumeValidation,
+    body('cvFile').custom((value, { req }) => {
+      if (!req.file) {
+        throw new Error('CV file is required');
+      }
+      return true;
+    })
+  ])
+], createResume);
 router.get('/my', employeeAuth, getMyResumes);
 router.get('/:id', employeeAuth, getResume);
 router.put('/:id', employeeAuth, upload.single('cvFile'), validate(resumeValidation), updateResume);
