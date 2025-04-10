@@ -373,7 +373,7 @@ const categories = [
 const companies = [
   {
     name: 'TechCorp Solutions',
-    logo: 'https://images.unsplash.com/photo-1549421263-6064833b071b?w=200&h=200&fit=crop',
+    logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&h=200&fit=crop',
     description: 'Leading provider of innovative software solutions',
     industry: 'Technology',
     size: '201-1000',
@@ -686,14 +686,12 @@ async function seed() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Clear existing data
+    // Only clear categories and companies
     await Promise.all([
-      User.deleteMany({}),
       Category.deleteMany({}),
-      Company.deleteMany({}),
-      Vacancy.deleteMany({})
+      Company.deleteMany({})
     ]);
-    console.log('Cleared existing data');
+    console.log('Cleared categories and companies');
 
     // Create test users
     const adminUser = await User.create({

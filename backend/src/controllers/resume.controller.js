@@ -1,15 +1,75 @@
+import pdf from 'pdf-parse';
 import { Resume } from '../models/resume.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
+import { startScreeningChat, continueChat } from '../services/chat.service.js';
+import { analyzeResume } from '../services/resume-analyzer.service.js';
+import { generateResumePDF } from '../services/pdf-generator.service.js';
 import { sendApplicationStatusNotification } from '../config/telegram.js';
 
+export const updateParsedData = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
+
+    if (!resume) {
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+
+    // Update parsed data
+    resume.parsedData = req.body;
+    await resume.save();
+
+    res.json(resume);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const downloadResumePDF = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
+
+    if (!resume) {
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+
+    // Generate PDF from parsed data
+    const pdfBuffer = await generateResumePDF(resume.parsedData);
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${resume.name}.pdf"`);
+
+    // Send PDF
+    res.send(pdfBuffer);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 export const createResume = async (req, res) => {
   try {
     const { name, cvFile } = req.body;
+    
+    // Download the PDF file
+    const pdfResponse = await fetch(cvFile.url);
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    
+    // Extract text from PDF
+    const pdfData = await pdf(Buffer.from(pdfBuffer));
+    
+    // Analyze resume using OpenRouter API
+    const parsedData = await analyzeResume(pdfData.text);
 
     const resume = new Resume({
       user: req.user._id,
       name,
       cvFile,
+      parsedData,
       applications: []
     });
 
@@ -61,9 +121,20 @@ export const updateResume = async (req, res) => {
 
     const { name, cvFile } = req.body;
 
+    // If a new CV file is uploaded, analyze it
+    let parsedData = resume.parsedData;
+    if (cvFile && cvFile.url !== resume.cvFile.url) {
+      // Download and analyze the new PDF
+      const pdfResponse = await fetch(cvFile.url);
+      const pdfBuffer = await pdfResponse.arrayBuffer();
+      const pdfData = await pdf(Buffer.from(pdfBuffer));
+      parsedData = await analyzeResume(pdfData.text);
+    }
+
     Object.assign(resume, {
       name: name || resume.name,
-      cvFile: cvFile || resume.cvFile
+      cvFile: cvFile || resume.cvFile,
+      parsedData: parsedData
     });
 
     await resume.save();
@@ -119,14 +190,21 @@ export const applyToVacancy = async (req, res) => {
     }
 
     // Add application
-    resume.applications.push({
+    const application = {
       vacancy: vacancyId,
       appliedAt: new Date(),
       status: 'pending'
-    });
-
+    };
+    resume.applications.push(application);
     await resume.save();
-    res.json(resume);
+
+    // Start screening chat
+    const chat = await startScreeningChat(application, vacancy, resume);
+    
+    res.json({
+      resume,
+      chat
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

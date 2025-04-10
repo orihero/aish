@@ -118,6 +118,12 @@ export const getVacancies = async (req, res) => {
 export const getVacancy = async (req, res) => {
   try {
     const vacancy = await Vacancy.findById(req.params.id)
+      // First increment the views
+      .findOneAndUpdate(
+        { _id: req.params.id },
+        { $inc: { views: 1 } },
+        { new: true }
+      )
       .populate('creator', 'firstName lastName')
       .populate({
         path: 'category',

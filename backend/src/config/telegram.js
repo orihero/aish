@@ -4,7 +4,10 @@ import { User } from '../models/user.model.js';
 import { Resume } from '../models/resume.model.js';
 import { Company } from '../models/company.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
+import { Chat } from '../models/chat.model.js';
 import { TelegramSubscription } from '../models/telegram-subscription.model.js';
+import { analyzeResume } from '../services/resume-analyzer.service.js';
+import { startScreeningChat, continueChat } from '../services/chat.service.js';
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +19,9 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 
 // Store application state for users
 const userStates = new Map();
+
+// Store active chats for users
+const activeChats = new Map();
 
 // Create a bot instance
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
@@ -202,6 +208,12 @@ bot.on('document', async (msg) => {
     const fileName = msg.document.file_name;
     const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
 
+    // Download and analyze the PDF
+    const pdfResponse = await fetch(fileUrl);
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    const pdfData = await pdf(Buffer.from(pdfBuffer));
+    const parsedData = await analyzeResume(pdfData.text);
+
     // Create resume
     const resume = await Resume.create({
       user: state.user,
@@ -209,15 +221,14 @@ bot.on('document', async (msg) => {
       cvFile: {
         url: fileUrl,
         filename: fileName
-      }
+      },
+      parsedData
     });
 
     // Get vacancy details for AI processing
     const vacancy = await Vacancy.findById(state.vacancy)
       .populate('company');
 
-    // TODO: Process with AI
-    // For now, just accept the application
     resume.applications.push({
       vacancy: state.vacancy,
       appliedAt: new Date(),
@@ -226,18 +237,32 @@ bot.on('document', async (msg) => {
 
     await resume.save();
 
-    await bot.sendMessage(chatId,
-      '✅ Thank you for your application!\n\n' +
-      'We have received your CV and will review it shortly.\n' +
-      'You will receive updates about your application status here.'
+    // Start screening chat
+    const chat = await startScreeningChat(
+      resume.applications[resume.applications.length - 1],
+      vacancy,
+      resume
     );
 
-    // Clear user state
-    userStates.delete(chatId);
+    // Store chat in active chats
+    activeChats.set(chatId, chat._id);
+
+    await bot.sendMessage(chatId,
+      '✅ Thank you for your application!\n\n' +
+      'I will now conduct a brief screening interview to learn more about your experience.\n\n' +
+      chat.messages[chat.messages.length - 1].content,
+      {
+        reply_markup: {
+          force_reply: true
+        }
+      }
+    );
+
   } catch (error) {
     console.error('Error handling document:', error);
     await bot.sendMessage(chatId, '❌ An error occurred. Please try again.');
     userStates.delete(chatId);
+    activeChats.delete(chatId);
   }
 });
 
@@ -258,4 +283,53 @@ export const sendApplicationStatusNotification = async (application) => {
   }
 };
 
+// Handle interview responses
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+  const activeChatId = activeChats.get(chatId);
+
+  if (!activeChatId || msg.document) return; // Skip if no active chat or if it's a document
+
+  try {
+    const chat = await Chat.findById(activeChatId);
+    if (!chat || chat.status !== 'screening') return;
+
+    // Continue chat with user's message
+    const updatedChat = await continueChat(chat._id, msg.text);
+
+    // Send AI's response
+    await bot.sendMessage(
+      chatId,
+      updatedChat.messages[updatedChat.messages.length - 1].content,
+      {
+        reply_markup: {
+          force_reply: true
+        }
+      }
+    );
+
+    // If chat is completed, send feedback
+    if (updatedChat.status === 'completed') {
+      await bot.sendMessage(
+        chatId,
+        `🎯 Interview completed!\n\n` +
+        `Score: ${updatedChat.score}/100\n\n` +
+        `Feedback:\n${updatedChat.feedback}\n\n` +
+        `We will review your application and get back to you soon.`
+      );
+
+      // Clear active chat
+      activeChats.delete(chatId);
+      userStates.delete(chatId);
+    }
+  } catch (error) {
+    console.error('Error handling message:', error);
+    await bot.sendMessage(
+      chatId,
+      '❌ An error occurred during the interview. Please try applying again.'
+    );
+    activeChats.delete(chatId);
+    userStates.delete(chatId);
+  }
+});
 export default bot;

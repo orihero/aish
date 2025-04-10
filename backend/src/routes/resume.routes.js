@@ -9,7 +9,9 @@ import {
   updateResume,
   deleteResume,
   applyToVacancy,
-  updateApplicationStatus
+  updateApplicationStatus,
+  updateParsedData,
+  downloadResumePDF
 } from '../controllers/resume.controller.js';
 
 const router = express.Router();
@@ -34,6 +36,10 @@ router.get('/my', employeeAuth, getMyResumes);
 router.get('/:id', employeeAuth, getResume);
 router.put('/:id', employeeAuth, upload.single('cvFile'), validate(resumeValidation), updateResume);
 router.delete('/:id', employeeAuth, deleteResume);
+
+// Parsed data operations
+router.put('/:id/parsed-data', employeeAuth, updateParsedData);
+router.get('/:id/download-pdf', employeeAuth, downloadResumePDF);
 
 // Application operations
 router.post('/:resumeId/apply/:vacancyId', employeeAuth, applyToVacancy);

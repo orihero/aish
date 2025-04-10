@@ -4,6 +4,25 @@
     "description": "Collection for Vuexy job board API endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set environment variables",
+          "if (!pm.environment.get('baseUrl')) {",
+          "    pm.environment.set('baseUrl', 'http://localhost:5000');",
+          "}",
+          "",
+          "// Handle authentication token",
+          "if (pm.response.code === 200 && pm.response.json().token) {",
+          "    pm.environment.set('token', pm.response.json().token);",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "Auth",
@@ -737,12 +756,12 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5000",
+      "value": "{{baseUrl}}",
       "type": "string"
     },
     {
       "key": "token",
-      "value": "your-jwt-token",
+      "value": "{{token}}",
       "type": "string"
     }
   ]

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{basics.name}} - Resume</title>
+  <style>
+    /* Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    /* Base styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #2563eb;
+      margin-bottom: 5px;
+    }
+
+    .header .label {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .contact-info {
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* Section styles */
+    .section {
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      color: #2563eb;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    /* Work experience */
+    .work-item {
+      margin-bottom: 20px;
+    }
+
+    .work-item h3 {
+      font-size: 16px;
+      color: #1f2937;
+    }
+
+    .work-item .company {
+      font-weight: bold;
+      color: #4b5563;
+    }
+
+    .work-item .date {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .work-item .summary {
+      margin: 8px 0;
+    }
+
+    .work-item ul {
+      margin-left: 20px;
+    }
+
+    /* Skills */
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .skill-item {
+      background: #f3f4f6;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 14px;
+    }
+
+    /* Education */
+    .education-item {
+      margin-bottom: 15px;
+    }
+
+    .education-item h3 {
+      color: #1f2937;
+    }
+
+    /* Projects */
+    .project-item {
+      margin-bottom: 15px;
+    }
+
+    .project-item h3 {
+      color: #1f2937;
+    }
+
+    .project-item .description {
+      margin: 5px 0;
+    }
+
+    /* Languages and Interests */
+    .languages, .interests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .language-item, .interest-item {
+      background: #f3f4f6;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>{{basics.name}}</h1>
+    <div class="label">{{basics.label}}</div>
+    <div class="contact-info">
+      {{#if basics.email}}{{basics.email}} · {{/if}}
+      {{#if basics.phone}}{{basics.phone}} · {{/if}}
+      {{#if basics.location.city}}{{basics.location.city}}, {{basics.location.region}}{{/if}}
+    </div>
+  </div>
+
+  <!-- Summary -->
+  {{#if basics.summary}}
+  <div class="section">
+    <h2 class="section-title">Summary</h2>
+    <p>{{basics.summary}}</p>
+  </div>
+  {{/if}}
+
+  <!-- Work Experience -->
+  {{#if work.length}}
+  <div class="section">
+    <h2 class="section-title">Work Experience</h2>
+    {{#each work}}
+    <div class="work-item">
+      <h3>
+        <span class="company">{{name}}</span> - {{position}}
+      </h3>
+      <div class="date">{{startDate}} - {{endDate}}</div>
+      <p class="summary">{{summary}}</p>
+      {{#if highlights.length}}
+      <ul>
+        {{#each highlights}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <!-- Skills -->
+  {{#if skills.length}}
+  <div class="section">
+    <h2 class="section-title">Skills</h2>
+    <div class="skills">
+      {{#each skills}}
+      <div class="skill-item">
+        <strong>{{name}}</strong>: {{keywords}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  <!-- Education -->
+  {{#if education.length}}
+  <div class="section">
+    <h2 class="section-title">Education</h2>
+    {{#each education}}
+    <div class="education-item">
+      <h3>{{institution}}</h3>
+      <div>{{studyType}} in {{area}}</div>
+      <div class="date">{{startDate}} - {{endDate}}</div>
+      {{#if gpa}}<div>GPA: {{gpa}}</div>{{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <!-- Projects -->
+  {{#if projects.length}}
+  <div class="section">
+    <h2 class="section-title">Projects</h2>
+    {{#each projects}}
+    <div class="project-item">
+      <h3>{{name}}</h3>
+      <p class="description">{{description}}</p>
+      {{#if highlights.length}}
+      <ul>
+        {{#each highlights}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <!-- Languages -->
+  {{#if languages.length}}
+  <div class="section">
+    <h2 class="section-title">Languages</h2>
+    <div class="languages">
+      {{#each languages}}
+      <div class="language-item">
+        {{language}} - {{fluency}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  <!-- Interests -->
+  {{#if interests.length}}
+  <div class="section">
+    <h2 class="section-title">Interests</h2>
+    <div class="interests">
+      {{#each interests}}
+      <div class="interest-item">
+        {{name}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+</body>
+</html>

@@ -5,7 +5,8 @@
   "scripts": {
     "install:all": "cd admin && yarn install && cd ../backend && yarn install",
     "dev": "concurrently \"cd admin && yarn dev\" \"cd backend && yarn dev\"",
-    "seed": "cd backend && yarn seed"
+    "seed": "cd backend && yarn seed",
+    "setup": "cp admin/.env.example admin/.env && cp backend/.env.example backend/.env"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
