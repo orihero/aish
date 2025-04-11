@@ -90,7 +90,7 @@ export const useResumesStore = create<ResumesState>((set) => ({
     } catch (error) {
       set({ error: 'Failed to fetch resumes', loading: false });
     }
-  }
+  },
 
   createResume: async (data) => {
     set({ loading: true, error: null });
