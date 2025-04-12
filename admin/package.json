@@ -10,16 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.39.0",
+    "@types/recharts": "^2.0.0",
+    "axios": "^1.6.7",
     "lucide-react": "^0.344.0",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.22.2",
-    "axios": "^1.6.7",
-    "zustand": "^4.5.2",
     "react-number-format": "^5.3.1",
-    "@types/recharts": "^2.0.0",
+    "react-router-dom": "^6.22.2",
     "recharts": "^2.12.2",
-    "resize-observer-polyfill": "^1.5.1"
+    "resize-observer-polyfill": "^1.5.1",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",
@@ -28,12 +30,12 @@
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
-    "vite": "^5.1.4",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
   }
 }

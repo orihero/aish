@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface Resume {
   id: string;
@@ -74,7 +74,7 @@ interface ResumesState {
   error: string | null;
   getMyResumes: () => Promise<void>;
   createResume: (data: Partial<Resume>) => Promise<void>;
-  analyzeResume: (file: File) => Promise<Resume['parsedData']>;
+  analyzeResume: (file: File) => Promise<Resume["parsedData"]>;
 }
 
 export const useResumesStore = create<ResumesState>((set) => ({
@@ -84,47 +84,46 @@ export const useResumesStore = create<ResumesState>((set) => ({
   getMyResumes: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/resumes/me');
+      const response = await fetch("/api/resumes/me");
       const data = await response.json();
       set({ resumes: data, loading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch resumes', loading: false });
+      set({ error: "Failed to fetch resumes", loading: false });
     }
   },
-
   createResume: async (data) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/resumes', {
-        method: 'POST',
+      const response = await fetch("/api/resumes", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       const resume = await response.json();
-      set(state => ({
+      set((state) => ({
         resumes: [...state.resumes, resume],
-        loading: false
+        loading: false,
       }));
     } catch (error) {
-      set({ error: 'Failed to create resume', loading: false });
+      set({ error: "Failed to create resume", loading: false });
     }
   },
 
   analyzeResume: async (file) => {
     const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch('/api/resumes/analyze', {
-      method: 'POST',
-      body: formData
+    formData.append("file", file);
+
+    const response = await fetch("/api/resumes/analyze", {
+      method: "POST",
+      body: formData,
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to analyze resume');
+      throw new Error("Failed to analyze resume");
     }
-    
+
     return response.json();
-  }
+  },
 }));

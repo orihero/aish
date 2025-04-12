@@ -12,6 +12,8 @@ interface JobCardProps {
   job: Job;
   onEdit: (job: Job) => void;
   onDelete: (id: string) => void;
+  onApply?: () => Promise<void>;
+  showApplyButton?: boolean;
 }
 
 export function JobCard({ job, onEdit, onDelete }: JobCardProps) {

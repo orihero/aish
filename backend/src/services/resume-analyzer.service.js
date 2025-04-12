@@ -41,8 +41,8 @@ export async function analyzeResume(text) {
   };
 
   try {
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'deepseek/deepseek-r1-distill-llama-70b:free',
+    const response = await axios.post(process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
+      model: process.env.OPENROUTER_MODEL || 'deepseek/deepseek-r1-distill-llama-70b:free',
       messages: [
         {
           role: 'system',
@@ -76,7 +76,7 @@ ${text}
 Return ONLY the JSON object, no other text.`
         }
       ],
-      temperature: 0.1
+      temperature: parseFloat(process.env.OPENROUTER_TEMPERATURE || '0.1')
     }, {
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,

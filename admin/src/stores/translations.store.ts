@@ -58,6 +58,9 @@ export type TranslationKey =
   | 'jobs.filters.employmentType'
   | 'jobs.filters.workType'
   | 'jobs.filters.salaryRange'
+  | 'jobs.status.active'
+  | 'jobs.status.closed'
+  | 'jobs.status.draft'
   | 'companies.title'
   | 'companies.manage'
   | 'companies.addNew'
@@ -150,6 +153,9 @@ const translations: Record<string, Translations> = {
     'jobs.filters.employmentType': 'Employment Type',
     'jobs.filters.workType': 'Work Type',
     'jobs.filters.salaryRange': 'Salary Range',
+    'jobs.status.active': 'Active',
+    'jobs.status.closed': 'Closed',
+    'jobs.status.draft': 'Draft',
     'companies.title': 'Companies',
     'companies.manage': 'Manage company profiles and information',
     'companies.addNew': 'Add New Company',
@@ -233,6 +239,9 @@ const translations: Record<string, Translations> = {
     'jobs.filters.employmentType': 'Тип занятости',
     'jobs.filters.workType': 'Формат работы',
     'jobs.filters.salaryRange': 'Диапазон зарплаты',
+    'jobs.status.active': 'Активно',
+    'jobs.status.closed': 'Закрыто',
+    'jobs.status.draft': 'Черновик',
     'companies.title': 'Компании',
     'companies.manage': 'Управление профилями компаний',
     'companies.addNew': 'Добавить компанию',
@@ -316,6 +325,9 @@ const translations: Record<string, Translations> = {
     'jobs.filters.employmentType': 'Тип зайнятості',
     'jobs.filters.workType': 'Формат роботи',
     'jobs.filters.salaryRange': 'Діапазон зарплати',
+    'jobs.status.active': 'Активно',
+    'jobs.status.closed': 'Закрыто',
+    'jobs.status.draft': 'Черновик',
     'companies.title': 'Компанії',
     'companies.manage': 'Управління профілями компаній',
     'companies.addNew': 'Додати компанію',
@@ -399,6 +411,9 @@ const translations: Record<string, Translations> = {
     'jobs.filters.employmentType': 'Bandlik turi',
     'jobs.filters.workType': 'Ish formati',
     'jobs.filters.salaryRange': 'Maosh diapazoni',
+    'jobs.status.active': 'Aktiv',
+    'jobs.status.closed': 'Yopilgan',
+    'jobs.status.draft': 'Chorak',
     'companies.title': 'Kompaniyalar',
     'companies.manage': 'Kompaniya profillarini boshqarish',
     'companies.addNew': 'Yangi kompaniya',

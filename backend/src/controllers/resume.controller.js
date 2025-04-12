@@ -1,4 +1,4 @@
-import PDFParser from 'pdf2json';
+import { PDFDocument } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 import { Resume } from '../models/resume.model.js';
@@ -8,6 +8,7 @@ import { startScreeningChat, continueChat } from '../services/chat.service.js';
 import { analyzeResume } from '../services/resume-analyzer.service.js';
 import { generateResumePDF } from '../services/pdf-generator.service.js';
 import { sendApplicationStatusNotification } from '../config/telegram.js';
+import textract from 'textract';
 
 export const createManualResumeWithRegistration = async (req, res) => {
   try {
@@ -97,14 +98,50 @@ export const createManualResumeWithRegistration = async (req, res) => {
 };
 
 export const analyzeResumeFile = async (file) => {
+  if (!file || !file.path) {
+    throw new Error('No file provided or invalid file path');
+  }
+
   try {
     console.log('Reading file:', file.path);
-    const pdfBuffer = fs.readFileSync(file.path);
+    
+    // Extract text using textract
+    console.log('Extracting text from file...');
+    let fullText;
+    try {
+      fullText = await new Promise((resolve, reject) => {
+        textract.fromFileWithPath(file.path, {
+          preserveLineBreaks: true,
+          pdftotextOptions: {
+            layout: 'raw'
+          }
+        }, (error, text) => {
+          if (error) {
+            console.error('Text extraction error details:', error);
+            if (error.message.includes('pdftotext')) {
+              reject(new Error('PDF text extraction failed. Please ensure poppler is installed and in your PATH.'));
+            } else if (error.message.includes('antiword')) {
+              reject(new Error('DOC text extraction failed. Please ensure antiword is installed and in your PATH.'));
+            } else if (error.message.includes('docx2txt')) {
+              reject(new Error('DOCX text extraction failed. Please ensure docx2txt is installed and in your PATH.'));
+            } else {
+              reject(new Error('Failed to extract text from file. The file might be corrupted or in an unsupported format.'));
+            }
+          } else {
+            resolve(text);
+          }
+        });
+      });
+    } catch (extractError) {
+      console.error('Text extraction error:', extractError);
+      throw extractError;
+    }
 
-    // Parse PDF text
-    console.log('Parsing PDF...');
-    const fullText = await parsePDF(pdfBuffer);
-    console.log('Successfully parsed PDF, text length:', fullText.length);
+    if (!fullText || fullText.trim().length === 0) {
+      throw new Error('No text content could be extracted from the file.');
+    }
+
+    console.log('Successfully extracted text, length:', fullText.length);
 
     // Analyze resume using OpenRouter API
     console.log('Analyzing resume text with OpenRouter API...');
@@ -112,7 +149,11 @@ export const analyzeResumeFile = async (file) => {
     console.log('Resume analysis complete');
 
     // Clean up uploaded file
-    fs.unlinkSync(file.path);
+    try {
+      fs.unlinkSync(file.path);
+    } catch (unlinkError) {
+      console.warn('Failed to delete uploaded file:', unlinkError);
+    }
 
     return {
       success: true,
@@ -120,7 +161,19 @@ export const analyzeResumeFile = async (file) => {
     };
   } catch (error) {
     console.error('Resume analysis error:', error);
-    throw error;
+    
+    // Clean up uploaded file in case of error
+    try {
+      fs.unlinkSync(file.path);
+    } catch (unlinkError) {
+      console.warn('Failed to delete uploaded file after error:', unlinkError);
+    }
+
+    throw {
+      success: false,
+      error: error.message || 'Failed to analyze resume',
+      details: error
+    };
   }
 };
 
@@ -169,34 +222,6 @@ export const downloadResumePDF = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-const parsePDF = (pdfBuffer) => {
-  return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser();
-    
-    pdfParser.on('pdfParser_dataReady', (pdfData) => {
-      try {
-        const text = pdfData.Pages.map(page => 
-          page.Texts.map(text => 
-            text.R.map(r => decodeURIComponent(r.T)).join('')
-          ).join(' ')
-        ).join('\n');
-        
-        console.log('Parsed PDF text:', text);
-        resolve(text);
-      } catch (error) {
-        console.error('Error processing PDF text:', error);
-        reject(error);
-      }
-    });
-    
-    pdfParser.on('pdfParser_dataError', (error) => {
-      console.error('PDF parsing error:', error);
-      reject(error);
-    });
-    
-    pdfParser.parseBuffer(pdfBuffer);
-  });
-};
 
 export const createResume = async (req, res) => {
   try {
@@ -215,7 +240,7 @@ export const createResume = async (req, res) => {
     // Read the uploaded file
     const pdfBuffer = fs.readFileSync(req.file.path);
 
-    // Parse PDF text using pdf2json
+    // Parse PDF text using pdf-lib
     const fullText = await parsePDF(pdfBuffer);
     console.log('Successfully parsed PDF, text length:', fullText.length);
 

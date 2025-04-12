@@ -53,10 +53,10 @@ export async function continueChat(chatId, message) {
     });
 
     // Get AI response
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'deepseek-ai/deepseek-coder-33b-instruct',
+    const response = await axios.post(process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
+      model: process.env.OPENROUTER_CHAT_MODEL || 'meta-llama/llama-4-maverick:free',
       messages: chat.messages,
-      temperature: 0.7
+      temperature: parseFloat(process.env.OPENROUTER_CHAT_TEMPERATURE || '0.7')
     }, {
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -87,8 +87,8 @@ export async function continueChat(chatId, message) {
 
 async function evaluateCandidate(chat) {
   try {
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'deepseek-ai/deepseek-coder-33b-instruct',
+    const response = await axios.post(process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
+      model: process.env.OPENROUTER_EVAL_MODEL || 'meta-llama/llama-4-maverick:free',
       messages: [
         {
           role: 'system',
@@ -100,7 +100,7 @@ async function evaluateCandidate(chat) {
           ${JSON.stringify(chat.messages, null, 2)}`
         }
       ],
-      temperature: 0.3
+      temperature: parseFloat(process.env.OPENROUTER_EVAL_TEMPERATURE || '0.3')
     }, {
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,

@@ -228,9 +228,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Main content */}
-        <main className="p-6">
-          {children}
-        </main>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <main className="py-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

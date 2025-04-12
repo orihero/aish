@@ -1,83 +1,88 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Building2, MapPin, Globe, Mail, Phone, Camera, Plus, Pencil } from 'lucide-react';
-import { useCompaniesStore } from '../../../stores/companies.store';
+import { useCompaniesStore, Company } from '../../../stores/companies.store';
 import { CompanyForm } from '../components/CompanyForm';
-import { useAuthStore } from '../../../stores/auth.store';
+
+type CompanyFormData = Omit<Company, 'id' | 'creator' | 'status' | 'createdAt' | 'updatedAt'>;
+
+const initialFormData: CompanyFormData = {
+  name: '',
+  logo: '',
+  description: '',
+  industry: '',
+  size: '1-50',
+  founded: undefined,
+  website: '',
+  location: {
+    country: '',
+    city: '',
+    address: ''
+  },
+  contact: {
+    email: '',
+    phone: ''
+  },
+  social: {
+    linkedin: '',
+    twitter: '',
+    facebook: '',
+    instagram: ''
+  },
+  benefits: []
+};
 
 export function EmployerCompany() {
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
   const {
-    companies,
+    currentCompany,
     isLoading,
     error,
-    getCompanies,
+    getCurrentCompany,
     createCompany,
     updateCompany,
     clearError
   } = useCompaniesStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [company, setCompany] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    logo: '',
-    description: '',
-    industry: '',
-    size: '',
-    founded: undefined,
-    website: '',
-    location: {
-      country: '',
-      city: '',
-      address: ''
-    },
-    contact: {
-      email: '',
-      phone: ''
-    },
-    social: {
-      linkedin: '',
-      twitter: '',
-      facebook: '',
-      instagram: ''
-    },
-    benefits: []
-  });
+  const [formData, setFormData] = useState<CompanyFormData>(initialFormData);
 
   useEffect(() => {
-    const fetchCompany = async () => {
-      await getCompanies();
-    };
-    fetchCompany();
+    getCurrentCompany();
   }, []);
 
   useEffect(() => {
-    // Find the employer's company
-    const myCompany = companies.find(c => c.creator === user?.id);
-    if (myCompany) {
-      setCompany(myCompany);
+    if (currentCompany) {
       setFormData({
-        name: myCompany.name,
-        logo: myCompany.logo,
-        description: myCompany.description,
-        industry: myCompany.industry,
-        size: myCompany.size,
-        founded: myCompany.founded,
-        website: myCompany.website,
-        location: myCompany.location,
-        contact: myCompany.contact,
-        social: myCompany.social || {},
-        benefits: myCompany.benefits
+        name: currentCompany.name,
+        logo: currentCompany.logo || '',
+        description: currentCompany.description,
+        industry: currentCompany.industry,
+        size: currentCompany.size,
+        founded: currentCompany.founded,
+        website: currentCompany.website || '',
+        location: {
+          country: currentCompany.location.country,
+          city: currentCompany.location.city,
+          address: currentCompany.location.address || ''
+        },
+        contact: {
+          email: currentCompany.contact.email,
+          phone: currentCompany.contact.phone || ''
+        },
+        social: {
+          linkedin: currentCompany.social?.linkedin || '',
+          twitter: currentCompany.social?.twitter || '',
+          facebook: currentCompany.social?.facebook || '',
+          instagram: currentCompany.social?.instagram || ''
+        },
+        benefits: currentCompany.benefits
       });
     }
-  }, [companies, user]);
+  }, [currentCompany]);
 
   const handleSubmit = async () => {
     try {
-      if (company) {
-        await updateCompany(company.id, formData);
+      if (currentCompany) {
+        await updateCompany(currentCompany.id, formData);
       } else {
         await createCompany(formData);
       }
@@ -95,7 +100,7 @@ export function EmployerCompany() {
     );
   }
 
-  if (!company) {
+  if (!currentCompany) {
     return (
       <div className="max-w-4xl">
         <div className="mb-6">
@@ -152,8 +157,8 @@ export function EmployerCompany() {
             <div className="relative">
               <div className="w-24 h-24 rounded-lg bg-white p-1">
                 <div className="w-full h-full rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+                  {currentCompany.logo ? (
+                    <img src={currentCompany.logo} alt={currentCompany.name} className="w-full h-full object-cover" />
                   ) : (
                     <Building2 className="w-12 h-12 text-gray-400" />
                   )}
@@ -170,15 +175,15 @@ export function EmployerCompany() {
         <div className="pt-16 px-8 pb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{company.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{currentCompany.name}</h2>
               <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  {company.location.city}, {company.location.country}
+                  {currentCompany.location.city}, {currentCompany.location.country}
                 </div>
-                {company.website && (
+                {currentCompany.website && (
                   <a
-                    href={company.website}
+                    href={currentCompany.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 hover:text-purple-600"
@@ -205,12 +210,12 @@ export function EmployerCompany() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span>{company.contact.email}</span>
+                  <span>{currentCompany.contact.email}</span>
                 </div>
-                {company.contact.phone && (
+                {currentCompany.contact.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-gray-400" />
-                    <span>{company.contact.phone}</span>
+                    <span>{currentCompany.contact.phone}</span>
                   </div>
                 )}
               </div>
@@ -221,16 +226,16 @@ export function EmployerCompany() {
               <div className="space-y-4">
                 <div>
                   <span className="text-sm text-gray-500">Industry</span>
-                  <p className="mt-1">{company.industry}</p>
+                  <p className="mt-1">{currentCompany.industry}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Company Size</span>
-                  <p className="mt-1">{company.size} employees</p>
+                  <p className="mt-1">{currentCompany.size} employees</p>
                 </div>
-                {company.founded && (
+                {currentCompany.founded && (
                   <div>
                     <span className="text-sm text-gray-500">Founded</span>
-                    <p className="mt-1">{company.founded}</p>
+                    <p className="mt-1">{currentCompany.founded}</p>
                   </div>
                 )}
               </div>
@@ -239,41 +244,20 @@ export function EmployerCompany() {
 
           <div className="mt-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Description</h3>
-            <p className="text-gray-600">{company.description}</p>
+            <p className="text-gray-600">{currentCompany.description}</p>
           </div>
 
-          {company.benefits && company.benefits.length > 0 && (
+          {currentCompany.benefits && currentCompany.benefits.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Benefits</h3>
               <div className="flex flex-wrap gap-2">
-                {company.benefits.map((benefit: string, index: number) => (
+                {currentCompany.benefits.map((benefit: string, index: number) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm"
                   >
                     {benefit}
                   </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {company.social && Object.values(company.social).some(Boolean) && (
-            <div className="mt-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Social Links</h3>
-              <div className="flex gap-4">
-                {Object.entries(company.social).map(([platform, url]) => (
-                  url && (
-                    <a
-                      key={platform}
-                      href={url as string}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 hover:bg-gray-50 rounded-lg text-gray-500 hover:text-gray-700"
-                    >
-                      <Globe className="w-5 h-5" />
-                    </a>
-                  )
                 ))}
               </div>
             </div>
@@ -285,7 +269,7 @@ export function EmployerCompany() {
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmit}
-        editingCompany={company}
+        editingCompany={currentCompany}
         formData={formData}
         setFormData={setFormData}
         error={error}

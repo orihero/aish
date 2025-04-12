@@ -1,13 +1,40 @@
 import { create } from 'zustand';
 import { api } from '../lib/axios';
+import { useAuthStore } from './auth.store';
+import { AxiosError } from 'axios';
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export interface Job {
-  id: string;
+  _id: string;
   title: string;
   creator: string;
-  category: string;
+  category: {
+    _id: string;
+    title: Array<{
+      language: string;
+      value: string;
+      _id: string;
+    }>;
+    subcategories: Array<{
+      _id: string;
+      title: Array<{
+        language: string;
+        value: string;
+        _id: string;
+      }>;
+    }>;
+  } | string;
   subcategory?: string;
   description: string;
+  industry: string;
+  status: 'active' | 'closed' | 'draft';
   employmentType: 'full-time' | 'part-time' | 'contract';
   workType: 'remote' | 'hybrid' | 'onsite';
   salary: {
@@ -40,8 +67,8 @@ interface JobsState {
   createJob: (jobData: Partial<Job>) => Promise<void>;
   updateJob: (id: string, jobData: Partial<Job>) => Promise<void>;
   deleteJob: (id: string) => Promise<void>;
-  setFilters: (filters: Partial<typeof JobsState['filters']>) => void;
-  setPagination: (pagination: Partial<typeof JobsState['pagination']>) => void;
+  setFilters: (filters: Partial<JobsState['filters']>) => void;
+  setPagination: (pagination: Partial<JobsState['pagination']>) => void;
   clearError: () => void;
 }
 
@@ -69,6 +96,7 @@ export const useJobsStore = create<JobsState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const { filters, pagination } = get();
+      const { user } = useAuthStore.getState();
       
       const params = new URLSearchParams({
         page: pagination.page.toString(),
@@ -81,7 +109,8 @@ export const useJobsStore = create<JobsState>((set, get) => ({
         ...(filters.salaryRange.max < 200000 && { salaryMax: filters.salaryRange.max.toString() })
       });
 
-      const response = await api.get(`/vacancies?${params}`);
+      const endpoint = user?.role === 'employer' ? '/vacancies/my' : '/vacancies';
+      const response = await api.get(`${endpoint}?${params}`);
       
       set({
         jobs: response.data.vacancies,
@@ -91,9 +120,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
         },
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to fetch jobs',
+        error: apiError.response?.data?.message || 'Failed to fetch jobs',
         isLoading: false,
       });
     }
@@ -104,9 +134,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.post('/vacancies', jobData);
       await get().getJobs();
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to create job',
+        error: apiError.response?.data?.message || 'Failed to create job',
         isLoading: false,
       });
     }
@@ -117,9 +148,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.put(`/vacancies/${id}`, jobData);
       await get().getJobs();
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to update job',
+        error: apiError.response?.data?.message || 'Failed to update job',
         isLoading: false,
       });
     }
@@ -130,9 +162,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.delete(`/vacancies/${id}`);
       await get().getJobs();
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to delete job',
+        error: apiError.response?.data?.message || 'Failed to delete job',
         isLoading: false,
       });
     }

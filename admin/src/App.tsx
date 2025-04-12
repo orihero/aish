@@ -1,153 +1,90 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthLayout } from './components/AuthLayout'
-import { DashboardLayout } from './components/DashboardLayout'
-import { useAuthStore } from './stores/auth.store'
-import { Login } from './pages/Login'
-import { Register } from './pages/Register'
-import { ForgotPassword } from './pages/ForgotPassword'
-import { Applications } from './pages/Applications'
-import { Profile } from './pages/Profile'
-import { Users } from './pages/Users/index'
-import { Jobs } from './pages/Jobs/index'
-import { CreateJob } from './pages/Jobs/pages/CreateJob'
-import { Companies } from './pages/Companies'
-import { EmployerCompany } from './pages/Companies/pages/EmployerCompany'
-import { Categories } from './pages/Categories/index'
-import { Dashboard } from './pages/Dashboard'
-import { PrivateRoute } from './components/PrivateRoute'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuthStore } from './stores/auth.store';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
+import { EmployeeJobs } from './pages/Jobs/pages/EmployeeJobs';
+import { EmployerJobs } from './pages/Jobs/pages/EmployerJobs';
+import { JobApplications } from './pages/Jobs/pages/JobApplications';
+import { Companies } from './pages/Companies';
+import { EmployerCompany } from './pages/Companies/pages/EmployerCompany';
+import { Resumes } from './pages/Resumes';
+import { Settings } from './pages/Settings';
+import { DashboardLayout } from './components/DashboardLayout';
+import { PrivateRoute } from './components/PrivateRoute';
 
 function App() {
-  const { user } = useAuthStore();
+  const { user, isLoading, validateToken } = useAuthStore();
   const { role } = user || {};
-  const isAdmin = role === 'admin';
-  const isEmployer = role === 'employer';
   const isEmployee = role === 'employee';
+
+  useEffect(() => {
+    validateToken();
+  }, [validateToken]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+        
         <Route
-          path="/login"
+          path="/"
           element={
-            <AuthLayout>
-              <Login />
-            </AuthLayout>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthLayout>
-              <Register />
-            </AuthLayout>
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={
-            <AuthLayout>
-              <ForgotPassword />
-            </AuthLayout>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
+            user ? (
               <DashboardLayout>
-                <Dashboard />
+                <Outlet />
               </DashboardLayout>
-            </PrivateRoute>
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
-        />
-        {isAdmin && <Route
-          path="/users"
-          element={
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="jobs" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <Users />
-              </DashboardLayout>
+              {isEmployee ? <EmployeeJobs /> : <EmployerJobs />}
             </PrivateRoute>
-          }
-        />}
-        <Route
-          path="/jobs"
-          element={
+          } />
+          <Route path="jobs/:id/applications" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <Jobs />
-              </DashboardLayout>
+              <JobApplications />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/jobs/create"
-          element={
+          } />
+          <Route path="companies" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <CreateJob />
-              </DashboardLayout>
+              <Companies />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/company"
-          element={
+          } />
+          <Route path="company" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <EmployerCompany />
-              </DashboardLayout>
+              <EmployerCompany />
             </PrivateRoute>
-          }
-        />
-        <Route
-          path="/companies"
-          element={
+          } />
+          <Route path="resumes" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <Companies />
-              </DashboardLayout>
+              <Resumes />
             </PrivateRoute>
-          }
-        />
-        {isAdmin && <Route
-          path="/categories"
-          element={
+          } />
+          <Route path="settings" element={
             <PrivateRoute>
-              <DashboardLayout>
-                <Categories />
-              </DashboardLayout>
+              <Settings />
             </PrivateRoute>
-          }
-        />}
-        {isEmployee && (
-          <>
-            <Route
-              path="/applications"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Applications />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute>
-                  <DashboardLayout>
-                    <Profile />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-          </>
-        )}
+          } />
+        </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

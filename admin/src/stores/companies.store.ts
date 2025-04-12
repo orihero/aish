@@ -32,8 +32,26 @@ export interface Company {
   updatedAt: string;
 }
 
+interface CompanyWithVacancies {
+  company: Company;
+  vacancies: Array<{
+    title: string;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 interface CompaniesState {
   companies: Company[];
+  currentCompany: Company | null;
   isLoading: boolean;
   error: string | null;
   filters: {
@@ -49,8 +67,9 @@ interface CompaniesState {
     total: number;
   };
   getCompanies: () => Promise<void>;
+  getCurrentCompany: () => Promise<void>;
   createCompany: (companyData: Partial<Company>) => Promise<void>;
-  updateCompany: (id: string, companyData: Partial<Company>) => Promise<void>;
+  updateCompany: (id: string | undefined, companyData: Partial<Company>) => Promise<void>;
   deleteCompany: (id: string) => Promise<void>;
   setFilters: (filters: Partial<CompaniesState['filters']>) => void;
   setPagination: (pagination: Partial<CompaniesState['pagination']>) => void;
@@ -59,6 +78,7 @@ interface CompaniesState {
 
 export const useCompaniesStore = create<CompaniesState>((set, get) => ({
   companies: [],
+  currentCompany: null,
   isLoading: false,
   error: null,
   filters: {
@@ -72,6 +92,24 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
     page: 1,
     limit: 10,
     total: 0
+  },
+
+  getCurrentCompany: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.get<CompanyWithVacancies>('/companies/my');
+      set({
+        currentCompany: response.data.company,
+        isLoading: false
+      });
+    } catch (error) {
+      const apiError = error as ApiError;
+      set({
+        error: apiError.response?.data?.message || 'Failed to fetch company',
+        isLoading: false,
+        currentCompany: null
+      });
+    }
   },
 
   getCompanies: async () => {
@@ -99,9 +137,10 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
         },
         isLoading: false
       });
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to fetch companies',
+        error: apiError.response?.data?.message || 'Failed to fetch companies',
         isLoading: false
       });
     }
@@ -111,9 +150,9 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      // Handle file upload if logo is a File
-      let logoUrl = companyData.logo;
-      if (companyData.logo instanceof File) {
+      // Handle file upload if logo is a File object
+      const updatedData = { ...companyData };
+      if (typeof companyData.logo === 'object' && companyData.logo !== null) {
         const formData = new FormData();
         formData.append('logo', companyData.logo);
         
@@ -123,32 +162,35 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
           }
         });
         
-        logoUrl = uploadResponse.data.url;
+        updatedData.logo = uploadResponse.data.url;
       }
 
-      // Create company with logo URL
-      const finalData = {
-        ...companyData,
-        logo: logoUrl
-      };
-
-      await api.post('/companies', companyData);
-      await get().getCompanies();
-    } catch (error: any) {
+      await api.post('/companies', updatedData);
+      await get().getCurrentCompany();
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to create company',
+        error: apiError.response?.data?.message || 'Failed to create company',
         isLoading: false
       });
     }
   },
 
-  updateCompany: async (id, companyData) => {
+  updateCompany: async (id: string | undefined, companyData: Partial<Company>) => {
     try {
       set({ isLoading: true, error: null });
       
-      // Handle file upload if logo is a File
-      let logoUrl = companyData.logo;
-      if (companyData.logo instanceof File) {
+      // Use current company ID if no ID is provided
+      const currentState = get();
+      const companyId = id || currentState.currentCompany?.id;
+      
+      if (!companyId) {
+        throw new Error('Company ID not found');
+      }
+
+      // Handle file upload if logo is a File object
+      const updatedData = { ...companyData };
+      if (typeof companyData.logo === 'object' && companyData.logo !== null) {
         const formData = new FormData();
         formData.append('logo', companyData.logo);
         
@@ -158,20 +200,15 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
           }
         });
         
-        logoUrl = uploadResponse.data.url;
+        updatedData.logo = uploadResponse.data.url;
       }
 
-      // Update company with logo URL
-      const finalData = {
-        ...companyData,
-        logo: logoUrl
-      };
-
-      await api.put(`/companies/${id}`, companyData);
-      await get().getCompanies();
-    } catch (error: any) {
+      await api.put(`/companies/${companyId}`, updatedData);
+      await get().getCurrentCompany();
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to update company',
+        error: apiError.response?.data?.message || 'Failed to update company',
         isLoading: false
       });
     }
@@ -182,9 +219,10 @@ export const useCompaniesStore = create<CompaniesState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.delete(`/companies/${id}`);
       await get().getCompanies();
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError;
       set({
-        error: error.response?.data?.message || 'Failed to delete company',
+        error: apiError.response?.data?.message || 'Failed to delete company',
         isLoading: false
       });
     }

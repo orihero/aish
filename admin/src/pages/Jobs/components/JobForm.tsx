@@ -138,7 +138,7 @@ export function JobForm({
                         >
                           <option value="">Select Subcategory</option>
                           {selectedCategory.subcategories.map(sub => (
-                              <option key={sub._id} value={sub._id}>
+                              <option key={sub.id} value={sub.id}>
                                 {sub.title.find(t => t.language === 'en')?.value}
                               </option>
                             ))}

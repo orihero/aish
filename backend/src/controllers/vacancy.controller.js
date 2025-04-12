@@ -1,5 +1,6 @@
 import { Vacancy } from '../models/vacancy.model.js';
 import { sendNewJobNotification } from '../config/telegram.js';
+import { Company } from '../models/company.model.js';
 
 export const createVacancy = async (req, res) => {
   try {
@@ -42,12 +43,21 @@ export const getVacancies = async (req, res) => {
       salaryMin,
       salaryMax,
       featured,
+      my,
       sort = 'newest',
       page = 1,
       limit = 10
     } = req.query;
 
     const query = {};
+
+    // Filter by employer's company if 'my' parameter is true
+    if (my === 'true' && req.user) {
+      const company = await Company.findOne({ creator: req.user._id });
+      if (company) {
+        query.company = company._id;
+      }
+    }
 
     // Featured jobs filter
     if (featured === 'true') {
@@ -253,6 +263,73 @@ export const getNewestVacancies = async (req, res) => {
       .limit(8);
 
     res.json(vacancies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyVacancies = async (req, res) => {
+  try {
+    const company = await Company.findOne({ creator: req.user._id });
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const {
+      search,
+      status,
+      sort = 'newest',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    const query = { company: company._id };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (status) query.status = status;
+
+    // Determine sort order
+    let sortOptions = {};
+    switch (sort) {
+      case 'newest':
+        sortOptions = { createdAt: -1 };
+        break;
+      case 'oldest':
+        sortOptions = { createdAt: 1 };
+        break;
+      default:
+        sortOptions = { createdAt: -1 };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const vacancies = await Vacancy.find(query)
+      .populate('creator', 'firstName lastName')
+      .populate({
+        path: 'category',
+        select: 'title subcategories',
+        populate: {
+          path: 'subcategories',
+          match: { _id: { $eq: '$subcategory' } }
+        }
+      })
+      .skip(skip)
+      .limit(Number(limit))
+      .sort(sortOptions);
+
+    const total = await Vacancy.countDocuments(query);
+
+    res.json({
+      vacancies,
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: Number(page)
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

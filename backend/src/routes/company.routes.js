@@ -1,12 +1,14 @@
 import express from 'express';
 import { auth } from '../middleware/auth.middleware.js';
+import { upload } from '../middleware/upload.middleware.js';
 import {
   createCompany,
   getCompanies,
   getCompany,
   getMyCompany,
   updateCompany,
-  deleteCompany
+  deleteCompany,
+  uploadLogo
 } from '../controllers/company.controller.js';
 
 const router = express.Router();
@@ -30,6 +32,7 @@ router.get('/', getCompanies);
 router.get('/my', auth, getMyCompany);
 router.get('/:id', getCompany);
 router.put('/:id', employerAuth, updateCompany);
+router.post('/upload-logo', employerAuth, upload.single('logo'), uploadLogo);
 router.delete('/:id', employerAuth, deleteCompany);
 
 export default router;

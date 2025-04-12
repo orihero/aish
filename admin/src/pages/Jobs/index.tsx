@@ -1,26 +1,41 @@
-import { useState, useEffect } from 'react';
+import { Plus, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ArrowUpDown, Download, Plus } from 'lucide-react';
-import { useJobsStore } from '../../stores/jobs.store';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useAuthStore } from '../../stores/auth.store';
 import { useCategoriesStore } from '../../stores/categories.store';
-import { JobFilters } from './components/JobFilters';
+import { useJobsStore } from '../../stores/jobs.store';
 import { JobCard } from './components/JobCard';
 import { JobForm } from './components/JobForm';
-import { useAuthStore } from '../../stores/auth.store';
-import { useTranslation } from '../../hooks/useTranslation';
+
+type EmploymentType = 'full-time' | 'part-time' | 'contract';
+type WorkType = 'remote' | 'hybrid' | 'onsite';
+
+interface JobFormData {
+  title: string;
+  category: string;
+  subcategory?: string;
+  description: string;
+  employmentType: EmploymentType;
+  workType: WorkType;
+  salary: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+  aiAssist: boolean;
+}
 
 export function Jobs() {
   const navigate = useNavigate();
   const {
     jobs,
-    pagination,
     isLoading,
     error,
     getJobs,
     createJob,
     updateJob,
     deleteJob,
-    setPagination,
     clearError
   } = useJobsStore();
 
@@ -30,18 +45,19 @@ export function Jobs() {
 
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<typeof jobs[0] | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<JobFormData>({
     title: '',
     category: '',
     subcategory: '',
     description: '',
-    employmentType: '',
-    workType: '',
+    employmentType: 'full-time',
+    workType: 'onsite',
     salary: {
       min: 0,
       max: 0,
       currency: 'USD'
-    }
+    },
+    aiAssist: false
   });
 
   useEffect(() => {
@@ -54,11 +70,16 @@ export function Jobs() {
       setFormData({
         title: editingJob.title,
         category: editingJob.category,
-        subcategory: editingJob.subcategory,
+        subcategory: editingJob.subcategory || '',
         description: editingJob.description,
-        employmentType: editingJob.employmentType,
-        workType: editingJob.workType,
-        salary: editingJob.salary
+        employmentType: editingJob.employmentType as EmploymentType,
+        workType: editingJob.workType as WorkType,
+        salary: {
+          min: Number(editingJob.salary.min),
+          max: Number(editingJob.salary.max),
+          currency: editingJob.salary.currency
+        },
+        aiAssist: false
       });
     } else {
       setFormData({
@@ -66,23 +87,33 @@ export function Jobs() {
         category: '',
         subcategory: '',
         description: '',
-        employmentType: '',
-        workType: '',
+        employmentType: 'full-time',
+        workType: 'onsite',
         salary: {
           min: 0,
           max: 0,
           currency: 'USD'
-        }
+        },
+        aiAssist: false
       });
     }
   }, [editingJob]);
 
   const handleSubmit = async () => {
     try {
+      const formDataToSubmit = {
+        ...formData,
+        salary: {
+          min: formData.salary.min.toString(),
+          max: formData.salary.max.toString(),
+          currency: formData.salary.currency
+        }
+      };
+      
       if (editingJob) {
-        await updateJob(editingJob.id, formData);
+        await updateJob(editingJob.id, formDataToSubmit);
       } else {
-        await createJob(formData);
+        await createJob(formDataToSubmit);
       }
       setIsSlideOverOpen(false);
       setEditingJob(null);
@@ -161,5 +192,5 @@ export function Jobs() {
         />
       </div>
     </div>
-  )
+  );
 }
