@@ -13,6 +13,7 @@ import chatRoutes from './routes/chat.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import resumeRoutes from './routes/resume.routes.js';
 import companyRoutes from './routes/company.routes.js';
+import skillsRoutes from './routes/skills.route.js';
 import * as models from './models/index.js';
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/skills', skillsRoutes);
 app.use('/api/vacancies', vacancyRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/dashboard', dashboardRoutes);

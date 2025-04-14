@@ -58,7 +58,7 @@ interface Reference {
   reference: string;
 }
 
-interface ApiResumeResponse {
+interface ResumeAnalysisResponse {
   basics: {
     name: string;
     label: string;
@@ -89,7 +89,6 @@ interface ApiResumeResponse {
     startDate: string;
     endDate: string;
     summary: string;
-    highlights: string[];
   }>;
   education: Array<{
     institution: string;
@@ -114,6 +113,8 @@ interface ApiResumeResponse {
   projects: Array<{
     name: string;
     description: string;
+    highlights: string[];
+    keywords: string[];
     startDate: string;
     url: string;
   }>;
@@ -126,43 +127,43 @@ export interface ResumeData {
     label: string;
     email: string;
     phone: string;
+    summary?: string;
+    image?: string;
     location: {
       city: string;
       countryCode: string;
     };
-    hourlyRate?: string;
-    summary?: string;
-    image?: string;
   };
-  work: {
+  work: Array<{
     name: string;
     position: string;
     startDate: string;
     endDate: string;
     summary: string;
+    highlights: string[];
     technologies: string[];
-  }[];
-  education: {
+  }>;
+  education: Array<{
     institution: string;
     area: string;
     studyType: string;
     startDate: string;
     endDate: string;
     gpa: string;
-  }[];
-  skills: {
+  }>;
+  skills: Array<{
     name: string;
-    level?: string;
-    keywords?: string[];
-  }[];
-  projects?: {
+    level: string;
+    keywords: string[];
+  }>;
+  projects?: Array<{
     name: string;
     description?: string;
     highlights?: string[];
     keywords?: string[];
     startDate?: string;
     url?: string;
-  }[];
+  }>;
 }
 
 const initialResumeData: ResumeData = {
@@ -175,8 +176,6 @@ const initialResumeData: ResumeData = {
       city: '',
       countryCode: ''
     },
-    hourlyRate: '$21/h',
-    summary: ''
   },
   work: [],
   education: [],
@@ -225,60 +224,63 @@ export function Register() {
       formData.append('cvFile', file);
 
       console.log('Uploading resume...');
-      const response = await api.post<{ success: boolean; data: ApiResumeResponse }>('/resumes/analyze', formData, {
+      const response = await api.post<{ success: boolean; data: ResumeAnalysisResponse }>('/resumes/analyze', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      console.log('Resume analysis response:', response.data);
-      const responseData = response.data.data;
-      
+      console.log('Raw API Response:', response.data);
+
+      const apiData = response.data.data; // Get the nested data
+
+      // Transform the API response to match our ResumeData structure
       const parsedData: ResumeData = {
         basics: {
-          name: responseData.basics.name || '',
-          label: responseData.basics.label || '',
-          email: responseData.basics.email || '',
-          phone: responseData.basics.phone || '',
+          name: apiData.basics?.name || 'No Name',
+          label: apiData.basics?.label || 'No Title',
+          email: apiData.basics?.email || '',
+          phone: apiData.basics?.phone || '',
+          summary: apiData.basics?.summary || '',
+          image: apiData.basics?.image || '',
           location: {
-            city: responseData.basics.location?.city || '',
-            countryCode: responseData.basics.location?.countryCode || ''
-          },
-          hourlyRate: '$21/h',
-          summary: responseData.basics.summary || '',
-          image: responseData.basics.image || ''
+            city: apiData.basics?.location?.city || '',
+            countryCode: apiData.basics?.location?.countryCode || ''
+          }
         },
-        work: responseData.work.map((job) => ({
+        work: (apiData.work || []).map(job => ({
           name: job.name || '',
           position: job.position || '',
           startDate: job.startDate || '',
           endDate: job.endDate || '',
           summary: job.summary || '',
-          technologies: [] // We'll extract technologies from skills
+          highlights: [], // API doesn't provide highlights
+          technologies: [] // API doesn't provide technologies
         })),
-        education: responseData.education.map((edu) => ({
+        education: (apiData.education || []).map(edu => ({
           institution: edu.institution || '',
           area: edu.area || '',
           studyType: edu.studyType || '',
           startDate: edu.startDate || '',
           endDate: edu.endDate || '',
-          gpa: ''
+          gpa: ''  // API doesn't provide GPA
         })),
-        skills: responseData.skills.map((skill) => ({
+        skills: (apiData.skills || []).map(skill => ({
           name: skill.name || '',
-          level: skill.level || '',
+          level: skill.level || 'Intermediate',
           keywords: skill.keywords || []
         })),
-        projects: responseData.projects.map((project) => ({
-          name: project.name || '',
-          description: project.description || '',
-          highlights: [],
-          keywords: [],
-          startDate: project.startDate || '',
-          url: project.url || ''
+        projects: (apiData.projects || []).map(project => ({
+          name: project?.name || '',
+          description: project?.description || '',
+          highlights: project?.highlights || [],
+          keywords: project?.keywords || [],
+          startDate: project?.startDate || '',
+          url: project?.url || ''
         }))
       };
 
+      console.log('Transformed Resume Data:', parsedData);
       setResumeData(parsedData);
       setCurrentStep('preview');
     } catch (error) {

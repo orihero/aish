@@ -23,7 +23,9 @@ export function useSkills() {
 export function useSkillIcons() {
   return useMutation({
     mutationFn: async (skills: string[]) => {
-      const { data } = await api.post('/skills/icons', { skills });
+      // Ensure all skills are lowercase before sending to the API
+      const normalizedSkills = skills.map(skill => skill.toLowerCase().trim());
+      const { data } = await api.post('/skills/icons', { skills: normalizedSkills });
       return data;
     },
   });

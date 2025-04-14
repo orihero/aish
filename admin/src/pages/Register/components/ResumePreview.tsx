@@ -9,13 +9,54 @@ interface ResumePreviewProps {
   onContinue?: () => void;
 }
 
+interface WorkExperience {
+  name: string;
+  position: string;
+  startDate: string;
+  endDate: string;
+  summary: string;
+  highlights: string[];
+  technologies: string[];
+}
+
+interface Education {
+  institution: string;
+  area: string;
+  studyType: string;
+  startDate: string;
+  endDate: string;
+  gpa: string;
+}
+
+interface Project {
+  name: string;
+  description?: string;
+  highlights?: string[];
+  keywords?: string[];
+  startDate?: string;
+  url?: string;
+}
+
+interface Skill {
+  name: string;
+  level: string;
+  keywords: string[];
+}
+
+interface Keyword {
+  name: string;
+  icon: string;
+}
+
 export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewProps) {
   const { mutateAsync: lookupSkillIcons, data: skillIcons } = useSkillIcons();
   
+  console.log('ResumePreview received data:', data);
+
   useEffect(() => {
     const skillNames = [
-      ...data.skills.map(skill => skill.name),
-      ...data.skills.flatMap(skill => skill.keywords || [])
+      ...data.skills.map((skill: Skill) => skill.name.toLowerCase()),
+      ...data.skills.flatMap((skill: Skill) => (skill.keywords || []).map(k => k.toLowerCase()))
     ];
     if (skillNames.length > 0) {
       lookupSkillIcons(skillNames);
@@ -27,9 +68,18 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
   };
 
   const renderEditableField = (value: string | undefined) => {
-    if (!value) return null;
+    if (!value || value.trim() === '') return null;
     return value;
   };
+
+  // Early return with loading state if data is not properly initialized
+  if (!data || !data.basics) {
+    return (
+      <div className="fixed inset-0 bg-[#111] text-white flex flex-col items-center justify-center">
+        <div className="text-xl">Loading resume data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-[#111] text-white flex flex-col">
@@ -63,7 +113,7 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
           {/* Left Column - Dark sidebar */}
           <div className="bg-[#0A0A0A] p-8 space-y-10 overflow-y-auto">
             {/* Profile Image and Basic Info */}
-            <div className="text-center">
+            <div className="text-center space-y-4">
               <div className="w-48 h-48 mx-auto bg-gray-800 rounded-full overflow-hidden mb-6">
                 {data.basics.image ? (
                   <img src={data.basics.image} alt={data.basics.name} className="w-full h-full object-cover" />
@@ -71,17 +121,19 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
                   <div className="w-full h-full flex items-center justify-center text-gray-600">No Image</div>
                 )}
               </div>
-              {renderEditableField(data.basics.name)}
-              {renderEditableField(data.basics.label)}
-              {renderEditableField(data.basics.email)}
-              {renderEditableField(data.basics.phone)}
-              {(data.basics.location?.city || data.basics.location?.countryCode) && (
-                <div className="text-gray-400">
-                  {renderEditableField(data.basics.location?.city || '')}
-                  {data.basics.location?.city && data.basics.location?.countryCode && ', '}
-                  {renderEditableField(data.basics.location?.countryCode || '')}
-                </div>
-              )}
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">{renderEditableField(data.basics.name)}</h2>
+                <p className="text-lg text-gray-400">{renderEditableField(data.basics.label)}</p>
+                <p className="text-cyan-500">{renderEditableField(data.basics.email)}</p>
+                <p>{renderEditableField(data.basics.phone)}</p>
+                {(data.basics.location?.city || data.basics.location?.countryCode) && (
+                  <p className="text-gray-400">
+                    {renderEditableField(data.basics.location?.city)}
+                    {data.basics.location?.city && data.basics.location?.countryCode && ', '}
+                    {renderEditableField(data.basics.location?.countryCode)}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Skills */}
@@ -89,7 +141,7 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
               <div>
                 <h3 className="text-xs uppercase text-gray-500 mb-6">Skills</h3>
                 <div className="space-y-4">
-                  {data.skills.map((skill, index) => (
+                  {data.skills.map((skill: Skill, index: number) => (
                     <div key={index} className="flex items-center gap-3">
                       <img
                         src={getSkillIcon(skill.name)}
@@ -107,18 +159,18 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
             )}
 
             {/* Keywords */}
-            {data.skills && data.skills.some(skill => Array.isArray(skill.keywords) && skill.keywords.length > 0) && (
+            {data.skills && data.skills.some((skill: Skill) => skill.keywords && skill.keywords.length > 0) && (
               <div>
                 <h3 className="text-xs uppercase text-gray-500 mb-6">Keywords</h3>
                 <div className="flex flex-wrap gap-3">
                   {data.skills
-                    .flatMap(skill => 
-                      (Array.isArray(skill.keywords) ? skill.keywords : []).map(keyword => ({
+                    .flatMap((skill: Skill) => 
+                      (skill.keywords || []).map((keyword: string) => ({
                         name: keyword,
                         icon: getSkillIcon(keyword)
                       }))
                     )
-                    .map((keyword, index) => (
+                    .map((keyword: Keyword, index: number) => (
                       <div key={index} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
                         <img
                           src={keyword.icon}
@@ -140,21 +192,21 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
               {data.basics.summary && (
                 <div>
                   <h3 className="text-2xl font-semibold mb-6">Professional Summary</h3>
-                  {renderEditableField(data.basics.summary)}
+                  <p className="text-gray-300">{renderEditableField(data.basics.summary)}</p>
                 </div>
               )}
 
               {/* Experience */}
-              {data.work.length > 0 && (
+              {data.work && data.work.length > 0 && (
                 <div>
                   <h3 className="text-2xl font-semibold mb-8">Professional Experience</h3>
                   <div className="space-y-10">
-                    {data.work.map((job, index) => (
-                      <div key={index}>
-                        <div className="flex items-start justify-between mb-3">
+                    {data.work.map((job: WorkExperience, index: number) => (
+                      <div key={index} className="space-y-4">
+                        <div className="flex items-start justify-between">
                           <div>
-                            {renderEditableField(job.position)}
-                            {renderEditableField(job.name)}
+                            <h4 className="text-xl font-medium">{renderEditableField(job.position)}</h4>
+                            <p className="text-gray-400">{renderEditableField(job.name)}</p>
                           </div>
                           <div className="text-sm text-gray-400">
                             {renderEditableField(job.startDate)}
@@ -162,13 +214,20 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
                             {renderEditableField(job.endDate || 'Present')}
                           </div>
                         </div>
-                        {renderEditableField(job.summary)}
-                        {job.technologies?.length > 0 && (
-                          <div className="flex gap-3">
-                            {job.technologies.map((tech, techIndex) => (
+                        {job.summary && <p className="text-gray-300">{job.summary}</p>}
+                        {job.highlights && job.highlights.length > 0 && (
+                          <ul className="list-disc list-inside space-y-2 text-gray-300">
+                            {job.highlights.map((highlight: string, i: number) => (
+                              <li key={i}>{highlight}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {job.technologies && job.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-3">
+                            {job.technologies.map((tech: string, techIndex: number) => (
                               <div key={techIndex} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
-                                <img src={`/icons/${tech.toLowerCase()}.svg`} alt={tech} className="w-5 h-5" />
-                                {renderEditableField(tech)}
+                                <img src={getSkillIcon(tech)} alt={tech} className="w-5 h-5" />
+                                <span className="text-sm">{tech}</span>
                               </div>
                             ))}
                           </div>
@@ -180,19 +239,23 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
               )}
 
               {/* Education */}
-              {data.education.length > 0 && (
+              {data.education && data.education.length > 0 && (
                 <div>
                   <h3 className="text-2xl font-semibold mb-8">Education</h3>
                   <div className="space-y-8">
-                    {data.education.map((edu, index) => (
-                      <div key={index}>
-                        {renderEditableField(edu.institution)}
-                        {renderEditableField(edu.studyType)}
-                        {renderEditableField(edu.area)}
-                        <div className="text-sm text-gray-400 mt-2">
+                    {data.education.map((edu: Education, index: number) => (
+                      <div key={index} className="space-y-2">
+                        <h4 className="text-xl font-medium">{renderEditableField(edu.institution)}</h4>
+                        <p className="text-gray-300">
+                          {renderEditableField(edu.studyType)}
+                          {edu.studyType && edu.area && ' in '}
+                          {renderEditableField(edu.area)}
+                        </p>
+                        <div className="text-sm text-gray-400">
                           {renderEditableField(edu.startDate)}
                           {edu.startDate && (edu.endDate || 'Present') && ' - '}
                           {renderEditableField(edu.endDate || 'Present')}
+                          {edu.gpa && ` • GPA: ${edu.gpa}`}
                         </div>
                       </div>
                     ))}
@@ -205,16 +268,23 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
                 <div>
                   <h3 className="text-2xl font-semibold mb-8">Projects</h3>
                   <div className="space-y-8">
-                    {data.projects.map((project, index) => (
-                      <div key={index}>
-                        {renderEditableField(project.name)}
-                        {renderEditableField(project.description || '')}
+                    {data.projects.map((project: Project, index: number) => (
+                      <div key={index} className="space-y-3">
+                        <h4 className="text-xl font-medium">{renderEditableField(project.name)}</h4>
+                        {project.description && <p className="text-gray-300">{project.description}</p>}
+                        {project.highlights && project.highlights.length > 0 && (
+                          <ul className="list-disc list-inside space-y-2 text-gray-300">
+                            {project.highlights.map((highlight: string, i: number) => (
+                              <li key={i}>{highlight}</li>
+                            ))}
+                          </ul>
+                        )}
                         {project.url && (
                           <a
                             href={project.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-500 hover:text-cyan-400"
+                            className="text-cyan-500 hover:text-cyan-400 inline-block"
                           >
                             View Project
                           </a>
