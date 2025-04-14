@@ -1,13 +1,11 @@
-import puppeteer from 'puppeteer';
-import Handlebars from 'handlebars';
+import fontkit from '@pdf-lib/fontkit';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 // Load and compile resume template
 const templatePath = join(process.cwd(), 'src/templates/resume.hbs');
 const templateContent = readFileSync(templatePath, 'utf8');
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
 
 export async function generateResumePDF(parsedData) {
   try {
