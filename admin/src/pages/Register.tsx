@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Building2, User2, ArrowRight, Facebook, Twitter, Github, Mail } from 'lucide-react'
+import { Building2, User2, ArrowRight, Facebook, Twitter, Github, Mail, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useResumesStore } from '../stores/resumes.store'
 import { ResumeUpload } from './Profile/components/ResumeUpload'
@@ -10,7 +10,7 @@ import { useTranslation } from '../hooks/useTranslation'
 import { api } from '../lib/axios'
 
 type Role = 'talent' | 'business'
-type Step = 'role' | 'details' | 'resume' | 'manual-resume' | 'preview'
+type Step = 'role' | 'upload' | 'manual' | 'preview' | 'account' | 'details' | 'resume'
 
 interface FormData {
   firstName: string;
@@ -20,48 +20,140 @@ interface FormData {
   role: 'employer' | 'employee';
 }
 
-// Define the ResumeData interface to match the screenshot
-export interface ResumeData {
+interface Profile {
+  network: string;
+  username: string;
+  url: string;
+}
+
+interface Certification {
+  name: string;
+  date: string;
+  issuer: string;
+  url: string;
+}
+
+interface Award {
+  title: string;
+  date: string;
+  awarder: string;
+  summary: string;
+}
+
+interface Publication {
+  name: string;
+  publisher: string;
+  releaseDate: string;
+  url: string;
+  summary: string;
+}
+
+interface Interest {
+  name: string;
+  keywords: string[];
+}
+
+interface Reference {
+  name: string;
+  reference: string;
+}
+
+interface ApiResumeResponse {
   basics: {
     name: string;
     label: string;
-    image?: string;
+    image: string;
     email: string;
     phone: string;
-    url?: string;
-    summary?: string;
-    location?: {
-      address?: string;
-      postalCode?: string;
-      city?: string;
-      region?: string;
-      countryCode?: string;
+    url: string;
+    summary: string;
+    location: {
+      address: string;
+      postalCode: string;
+      city: string;
+      region: string;
+      countryCode: string;
     };
+    profiles: Profile[];
   };
-  work?: {
+  work: Array<{
     name: string;
     position: string;
     startDate: string;
-    endDate?: string;
-    summary?: string;
-    highlights?: string[];
-  }[];
-  education?: {
+    endDate: string;
+    summary: string;
+  }>;
+  volunteer: Array<{
+    organization: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    summary: string;
+    highlights: string[];
+  }>;
+  education: Array<{
     institution: string;
     area: string;
     studyType: string;
     startDate: string;
-    endDate?: string;
-    gpa?: string;
+    endDate: string;
+  }>;
+  certifications: Certification[];
+  awards: Award[];
+  publications: Publication[];
+  skills: Array<{
+    name: string;
+    level: string;
+    keywords: string[];
+  }>;
+  languages: Array<{
+    language: string;
+    fluency: string;
+  }>;
+  interests: Interest[];
+  projects: Array<{
+    name: string;
+    description: string;
+    startDate: string;
+    url: string;
+  }>;
+  references: Reference[];
+}
+
+export interface ResumeData {
+  basics: {
+    name: string;
+    label: string;
+    email: string;
+    phone: string;
+    location: {
+      city: string;
+      countryCode: string;
+    };
+    hourlyRate?: string;
+    summary?: string;
+    image?: string;
+  };
+  work: {
+    name: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    summary: string;
+    technologies: string[];
   }[];
-  skills?: {
+  education: {
+    institution: string;
+    area: string;
+    studyType: string;
+    startDate: string;
+    endDate: string;
+    gpa: string;
+  }[];
+  skills: {
     name: string;
     level?: string;
     keywords?: string[];
-  }[];
-  languages?: {
-    language: string;
-    fluency: string;
   }[];
   projects?: {
     name: string;
@@ -73,51 +165,31 @@ export interface ResumeData {
   }[];
 }
 
-interface ResumeApiResponse {
-  name?: string;
-  title?: string;
-  email?: string;
-  phone?: string;
-  location?: {
-    city?: string;
-    country?: string;
-  };
-  experience?: Array<{
-    company?: string;
-    title?: string;
-    startDate?: string;
-    endDate?: string;
-    description?: string;
-    highlights?: string[];
-  }>;
-  education?: Array<{
-    school?: string;
-    field?: string;
-    degree?: string;
-    startDate?: string;
-    endDate?: string;
-    gpa?: string;
-  }>;
-  skills?: Array<{
-    name?: string;
-    level?: number;
-    keywords?: string[];
-  }>;
-}
+const initialResumeData: ResumeData = {
+  basics: {
+    name: '',
+    label: '',
+    email: '',
+    phone: '',
+    location: {
+      city: '',
+      countryCode: ''
+    },
+    hourlyRate: '$21/h',
+    summary: ''
+  },
+  work: [],
+  education: [],
+  skills: [],
+  projects: []
+};
 
 export function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [currentStep, setCurrentStep] = useState<Step>('role')
-  const [resumeData, setResumeData] = useState<ResumeData>({
-    basics: {
-      name: '',
-      label: '',
-      email: '',
-      phone: '',
-    }
-  })
+  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData)
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -125,19 +197,10 @@ export function Register() {
     password: '',
     role: 'employee'
   })
-  const [uploadError, setUploadError] = useState<string>()
   const { register, isLoading, error, clearError } = useAuthStore()
   const { createResume } = useResumesStore()
   const { t } = useTranslation()
-
-  useEffect(() => {
-    if (selectedRole) {
-      setFormData(prev => ({
-        ...prev,
-        role: selectedRole === 'talent' ? 'employee' : 'employer'
-      }))
-    }
-  }, [selectedRole])
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -157,60 +220,71 @@ export function Register() {
 
   const handleUploadResume = async (name: string, file: File) => {
     try {
+      setIsAnalyzing(true);
       const formData = new FormData();
       formData.append('cvFile', file);
 
-      const response = await api.post<ResumeApiResponse>('/resumes/analyze', formData, {
+      console.log('Uploading resume...');
+      const response = await api.post<{ success: boolean; data: ApiResumeResponse }>('/resumes/analyze', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
-      console.log('Resume analysis response:', response.data);
-      
-      if (response.data) {
-        // Ensure the data matches the ResumeData interface structure
-        const parsedData: ResumeData = {
-          basics: {
-            name: response.data.name || '',
-            label: response.data.title || '',
-            email: response.data.email || '',
-            phone: response.data.phone || '',
-            location: {
-              city: response.data.location?.city || '',
-              countryCode: response.data.location?.country || ''
-            }
-          },
-          work: response.data.experience?.map((exp) => ({
-            name: exp.company || '',
-            position: exp.title || '',
-            startDate: exp.startDate || '',
-            endDate: exp.endDate || '',
-            summary: exp.description || '',
-            highlights: exp.highlights || []
-          })) || [],
-          education: response.data.education?.map((edu) => ({
-            institution: edu.school || '',
-            area: edu.field || '',
-            studyType: edu.degree || '',
-            startDate: edu.startDate || '',
-            endDate: edu.endDate || '',
-            gpa: edu.gpa || ''
-          })) || [],
-          skills: response.data.skills?.map((skill) => ({
-            name: skill.name || '',
-            level: skill.level?.toString() || '',
-            keywords: skill.keywords || []
-          })) || []
-        };
 
-        setResumeData(parsedData);
-        setCurrentStep('preview');
-        setUploadError(undefined);
-      }
+      console.log('Resume analysis response:', response.data);
+      const responseData = response.data.data;
+      
+      const parsedData: ResumeData = {
+        basics: {
+          name: responseData.basics.name || '',
+          label: responseData.basics.label || '',
+          email: responseData.basics.email || '',
+          phone: responseData.basics.phone || '',
+          location: {
+            city: responseData.basics.location?.city || '',
+            countryCode: responseData.basics.location?.countryCode || ''
+          },
+          hourlyRate: '$21/h',
+          summary: responseData.basics.summary || '',
+          image: responseData.basics.image || ''
+        },
+        work: responseData.work.map((job) => ({
+          name: job.name || '',
+          position: job.position || '',
+          startDate: job.startDate || '',
+          endDate: job.endDate || '',
+          summary: job.summary || '',
+          technologies: [] // We'll extract technologies from skills
+        })),
+        education: responseData.education.map((edu) => ({
+          institution: edu.institution || '',
+          area: edu.area || '',
+          studyType: edu.studyType || '',
+          startDate: edu.startDate || '',
+          endDate: edu.endDate || '',
+          gpa: ''
+        })),
+        skills: responseData.skills.map((skill) => ({
+          name: skill.name || '',
+          level: skill.level || '',
+          keywords: skill.keywords || []
+        })),
+        projects: responseData.projects.map((project) => ({
+          name: project.name || '',
+          description: project.description || '',
+          highlights: [],
+          keywords: [],
+          startDate: project.startDate || '',
+          url: project.url || ''
+        }))
+      };
+
+      setResumeData(parsedData);
+      setCurrentStep('preview');
     } catch (error) {
-      console.error('Resume upload error:', error);
-      setUploadError('Failed to upload resume. Please try again.');
+      console.error('Error uploading resume:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -224,6 +298,18 @@ export function Register() {
   };
 
   const renderContent = () => {
+    if (isAnalyzing) {
+      return (
+        <div className="fixed inset-0 bg-[#111] text-white flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+            <h2 className="text-xl font-semibold">Analyzing Resume...</h2>
+            <p className="text-gray-400 text-sm">This may take a few moments</p>
+          </div>
+        </div>
+      );
+    }
+
     if (currentStep === 'preview') {
       return (
         <ResumePreview
@@ -350,7 +436,7 @@ export function Register() {
           </div>
 
           <div className="mt-8 space-y-6">
-            <ResumeUpload onUpload={handleUploadResume} error={uploadError} />
+            <ResumeUpload onUpload={handleUploadResume} />
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -362,7 +448,7 @@ export function Register() {
             </div>
 
             <button
-              onClick={() => setCurrentStep('manual-resume')}
+              onClick={() => setCurrentStep('manual')}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg"
             >
               Fill Profile Manually
@@ -373,7 +459,7 @@ export function Register() {
       )
     }
 
-    if (currentStep === 'manual-resume') {
+    if (currentStep === 'manual') {
       return (
         <>
           <div>

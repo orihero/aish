@@ -3,6 +3,7 @@ import { User } from '../models/user.model.js';
 import { Category } from '../models/category.model.js';
 import { Company } from '../models/company.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
+import Skill from '../models/skill.model.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -864,6 +865,568 @@ We value diversity and believe in creating an inclusive environment for all empl
   return description;
 };
 
+const skills = [
+  // Programming Languages
+  {
+    name: 'JavaScript',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
+    category: 'Programming Languages',
+    aliases: ['js', 'es6', 'ecmascript']
+  },
+  {
+    name: 'TypeScript',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+    category: 'Programming Languages',
+    aliases: ['ts']
+  },
+  {
+    name: 'Python',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
+    category: 'Programming Languages',
+    aliases: ['py']
+  },
+  {
+    name: 'Java',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'C++',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
+    category: 'Programming Languages',
+    aliases: ['cpp']
+  },
+  {
+    name: 'C#',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg',
+    category: 'Programming Languages',
+    aliases: ['csharp', 'dotnet']
+  },
+  {
+    name: 'PHP',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'Ruby',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg',
+    category: 'Programming Languages',
+    aliases: ['rb']
+  },
+  {
+    name: 'Swift',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swift/swift-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'Kotlin',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'Go',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg',
+    category: 'Programming Languages',
+    aliases: ['golang']
+  },
+  {
+    name: 'Rust',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-plain.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'Scala',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/scala/scala-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'Dart',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+  {
+    name: 'R',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg',
+    category: 'Programming Languages',
+    aliases: []
+  },
+
+  // Frontend Development
+  {
+    name: 'React',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+    category: 'Frontend',
+    aliases: ['reactjs', 'react.js']
+  },
+  {
+    name: 'Vue.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
+    category: 'Frontend',
+    aliases: ['vue', 'vuejs']
+  },
+  {
+    name: 'Angular',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
+    category: 'Frontend',
+    aliases: ['ng', 'angular2+']
+  },
+  {
+    name: 'Svelte',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+  {
+    name: 'Next.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
+    category: 'Frontend',
+    aliases: ['nextjs', 'next']
+  },
+  {
+    name: 'Nuxt.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nuxtjs/nuxtjs-original.svg',
+    category: 'Frontend',
+    aliases: ['nuxt']
+  },
+  {
+    name: 'Redux',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redux/redux-original.svg',
+    category: 'Frontend',
+    aliases: ['react-redux']
+  },
+  {
+    name: 'HTML5',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',
+    category: 'Frontend',
+    aliases: ['html']
+  },
+  {
+    name: 'CSS3',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg',
+    category: 'Frontend',
+    aliases: ['css']
+  },
+  {
+    name: 'Sass',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sass/sass-original.svg',
+    category: 'Frontend',
+    aliases: ['scss']
+  },
+  {
+    name: 'Tailwind CSS',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg',
+    category: 'Frontend',
+    aliases: ['tailwind']
+  },
+  {
+    name: 'Bootstrap',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bootstrap/bootstrap-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+  {
+    name: 'Material-UI',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg',
+    category: 'Frontend',
+    aliases: ['mui']
+  },
+  {
+    name: 'Webpack',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/webpack/webpack-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+  {
+    name: 'Babel',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/babel/babel-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+  {
+    name: 'ESLint',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/eslint/eslint-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+  {
+    name: 'Vite',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg',
+    category: 'Frontend',
+    aliases: []
+  },
+
+  // Backend Development
+  {
+    name: 'Node.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+    category: 'Backend',
+    aliases: ['node']
+  },
+  {
+    name: 'Express.js',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
+    category: 'Backend',
+    aliases: ['express']
+  },
+  {
+    name: 'Django',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'Flask',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'Spring',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg',
+    category: 'Backend',
+    aliases: ['spring-boot']
+  },
+  {
+    name: 'Laravel',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-plain.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'Ruby on Rails',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rails/rails-plain.svg',
+    category: 'Backend',
+    aliases: ['rails', 'ror']
+  },
+  {
+    name: 'NestJS',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg',
+    category: 'Backend',
+    aliases: ['nest']
+  },
+  {
+    name: 'FastAPI',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: '.NET Core',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg',
+    category: 'Backend',
+    aliases: ['dotnet', 'aspnet']
+  },
+
+  // Databases
+  {
+    name: 'MongoDB',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
+    category: 'Backend',
+    aliases: ['mongo']
+  },
+  {
+    name: 'PostgreSQL',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
+    category: 'Backend',
+    aliases: ['postgres']
+  },
+  {
+    name: 'MySQL',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'Redis',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'SQLite',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sqlite/sqlite-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'Cassandra',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg',
+    category: 'Backend',
+    aliases: []
+  },
+  {
+    name: 'GraphQL',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/graphql/graphql-plain.svg',
+    category: 'Backend',
+    aliases: []
+  },
+
+  // DevOps & Cloud
+  {
+    name: 'Docker',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
+    category: 'DevOps',
+    aliases: ['containerization']
+  },
+  {
+    name: 'Kubernetes',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg',
+    category: 'DevOps',
+    aliases: ['k8s', 'container orchestration']
+  },
+  {
+    name: 'Jenkins',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg',
+    category: 'DevOps',
+    aliases: ['ci/cd', 'continuous integration']
+  },
+  {
+    name: 'Git',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
+    category: 'DevOps',
+    aliases: ['version control']
+  },
+  {
+    name: 'GitHub',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg',
+    category: 'DevOps',
+    aliases: ['git']
+  },
+  {
+    name: 'GitLab',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/gitlab/gitlab-original.svg',
+    category: 'DevOps',
+    aliases: ['git']
+  },
+  {
+    name: 'Terraform',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/terraform/terraform-original.svg',
+    category: 'DevOps',
+    aliases: ['infrastructure as code', 'iac']
+  },
+  {
+    name: 'Ansible',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ansible/ansible-original.svg',
+    category: 'DevOps',
+    aliases: ['configuration management', 'automation']
+  },
+  {
+    name: 'AWS',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg',
+    category: 'Cloud',
+    aliases: ['amazon web services', 'amazon aws', 'aws cloud']
+  },
+  {
+    name: 'Google Cloud Platform',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg',
+    category: 'Cloud',
+    aliases: ['gcp', 'google cloud']
+  },
+  {
+    name: 'Microsoft Azure',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg',
+    category: 'Cloud',
+    aliases: ['azure', 'azure cloud']
+  },
+  {
+    name: 'Heroku',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/heroku/heroku-original.svg',
+    category: 'Cloud',
+    aliases: ['paas']
+  },
+  {
+    name: 'DigitalOcean',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/digitalocean/digitalocean-original.svg',
+    category: 'Cloud',
+    aliases: ['cloud hosting']
+  },
+
+  // Design
+  {
+    name: 'Figma',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
+    category: 'Design',
+    aliases: ['ui design', 'interface design', 'prototyping']
+  },
+  {
+    name: 'Adobe XD',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/xd/xd-plain.svg',
+    category: 'Design',
+    aliases: ['xd', 'ui design', 'interface design']
+  },
+  {
+    name: 'Sketch',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sketch/sketch-original.svg',
+    category: 'Design',
+    aliases: ['ui design', 'macos design']
+  },
+  {
+    name: 'Adobe Photoshop',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-plain.svg',
+    category: 'Design',
+    aliases: ['photoshop', 'image editing', 'graphic design']
+  },
+  {
+    name: 'Adobe Illustrator',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/illustrator/illustrator-plain.svg',
+    category: 'Design',
+    aliases: ['illustrator', 'vector graphics', 'graphic design']
+  },
+  {
+    name: 'InVision',
+    icon: 'https://www.vectorlogo.zone/logos/invisionapp/invisionapp-icon.svg',
+    category: 'Design',
+    aliases: ['prototyping', 'design collaboration']
+  },
+  {
+    name: 'Zeplin',
+    icon: 'https://www.vectorlogo.zone/logos/zeplinio/zeplinio-icon.svg',
+    category: 'Design',
+    aliases: ['design handoff', 'design collaboration']
+  },
+
+  // Testing & QA
+  {
+    name: 'Jest',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jest/jest-plain.svg',
+    category: 'Other',
+    aliases: ['testing', 'unit testing']
+  },
+  {
+    name: 'Mocha',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mocha/mocha-plain.svg',
+    category: 'Other',
+    aliases: ['testing', 'unit testing']
+  },
+  {
+    name: 'Cypress',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cypress/cypress-original.svg',
+    category: 'Other',
+    aliases: ['testing', 'e2e testing']
+  },
+  {
+    name: 'Selenium',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg',
+    category: 'Other',
+    aliases: ['testing', 'automation testing']
+  },
+  {
+    name: 'JUnit',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
+    category: 'Other',
+    aliases: ['testing', 'unit testing', 'java testing']
+  },
+  {
+    name: 'PyTest',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
+    category: 'Other',
+    aliases: ['testing', 'python testing']
+  },
+
+  // Mobile Development
+  {
+    name: 'React Native',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+    category: 'Mobile',
+    aliases: []
+  },
+  {
+    name: 'Flutter',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg',
+    category: 'Mobile',
+    aliases: []
+  },
+  {
+    name: 'Android',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg',
+    category: 'Mobile',
+    aliases: ['android development']
+  },
+  {
+    name: 'iOS',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg',
+    category: 'Mobile',
+    aliases: ['ios development']
+  },
+  {
+    name: 'Xamarin',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/xamarin/xamarin-original.svg',
+    category: 'Mobile',
+    aliases: []
+  },
+
+  // Data Science & ML
+  {
+    name: 'TensorFlow',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg',
+    category: 'Data Science',
+    aliases: []
+  },
+  {
+    name: 'PyTorch',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg',
+    category: 'Data Science',
+    aliases: []
+  },
+  {
+    name: 'Pandas',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pandas/pandas-original.svg',
+    category: 'Data Science',
+    aliases: []
+  },
+  {
+    name: 'NumPy',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg',
+    category: 'Data Science',
+    aliases: []
+  },
+  {
+    name: 'Jupyter',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg',
+    category: 'Data Science',
+    aliases: ['jupyter notebook']
+  },
+  {
+    name: 'Scikit-learn',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg',
+    category: 'Data Science',
+    aliases: ['sklearn']
+  },
+
+  // Project Management & Collaboration
+  {
+    name: 'Jira',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jira/jira-original.svg',
+    category: 'Other',
+    aliases: ['project management', 'agile', 'issue tracking']
+  },
+  {
+    name: 'Confluence',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/confluence/confluence-original.svg',
+    category: 'Other',
+    aliases: ['documentation', 'team collaboration', 'wiki']
+  },
+  {
+    name: 'Slack',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/slack/slack-original.svg',
+    category: 'Other',
+    aliases: ['team communication', 'messaging']
+  },
+  {
+    name: 'Trello',
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/trello/trello-plain.svg',
+    category: 'Other',
+    aliases: ['kanban', 'project management', 'task management']
+  }
+];
+
 async function seed() {
   try {
     // Connect to MongoDB
@@ -875,9 +1438,14 @@ async function seed() {
       User.deleteMany({}),
       Category.deleteMany({}),
       Company.deleteMany({}),
-      Vacancy.deleteMany({})
+      Vacancy.deleteMany({}),
+      Skill.deleteMany({})
     ]);
     console.log('Cleared all collections');
+
+    // Create skills
+    const createdSkills = await Skill.create(skills);
+    console.log('Created skills');
 
     // Create test users
     const adminUser = await User.create({

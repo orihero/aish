@@ -1,13 +1,36 @@
+import React, { useEffect } from 'react';
 import { Download } from 'lucide-react';
-import type { ResumeData } from '../../Register';
+import { ResumeData } from '../../Register';
+import { useSkillIcons } from '../../../hooks/useSkills';
 
 interface ResumePreviewProps {
   data: ResumeData;
   onDownload?: () => void;
-  onContinue: () => void;
+  onContinue?: () => void;
 }
 
 export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewProps) {
+  const { mutateAsync: lookupSkillIcons, data: skillIcons } = useSkillIcons();
+  
+  useEffect(() => {
+    const skillNames = [
+      ...data.skills.map(skill => skill.name),
+      ...data.skills.flatMap(skill => skill.keywords || [])
+    ];
+    if (skillNames.length > 0) {
+      lookupSkillIcons(skillNames);
+    }
+  }, [data.skills, lookupSkillIcons]);
+
+  const getSkillIcon = (skillName: string): string => {
+    return skillIcons?.[skillName.toLowerCase()] || '/default-skill.svg';
+  };
+
+  const renderEditableField = (value: string | undefined) => {
+    if (!value) return null;
+    return value;
+  };
+
   return (
     <div className="fixed inset-0 bg-[#111] text-white flex flex-col">
       {/* Header with actions */}
@@ -48,119 +71,159 @@ export function ResumePreview({ data, onDownload, onContinue }: ResumePreviewPro
                   <div className="w-full h-full flex items-center justify-center text-gray-600">No Image</div>
                 )}
               </div>
-              <h2 className="text-3xl font-bold mb-2">{data.basics.name || 'Your Name'}</h2>
-              <p className="text-gray-400 mb-4">{data.basics.location?.city}, {data.basics.location?.countryCode}</p>
-              <div className="text-cyan-500 text-2xl font-semibold mb-6">$21/h</div>
-              <button className="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium">
-                Message me
-              </button>
+              {renderEditableField(data.basics.name)}
+              {renderEditableField(data.basics.label)}
+              {renderEditableField(data.basics.email)}
+              {renderEditableField(data.basics.phone)}
+              {(data.basics.location?.city || data.basics.location?.countryCode) && (
+                <div className="text-gray-400">
+                  {renderEditableField(data.basics.location?.city || '')}
+                  {data.basics.location?.city && data.basics.location?.countryCode && ', '}
+                  {renderEditableField(data.basics.location?.countryCode || '')}
+                </div>
+              )}
             </div>
 
-            {/* Communication and Technical Skills */}
-            <div>
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Communication</span>
-                  <span>6/10</span>
-                </div>
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-600 rounded-full" style={{ width: '60%' }} />
-                </div>
-              </div>
+            {/* Skills */}
+            {data.skills && data.skills.length > 0 && (
               <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Technical skill</span>
-                  <span>9/10</span>
+                <h3 className="text-xs uppercase text-gray-500 mb-6">Skills</h3>
+                <div className="space-y-4">
+                  {data.skills.map((skill, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <img
+                        src={getSkillIcon(skill.name)}
+                        alt={skill.name}
+                        className="w-8 h-8 bg-gray-800 rounded-lg p-1"
+                      />
+                      <span className="text-lg">{skill.name}</span>
+                      {skill.level && (
+                        <span className="text-gray-500 text-sm ml-auto">{skill.level}</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-600 rounded-full" style={{ width: '90%' }} />
+              </div>
+            )}
+
+            {/* Keywords */}
+            {data.skills && data.skills.some(skill => Array.isArray(skill.keywords) && skill.keywords.length > 0) && (
+              <div>
+                <h3 className="text-xs uppercase text-gray-500 mb-6">Keywords</h3>
+                <div className="flex flex-wrap gap-3">
+                  {data.skills
+                    .flatMap(skill => 
+                      (Array.isArray(skill.keywords) ? skill.keywords : []).map(keyword => ({
+                        name: keyword,
+                        icon: getSkillIcon(keyword)
+                      }))
+                    )
+                    .map((keyword, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
+                        <img
+                          src={keyword.icon}
+                          alt={keyword.name}
+                          className="w-5 h-5"
+                        />
+                        <span className="text-sm">{keyword.name}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
-            </div>
-
-            {/* Expertise Skills */}
-            <div>
-              <h3 className="text-xs uppercase text-gray-500 mb-6">Expertise Skills</h3>
-              <div className="space-y-4">
-                {data.skills?.map((skill, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <img src={`/icons/${skill.name.toLowerCase()}.svg`} alt={skill.name} className="w-8 h-8" />
-                    <span className="text-lg">{skill.name}</span>
-                    <span className="text-gray-500 text-sm ml-auto">{skill.level} years</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* All Skills */}
-            <div>
-              <h3 className="text-xs uppercase text-gray-500 mb-6">All Skills</h3>
-              <div className="flex flex-wrap gap-3">
-                {['Flutter', 'React Native', 'JavaScript'].map((skill) => (
-                  <div key={skill} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
-                    <img src={`/icons/${skill.toLowerCase()}.svg`} alt={skill} className="w-5 h-5" />
-                    <span className="text-sm">{skill}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Right Column - Main content */}
           <div className="p-12 overflow-y-auto">
             <div className="max-w-3xl space-y-12">
               {/* Professional Summary */}
-              <div>
-                <h3 className="text-2xl font-semibold mb-6">Professional Experience</h3>
-                <p className="text-gray-400 text-lg leading-relaxed">
-                  {data.basics.summary || 'Software Engineer with experience in developing web applications, microservices, and distributed systems participating in the complete product development lifecycle of successfully launched applications. An empathetic team player and mentor.'}
-                </p>
-              </div>
+              {data.basics.summary && (
+                <div>
+                  <h3 className="text-2xl font-semibold mb-6">Professional Summary</h3>
+                  {renderEditableField(data.basics.summary)}
+                </div>
+              )}
 
               {/* Experience */}
-              <div>
-                <h3 className="text-2xl font-semibold mb-8">Professional Experience</h3>
-                <div className="space-y-10">
-                  {data.work?.map((job, index) => (
-                    <div key={index}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="text-xl font-medium mb-1">{job.position}</h4>
-                          <div className="text-cyan-500 text-lg">{job.name}</div>
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {job.startDate} - {job.endDate || 'Present'}
-                        </div>
-                      </div>
-                      <p className="text-gray-400 text-lg mb-4 leading-relaxed">{job.summary}</p>
-                      <div className="flex gap-3">
-                        {['Golang', 'NodeJS', 'Docker'].map((tech) => (
-                          <div key={tech} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
-                            <img src={`/icons/${tech.toLowerCase()}.svg`} alt={tech} className="w-5 h-5" />
-                            <span className="text-sm">{tech}</span>
+              {data.work.length > 0 && (
+                <div>
+                  <h3 className="text-2xl font-semibold mb-8">Professional Experience</h3>
+                  <div className="space-y-10">
+                    {data.work.map((job, index) => (
+                      <div key={index}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            {renderEditableField(job.position)}
+                            {renderEditableField(job.name)}
                           </div>
-                        ))}
+                          <div className="text-sm text-gray-400">
+                            {renderEditableField(job.startDate)}
+                            {job.startDate && (job.endDate || 'Present') && ' - '}
+                            {renderEditableField(job.endDate || 'Present')}
+                          </div>
+                        </div>
+                        {renderEditableField(job.summary)}
+                        {job.technologies?.length > 0 && (
+                          <div className="flex gap-3">
+                            {job.technologies.map((tech, techIndex) => (
+                              <div key={techIndex} className="flex items-center gap-2 bg-gray-800 rounded-lg px-4 py-2">
+                                <img src={`/icons/${tech.toLowerCase()}.svg`} alt={tech} className="w-5 h-5" />
+                                {renderEditableField(tech)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Education */}
-              <div>
-                <h3 className="text-2xl font-semibold mb-8">Education</h3>
-                <div className="space-y-8">
-                  {data.education?.map((edu, index) => (
-                    <div key={index}>
-                      <h4 className="text-xl font-medium mb-1">{edu.institution}</h4>
-                      <div className="text-cyan-500 text-lg">{edu.studyType} in {edu.area}</div>
-                      <div className="text-sm text-gray-400 mt-2">
-                        {edu.startDate} - {edu.endDate || 'Present'}
+              {data.education.length > 0 && (
+                <div>
+                  <h3 className="text-2xl font-semibold mb-8">Education</h3>
+                  <div className="space-y-8">
+                    {data.education.map((edu, index) => (
+                      <div key={index}>
+                        {renderEditableField(edu.institution)}
+                        {renderEditableField(edu.studyType)}
+                        {renderEditableField(edu.area)}
+                        <div className="text-sm text-gray-400 mt-2">
+                          {renderEditableField(edu.startDate)}
+                          {edu.startDate && (edu.endDate || 'Present') && ' - '}
+                          {renderEditableField(edu.endDate || 'Present')}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Projects */}
+              {data.projects && data.projects.length > 0 && (
+                <div>
+                  <h3 className="text-2xl font-semibold mb-8">Projects</h3>
+                  <div className="space-y-8">
+                    {data.projects.map((project, index) => (
+                      <div key={index}>
+                        {renderEditableField(project.name)}
+                        {renderEditableField(project.description || '')}
+                        {project.url && (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-500 hover:text-cyan-400"
+                          >
+                            View Project
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
