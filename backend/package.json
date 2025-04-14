@@ -28,7 +28,6 @@
     "pdf-parse": "^1.1.1",
     "pdf.js-extract": "^0.2.1",
     "pdf2json": "^3.0.5",
-    "puppeteer": "^21.7.0",
     "textract": "^2.5.0"
   },
   "devDependencies": {

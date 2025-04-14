@@ -90,55 +90,69 @@ Return ONLY the JSON object, no other text.`
     try {
       const content = response.data.choices[0].message.content.trim();
       
-      // Try to extract JSON if it's wrapped in backticks
-      const jsonMatch = content.match(/```json\n?(.*)\n?```/s);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content;
+      // Try to extract JSON from markdown code blocks or raw content
+      let jsonStr = content;
       
-      const rawResponse = JSON.parse(jsonStr);
+      // Handle markdown code blocks with optional language specifier
+      const jsonMatch = content.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[1].trim();
+      }
       
-      // Validate and fix response structure
-      parsedResponse = {
-        ...template,
-        ...rawResponse,
-        skills: (rawResponse.skills || []).map(skill => {
-          if (typeof skill === 'string') {
+      // Remove any remaining markdown formatting
+      jsonStr = jsonStr.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+      
+      try {
+        const rawResponse = JSON.parse(jsonStr);
+        
+        // Validate and fix response structure
+        parsedResponse = {
+          ...template,
+          ...rawResponse,
+          skills: (rawResponse.skills || []).map(skill => {
+            if (typeof skill === 'string') {
+              return {
+                name: skill,
+                level: 'Intermediate',
+                keywords: [skill]
+              };
+            }
             return {
-              name: skill,
-              level: 'Intermediate',
-              keywords: [skill]
+              name: skill.name || '',
+              level: skill.level || 'Intermediate',
+              keywords: Array.isArray(skill.keywords) ? skill.keywords : [skill.name || '']
             };
-          }
-          return {
-            name: skill.name || '',
-            level: skill.level || 'Intermediate',
-            keywords: Array.isArray(skill.keywords) ? skill.keywords : [skill.name || '']
-          };
-        }),
-        languages: (rawResponse.languages || []).map(lang => {
-          if (typeof lang === 'string') {
+          }),
+          languages: (rawResponse.languages || []).map(lang => {
+            if (typeof lang === 'string') {
+              return {
+                language: lang,
+                fluency: 'Conversational'
+              };
+            }
             return {
-              language: lang,
-              fluency: 'Conversational'
+              language: lang.language || '',
+              fluency: lang.fluency || 'Conversational'
             };
-          }
-          return {
-            language: lang.language || '',
-            fluency: lang.fluency || 'Conversational'
-          };
-        })
-      };
-
+          })
+        };
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        console.error('Attempted to parse:', jsonStr);
+        throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+      }
+      
       // Final validation
       if (!parsedResponse.basics || !Array.isArray(parsedResponse.skills)) {
         console.error('Invalid response structure:', parsedResponse);
-        throw new Error('Invalid response structure');
+        throw new Error('Invalid response structure: missing required fields');
       }
       
       return parsedResponse;
     } catch (error) {
-      console.error('Failed to parse AI response:', error);
+      console.error('Failed to process AI response:', error);
       console.log('Raw AI response:', response.data.choices[0].message.content);
-      throw new Error('Failed to parse resume data');
+      throw new Error(`Failed to process resume data: ${error.message}`);
     }
   } catch (error) {
     if (error.response?.data) {
