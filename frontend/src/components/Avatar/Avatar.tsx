@@ -3,12 +3,27 @@ import styled from "styled-components";
 
 type Props = {
     imageUrl?: string;
+    size?: number;
 };
 
-const Avatar: FC<Props> = ({ imageUrl }) => {
+const Avatar: FC<Props> = ({ imageUrl, size = 50 }) => {
     return (
-        <Container>
-            <img src={imageUrl} alt="Avatar" />
+        <Container
+            style={{
+                minWidth: size,
+                minHeight: size,
+                maxWidth: size,
+                maxHeight: size,
+            }}
+        >
+            <img
+                src={
+                    imageUrl
+                        ? imageUrl
+                        : "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                }
+                alt="Avatar"
+            />
         </Container>
     );
 };
@@ -16,8 +31,6 @@ const Avatar: FC<Props> = ({ imageUrl }) => {
 export default Avatar;
 
 const Container = styled.div`
-    width: 50px;
-    height: 50px;
     border-radius: 50%;
     overflow: hidden;
 

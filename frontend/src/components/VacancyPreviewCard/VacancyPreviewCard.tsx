@@ -6,18 +6,20 @@ import { Colors } from "../../shared/utils/color";
 import { VacancyType } from "../../types";
 import { observer } from "mobx-react-lite";
 import ButtonComp from "../Button/Button";
-import { toJS } from "mobx";
 import ShortInfoJobCard from "../ShortInfoJobCard/ShortInfoJobCard";
 import { useNavigate } from "react-router-dom";
 import useRootStore from "../../shared/hooks/UseRootStore";
+import { DynamicIcon } from "lucide-react/dynamic";
+import IconComp from "../../shared/constants/iconBtn";
+import { Tag } from "../Tag/Tag";
+import Avatar from "../Avatar/Avatar";
 
 type Props = {
     vacancy: VacancyType;
 };
 
 const FrontendInternCard: FC<Props> = ({ vacancy }) => {
-    console.log("vacancy", toJS(vacancy));
-    const { vacanciesStore } = useRootStore();
+    const { vacanciesStore, visibleStore } = useRootStore();
     const navigation = useNavigate();
     const path = window.location.pathname;
 
@@ -41,7 +43,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                         key={index}
                         title={job.title}
                         creator={job.creator}
-                        company={job.company}
+                        company={job.company.name}
                         category={job.category}
                         subcategory={job.subcategory}
                         salary={job.salary}
@@ -76,50 +78,103 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
-                    <Text
-                        text={`Work Experience: not required`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    <Text
-                        text={`Employment: ${vacancy?.employmentType}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    <Text
-                        text={`Work format: ${vacancy?.workType}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    <Text
-                        text={`Category: ${vacancy?.category?.title.map(
-                            (item) => item.value
-                        )}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    {/* <Text
-                        text={`Published: ${vacancy?.createdAt.toString()}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    /> */}
-                    <Text
-                        text={`Views: ${vacancy?.views}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    <ButtonComp
-                        title="Apply"
-                        onPress={() => {}}
-                        primary
-                        className="apply"
-                    />
+                    <div className="item">
+                        <Text
+                            text={`Work Experience:`}
+                            textSize="sixteen"
+                            color={Colors.textBlack}
+                        />
+                        <Tag text={`not required`} />
+                    </div>
+                    <div className="item">
+                        <Text
+                            text={`Employment:`}
+                            textSize="sixteen"
+                            color={Colors.textBlack}
+                        />
+                        <Tag text={`${vacancy?.employmentType}`} />
+                    </div>
+                    <div className="item">
+                        <Text
+                            text={`Work format:`}
+                            textSize="sixteen"
+                            color={Colors.textBlack}
+                        />
+                        <Tag text={`${vacancy?.workType}`} />
+                    </div>
+                    <div className="item">
+                        <Text
+                            text="Category:"
+                            textSize="sixteen"
+                            color={Colors.textBlack}
+                        />
+                        <Tag
+                            text={`${
+                                vacancy?.category?.title.find(
+                                    (item) =>
+                                        item.language ===
+                                        visibleStore.currentLang
+                                )?.value
+                            }`}
+                        />
+                    </div>
+                    <div className="applyBox">
+                        <ButtonComp
+                            title="Apply"
+                            onPress={() => {}}
+                            primary
+                            className="apply"
+                        />
+                        <div className="views">
+                            <div className="viewsCount">
+                                <Text
+                                    text={`${vacancy.views}`}
+                                    textSize="fourteen"
+                                    family="Epilogue-Regular"
+                                    color={Colors.textGray}
+                                    margin="5px 0 0 0"
+                                />
+                                <DynamicIcon
+                                    name={"eye"}
+                                    size={24}
+                                    color={Colors.textGray}
+                                />
+                            </div>
+                            <IconComp
+                                icon={
+                                    <DynamicIcon
+                                        name={"heart"}
+                                        size={24}
+                                        color={Colors.textGray}
+                                    />
+                                }
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className="company">
                     <div className="companyInfo">
-                        <div className="logo"></div>
+                        <div className="logo">
+                            <Avatar imageUrl={vacancy?.company?.logo} />
+                        </div>
+                        <div>
+                            <Text
+                                text={`${vacancy?.company?.name}`}
+                                textSize="eighteen"
+                                color={Colors.textBlack}
+                            />
+                            <Text
+                                text={`${vacancy?.company?.location.address} ${vacancy?.company?.location.city} ${vacancy?.company?.location.country}`}
+                                textSize="twelve"
+                                color={Colors.textBlack}
+                                family="Epilogue-Regular"
+                                margin="5px 0 0 0"
+                            />
+                        </div>
+                    </div>
+                    <div className="companyDes">
                         <Text
-                            text={`${vacancy?.creator?.firstName} ${vacancy?.creator?.lastName}`}
+                            text={`${vacancy?.company?.description}`}
                             textSize="sixteen"
                             color={Colors.textBlack}
                         />
@@ -168,14 +223,25 @@ const Container = styled.div`
         width: 55%;
     }
 
+    .item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
     .company {
         display: flex;
-        height: 100px;
+        flex-direction: column;
+        gap: 20px;
         width: 40%;
-        padding: 20px;
-        gap: 10px;
+    }
+
+    .companyInfo {
+        display: flex;
         border: 1px solid ${Colors.lineColor};
         border-radius: 16px;
+        padding: 20px;
+        gap: 10px;
     }
 
     .extra-info {
@@ -188,20 +254,12 @@ const Container = styled.div`
         justify-content: center;
         width: 200px;
         border-radius: 10px;
-        margin-top: 20px;
     }
 
     .companyInfo {
         display: flex;
         gap: 20px;
         align-items: center;
-    }
-
-    .logo {
-        width: 60px;
-        height: 60px;
-        background-color: ${Colors.mainBlue};
-        border-radius: 50%;
     }
 
     .other-vacancies {
@@ -217,6 +275,25 @@ const Container = styled.div`
         grid-template-columns: 1fr;
         gap: 30px;
         z-index: 1;
+    }
+
+    .applyBox {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .views {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .viewsCount {
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     @media (max-width: 768px) {
@@ -240,10 +317,7 @@ const Container = styled.div`
         .apply {
             width: 100%;
         }
-        .logo {
-            width: 50px;
-            height: 50px;
-        }
+
         .companyInfo {
             gap: 10px;
         }

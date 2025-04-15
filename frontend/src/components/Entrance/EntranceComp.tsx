@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useCallback } from "react";
 import styled from "styled-components";
 import { Colors } from "../../shared/utils/color";
 import Text from "../Text/Text";
 import { Images } from "../../shared/assets";
 import ButtonComp from "../Button/Button";
 import SearchInput from "../SearchInput/SearchInput";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { useNavigate } from "react-router-dom";
 
 const EntranceComp = () => {
+    const { vacanciesStore } = useRootStore();
+    const navigation = useNavigate();
+
+    const handleSearchPress = useCallback(() => {
+        navigation("/vacancies");
+        vacanciesStore.getVacanciesByQuery();
+    }, [navigation, vacanciesStore]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        vacanciesStore.setFilter("search", e.target.value);
+    };
     return (
         <EntranceContainer>
             <div className="left">
@@ -36,11 +49,13 @@ const EntranceComp = () => {
                     <SearchInput
                         placeholder="Job title or keyword"
                         className="searchInput"
+                        onChange={handleChange}
                     />
                     <ButtonComp
                         title="Search my job"
                         primary
                         className="searchBtn"
+                        onPress={handleSearchPress}
                     />
                 </div>
                 <Text
