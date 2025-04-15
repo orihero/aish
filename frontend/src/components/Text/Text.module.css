@@ -67,3 +67,9 @@
         font-size: 55px;
     }
 }
+
+.tag {
+    padding: 5px 10px;
+    background-color: rgba(214, 221, 235, 1);
+    border-radius: 15px;
+}

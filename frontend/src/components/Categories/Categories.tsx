@@ -8,11 +8,11 @@ import { FiArrowRight } from "react-icons/fi";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
+import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
     const { categoriesStore } = useRootStore();
-
-    console.log("categoriesStore", toJS(categoriesStore.categories));
+    const navigation = useNavigate();
 
     const renderCategories = useCallback(() => {
         if (!categoriesStore.enrichedCategories?.length) return null;
@@ -51,6 +51,7 @@ const Categories = () => {
                     className="seeAll"
                     title="See all jobs"
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                    onPress={() => navigation("/vacancies")}
                 />
             </div>
             <div className="cards">{renderCategories()}</div>
@@ -58,6 +59,7 @@ const Categories = () => {
                 className="seeAllMobile"
                 title="See all jobs"
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                onPress={() => navigation("/vacancies")}
             />
         </CategoriesContainer>
     );

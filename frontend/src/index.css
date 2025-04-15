@@ -10,6 +10,10 @@ a {
     text-decoration: none;
 }
 
+textarea::placeholder {
+    color: rgba(124, 132, 147, 0.5);
+}
+
 @font-face {
     font-family: "Epilogue-Regular";
     src: url("./shared/assets/fonts/Epilogue/static/Epilogue-Regular.ttf")

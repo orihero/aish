@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 import { RiMoneyDollarBoxFill } from "react-icons/ri";
 import { MdCampaign, MdOutlineDesignServices } from "react-icons/md";
+import { ResumeType } from "../../types";
 
 export const CategoriesData = [
     {
@@ -142,3 +143,151 @@ export const jobListings = [
             "Twitter is looking for a Data Analyst to help the team analyze trends and improve platform engagement.",
     },
 ];
+
+export const exampleResume: ResumeType = {
+    _id: "res1234567890",
+    user: "user12345",
+    name: "Ali Valiyev",
+    phone: "+998901234567",
+    cvFile: {
+        url: "https://example.com/cv/ali-valiyev.pdf",
+        filename: "ali-valiyev.pdf",
+    },
+    basics: {
+        name: "Ali Valiyev",
+        label: "Frontend Developer",
+        image: "https://example.com/images/ali.jpg",
+        email: "ali@example.com",
+        phone: "+998901234567",
+        url: "https://alivaliyev.dev",
+        summary:
+            "Tajribali frontend dasturchi, React va TypeScript bo‘yicha 3 yillik tajribaga ega.",
+        location: {
+            address: "Yunusobod tumani, 12-dah",
+            postalCode: "100123",
+            city: "Toshkent",
+            region: "Toshkent shahri",
+            countryCode: "UZ",
+        },
+        profiles: [
+            {
+                network: "LinkedIn",
+                username: "alivaliyev",
+                url: "https://linkedin.com/in/alivaliyev",
+            },
+            {
+                network: "GitHub",
+                username: "alivaliyev",
+                url: "https://github.com/alivaliyev",
+            },
+        ],
+    },
+    work: [
+        {
+            name: "TechSoft",
+            position: "Frontend Developer",
+            url: "https://techsoft.uz",
+            startDate: "2022-01-01",
+            endDate: "2024-01-01",
+            summary:
+                "React asosida loyihalarni ishlab chiqish, UI/UX dizaynni amalga oshirish.",
+            highlights: ["React", "Redux", "TypeScript"],
+            location: "Toshkent, Uzbekistan",
+        },
+        {
+            name: "TechSoft",
+            position: "Frontend Developer",
+            url: "https://techsoft.uz",
+            startDate: "2022-01-01",
+            endDate: "2024-01-01",
+            summary:
+                "React asosida loyihalarni ishlab chiqish, UI/UX dizaynni amalga oshirish.",
+            highlights: ["React", "Redux", "TypeScript"],
+            location: "Toshkent, Uzbekistan",
+        },
+    ],
+    education: [
+        {
+            institution: "TATU",
+            area: "Kompyuter Ilmlari",
+            studyType: "Bakalavr",
+            startDate: "2018-09-01",
+            endDate: "2022-06-30",
+            gpa: "3.8",
+            courses: ["Algoritmlar", "Ma’lumotlar tuzilmasi", "Veb dasturlash"],
+            url: "",
+        },
+    ],
+    certifications: [
+        {
+            name: "Frontend Development Certificate",
+            issuer: "Udemy",
+            date: "2023-05-10",
+            url: "https://udemy.com/certificate/123456",
+        },
+    ],
+    awards: [
+        {
+            title: "Yilning eng yaxshi yosh dasturchisi",
+            date: "2023-12-15",
+            awarder: "IT Park",
+            summary: "Innovatsion veb-yechimlar uchun mukofot.",
+        },
+    ],
+    skills: [
+        {
+            name: "Frontend",
+            level: "Expert",
+            keywords: ["HTML", "CSS", "JavaScript", "React", "TypeScript"],
+        },
+    ],
+    languages: [
+        {
+            language: "O'zbek",
+            fluency: "Ona tili",
+        },
+        {
+            language: "Ingliz",
+            fluency: "Yaxshi",
+        },
+    ],
+    interests: [
+        {
+            name: "Texnologiyalar",
+            keywords: ["AI", "Open Source", "Design"],
+        },
+    ],
+    projects: [
+        {
+            name: "Portfolio Website",
+            description: "Shaxsiy portfolioni namoyish qiluvchi sayt",
+            highlights: ["Responsive dizayn", "React bilan qurilgan"],
+            keywords: ["React", "CSS", "Hosting"],
+            startDate: "2023-02-01",
+            url: "https://alivaliyev.dev",
+        },
+    ],
+    references: [
+        {
+            name: "Javlon Nizamov",
+            reference:
+                "Ali bilan birga 2 yil ishlaganmiz, juda mas'uliyatli dasturchi.",
+        },
+    ],
+    volunteer: [],
+    publications: [],
+    applications: [
+        {
+            vacancy: "vac123456",
+            appliedAt: "2024-10-10T09:30:00Z",
+            status: "pending",
+        },
+        {
+            vacancy: "vac789012",
+            appliedAt: "2024-10-05T14:20:00Z",
+            status: "reviewed",
+        },
+    ],
+    createdAt: "2024-09-30T12:00:00Z",
+    updatedAt: "2024-10-11T08:45:00Z",
+};
