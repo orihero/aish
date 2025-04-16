@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { EmployeeJobs } from './pages/Jobs/pages/EmployeeJobs';
 import { EmployerJobs } from './pages/Jobs/pages/EmployerJobs';
 import { JobApplications } from './pages/Jobs/pages/JobApplications';
+import { ApplicationChat } from './pages/Jobs/pages/ApplicationChat';
 import { Companies } from './pages/Companies';
 import { EmployerCompany } from './pages/Companies/pages/EmployerCompany';
 import { Resumes } from './pages/Resumes';
@@ -14,6 +15,8 @@ import { Settings } from './pages/Settings';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PrivateRoute } from './components/PrivateRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './hooks/useAuth';
+import { Profile } from './pages/Profile';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,58 +46,71 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-          <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
-          
-          <Route
-            path="/"
-            element={
-              user ? (
-                <DashboardLayout>
-                  <Outlet />
-                </DashboardLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          >
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="jobs" element={
-              <PrivateRoute>
-                {isEmployee ? <EmployeeJobs /> : <EmployerJobs />}
-              </PrivateRoute>
-            } />
-            <Route path="jobs/:id/applications" element={
-              <PrivateRoute>
-                <JobApplications />
-              </PrivateRoute>
-            } />
-            <Route path="companies" element={
-              <PrivateRoute>
-                <Companies />
-              </PrivateRoute>
-            } />
-            <Route path="company" element={
-              <PrivateRoute>
-                <EmployerCompany />
-              </PrivateRoute>
-            } />
-            <Route path="resumes" element={
-              <PrivateRoute>
-                <Resumes />
-              </PrivateRoute>
-            } />
-            <Route path="settings" element={
-              <PrivateRoute>
-                <Settings />
-              </PrivateRoute>
-            } />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+            <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+            
+            <Route
+              path="/"
+              element={
+                user ? (
+                  <DashboardLayout>
+                    <Outlet />
+                  </DashboardLayout>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            >
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="jobs" element={
+                <PrivateRoute>
+                  {isEmployee ? <EmployeeJobs /> : <EmployerJobs />}
+                </PrivateRoute>
+              } />
+              <Route path="jobs/my-applications" element={
+                <PrivateRoute>
+                  {isEmployee ? <JobApplications /> : <Navigate to="/jobs" replace />}
+                </PrivateRoute>
+              } />
+              <Route path="jobs/:id/applications" element={
+                <PrivateRoute>
+                  <JobApplications />
+                </PrivateRoute>
+              } />
+              <Route path="applications/:applicationId/chat" element={
+                <PrivateRoute>
+                  <ApplicationChat />
+                </PrivateRoute>
+              } />
+              <Route path="companies" element={
+                <PrivateRoute>
+                  <Companies />
+                </PrivateRoute>
+              } />
+              <Route path="company" element={
+                <PrivateRoute>
+                  <EmployerCompany />
+                </PrivateRoute>
+              } />
+              <Route path="resumes" element={
+                <PrivateRoute>
+                  <Resumes />
+                </PrivateRoute>
+              } />
+              <Route path="settings" element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              } />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

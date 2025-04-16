@@ -1,118 +1,55 @@
-import { FileText, Download, Trash2, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
-import { useTranslation } from '../../../hooks/useTranslation';
+import { FileText, Trash2, Download } from 'lucide-react';
+
+interface Resume {
+  id: string;
+  title: string;
+  fileUrl: string;
+  createdAt: string;
+}
 
 interface ResumeCardProps {
-  resume: {
-    id: string;
-    name: string;
-    cvFile: {
-      url: string;
-      filename: string;
-    };
-    applications: {
-      id: string;
-      vacancy: {
-        title: string;
-        company: string;
-      };
-      status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
-      appliedAt: string;
-    }[];
-    createdAt: string;
-  };
+  resume: Resume;
   onDelete: (id: string) => void;
 }
 
-export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
-  const { t } = useTranslation();
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-amber-500" />;
-      case 'reviewed':
-        return <Eye className="h-4 w-4 text-blue-500" />;
-      case 'accepted':
-        return <CheckCircle className="h-4 w-4 text-emerald-500" />;
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-amber-50 text-amber-700';
-      case 'reviewed':
-        return 'bg-blue-50 text-blue-700';
-      case 'accepted':
-        return 'bg-emerald-50 text-emerald-700';
-      case 'rejected':
-        return 'bg-red-50 text-red-700';
-      default:
-        return 'bg-gray-50 text-gray-700';
-    }
+export const ResumeCard = ({ resume, onDelete }: ResumeCardProps) => {
+  const handleDownload = () => {
+    window.open(resume.fileUrl, '_blank');
   };
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-            <FileText className="h-6 w-6 text-purple-600" />
+        <div className="flex items-start space-x-4">
+          <div className="flex-shrink-0">
+            <div className="h-12 w-12 rounded-lg bg-purple-50 flex items-center justify-center">
+              <FileText className="h-6 w-6 text-purple-600" />
+            </div>
           </div>
           <div>
-            <h3 className="text-lg font-medium text-gray-900">{resume.name}</h3>
-            <p className="text-sm text-gray-500">
-              {t('resume.uploadedOn')} {new Date(resume.createdAt).toLocaleDateString()}
+            <h3 className="text-lg font-medium text-gray-900">{resume.title}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Uploaded on {new Date(resume.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={resume.cvFile.url}
-            download={resume.cvFile.filename}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg"
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleDownload}
+            className="p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50"
+            title="Download"
           >
             <Download className="h-5 w-5" />
-          </a>
+          </button>
           <button
             onClick={() => onDelete(resume.id)}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-50 rounded-lg"
+            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+            title="Delete"
           >
             <Trash2 className="h-5 w-5" />
           </button>
         </div>
       </div>
-
-      {resume.applications.length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">{t('resume.applications')}</h4>
-          <div className="space-y-3">
-            {resume.applications.map((application) => (
-              <div
-                key={application.id}
-                className="flex items-center justify-between py-2 px-4 bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {application.vacancy.title}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {application.vacancy.company}
-                  </div>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${getStatusColor(application.status)}`}>
-                  {getStatusIcon(application.status)}
-                  <span className="capitalize">{t(`resume.status.${application.status}`)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
-}
+};

@@ -1,4 +1,6 @@
-import Skill from '../models/skill.model.js';
+import { Skill } from '../models/skill.model.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import { AppError } from '../utils/appError.js';
 
 // Helper function to normalize skill data
 const normalizeSkillData = (data) => {

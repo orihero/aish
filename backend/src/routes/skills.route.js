@@ -27,7 +27,7 @@ const adminAuth = async (req, res, next) => {
 
 // Public routes
 router.get('/', getSkills);
-router.get('/icons', getSkillIcons);
+router.post('/icons', getSkillIcons);
 router.get('/:id', getSkill);
 
 // Protected routes (admin only)

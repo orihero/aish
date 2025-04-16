@@ -1,5 +1,42 @@
 import axios from 'axios';
 
+// Fetch devicon skills for normalization
+async function getDeviconSkills() {
+  try {
+    const response = await axios.get('https://raw.githubusercontent.com/devicons/devicon/master/devicon.json');
+    return response.data.map(icon => ({
+      name: icon.name,
+      aliases: [...(icon.altnames || []), ...(icon.aliases || [])]
+        .filter(alias => typeof alias === 'string')
+    }));
+  } catch (error) {
+    console.error('Failed to fetch devicon skills:', error);
+    return [];
+  }
+}
+
+// Normalize skill name to match devicon
+function normalizeSkillName(skillName, deviconSkills) {
+  if (!skillName) return '';
+  
+  const lowerSkillName = skillName.toLowerCase().trim();
+  
+  // First try exact match
+  const exactMatch = deviconSkills.find(skill => 
+    skill.name.toLowerCase() === lowerSkillName
+  );
+  if (exactMatch) return exactMatch.name;
+  
+  // Then try alias match
+  const aliasMatch = deviconSkills.find(skill => 
+    skill.aliases.some(alias => alias.toLowerCase() === lowerSkillName)
+  );
+  if (aliasMatch) return aliasMatch.name;
+  
+  // If no match found, return original name
+  return skillName;
+}
+
 export async function analyzeResume(text) {
   if (!text) {
     throw new Error('Resume text is required');
@@ -8,6 +45,9 @@ export async function analyzeResume(text) {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OpenRouter API key not configured');
   }
+
+  // Fetch devicon skills for normalization
+  const deviconSkills = await getDeviconSkills();
 
   const template = {
     basics: {
@@ -53,6 +93,8 @@ Important formatting rules:
 2. Languages must be objects with "language" and "fluency" properties
 3. Work experience must include "name", "position", "startDate", "endDate", and "summary"
 4. Education must include "institution", "area", "studyType", "startDate", and "endDate"
+5. Skill names must match exactly with the devicon library names (e.g., "JavaScript", "React", "Node.js", "Python")
+6. Use standard skill names from devicon library for consistency
 
 Example skill format:
 {
@@ -111,16 +153,18 @@ Return ONLY the JSON object, no other text.`
           ...rawResponse,
           skills: (rawResponse.skills || []).map(skill => {
             if (typeof skill === 'string') {
+              const normalizedName = normalizeSkillName(skill, deviconSkills);
               return {
-                name: skill,
+                name: normalizedName,
                 level: 'Intermediate',
-                keywords: [skill]
+                keywords: [normalizedName]
               };
             }
+            const normalizedName = normalizeSkillName(skill.name, deviconSkills);
             return {
-              name: skill.name || '',
+              name: normalizedName,
               level: skill.level || 'Intermediate',
-              keywords: Array.isArray(skill.keywords) ? skill.keywords : [skill.name || '']
+              keywords: Array.isArray(skill.keywords) ? skill.keywords : [normalizedName]
             };
           }),
           languages: (rawResponse.languages || []).map(lang => {

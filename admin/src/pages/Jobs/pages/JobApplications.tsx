@@ -1,154 +1,119 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Filter, User, FileText, Check, X } from 'lucide-react';
-import { useJobsStore } from '../../../stores/jobs.store';
-import { useApplicationsStore } from '../../../stores/Applications.store';
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axios";
+import { useApplicationsStore } from "@/stores/application.store";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { MessageSquare, CheckCircle2, XCircle } from "lucide-react";
+
+interface Application {
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+  };
+  resume: {
+    _id: string;
+    name: string;
+  };
+  status: "pending" | "reviewed" | "accepted" | "rejected";
+  chat: {
+    _id: string;
+  };
+  appliedAt: string;
+  updatedAt: string;
+}
 
 export function JobApplications() {
-  const { id } = useParams<{ id: string }>();
+  const { jobId } = useParams();
   const navigate = useNavigate();
-  const { jobs, getJobs } = useJobsStore();
-  const { applications, getApplications, updateApplication } = useApplicationsStore();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const { updateApplication } = useApplicationsStore();
 
-  useEffect(() => {
-    getJobs();
-    getApplications();
-  }, []);
-
-  const job = jobs.find(j => j._id === id);
-  const jobApplications = applications.filter(app => app.jobId === id);
-
-  const filteredApplications = jobApplications.filter(app => {
-    const matchesSearch = app.userName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !selectedStatus || app.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+  const { data: applications, isLoading } = useQuery({
+    queryKey: ["jobApplications", jobId],
+    queryFn: async () => {
+      const { data } = await api.get(`/applications/me`);
+      return data;
+    },
   });
 
-  const handleStatusChange = async (applicationId: string, newStatus: 'accepted' | 'rejected') => {
+  const handleStatusChange = async (applicationId: string, status: Application["status"]) => {
     try {
-      await updateApplication(applicationId, newStatus);
+      await updateApplication(applicationId, status);
     } catch (error) {
-      console.error('Failed to update application status:', error);
+      console.error("Failed to update application status:", error);
     }
   };
 
-  if (!job) {
-    return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-md">
-        Job not found
-      </div>
-    );
+  const handleChatClick = (application: Application) => {
+    navigate(`/applications/${application._id}/chat`);
+  };
+
+  if (isLoading) {
+    return <div>Loading applications...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{job.title}</h1>
-          <p className="text-gray-600">{jobApplications.length} applications</p>
-        </div>
-        <button
-          onClick={() => navigate('/jobs')}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Back to Jobs
-        </button>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search applicants..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4">
-        {filteredApplications.map((application) => (
-          <div
-            key={application.id}
-            className="bg-white rounded-lg p-6 shadow-sm border border-gray-100"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                <User className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{application.userName}</h3>
-                    <span className="text-sm text-gray-600">
-                      Applied {new Date(application.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-sm ${
-                    application.status === 'accepted' 
-                      ? 'bg-green-50 text-green-700'
-                      : application.status === 'rejected'
-                      ? 'bg-red-50 text-red-700'
-                      : 'bg-yellow-50 text-yellow-700'
-                  }`}>
-                    {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                  </div>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Job Applications</h1>
+      <div className="grid gap-4">
+        {applications?.map((application: Application) => (
+          <Card key={application._id}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg">{application.user.name}</p>
+                  <p className="text-sm text-gray-500">
+                    Applied on {format(new Date(application.appliedAt), "PPP")}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 mt-4">
-                  <button
-                    onClick={() => handleStatusChange(application.id, 'accepted')}
-                    disabled={application.status === 'accepted'}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium ${
-                      application.status === 'accepted'
-                        ? 'bg-green-50 text-green-700 cursor-not-allowed'
-                        : 'bg-green-50 text-green-700 hover:bg-green-100'
-                    }`}
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      application.status === "accepted"
+                        ? "success"
+                        : application.status === "rejected"
+                        ? "destructive"
+                        : "default"
+                    }
                   >
-                    <Check className="w-4 h-4" />
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(application.id, 'rejected')}
-                    disabled={application.status === 'rejected'}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium ${
-                      application.status === 'rejected'
-                        ? 'bg-red-50 text-red-700 cursor-not-allowed'
-                        : 'bg-red-50 text-red-700 hover:bg-red-100'
-                    }`}
+                    {application.status}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleChatClick(application)}
                   >
-                    <X className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => navigate(`/resumes/${application.resumeId}`)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                  >
-                    <FileText className="w-4 h-4" />
-                    View Resume
-                  </button>
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
                 </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleStatusChange(application._id, "accepted")}
+                  disabled={application.status === "accepted"}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Accept
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleStatusChange(application._id, "rejected")}
+                  disabled={application.status === "rejected"}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
