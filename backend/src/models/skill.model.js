@@ -9,23 +9,13 @@ const skillSchema = new mongoose.Schema({
   },
   icon: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   category: {
     type: String,
     required: true,
-    enum: [
-      'Programming Languages',
-      'Frontend',
-      'Backend',
-      'DevOps',
-      'Design',
-      'Cloud',
-      'Mobile',
-      'Data Science',
-      'Security',
-      'Other'
-    ]
+    trim: true
   },
   aliases: [{
     type: String,
@@ -43,11 +33,8 @@ const skillSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create text index for search
-skillSchema.index({ 
-  name: 'text',
-  aliases: 'text'
-});
+// Create text index for searching
+skillSchema.index({ name: 'text', aliases: 'text' });
 
 // Method to find skill by name or alias
 skillSchema.statics.findByNameOrAlias = async function(query) {
@@ -62,4 +49,4 @@ skillSchema.statics.findByNameOrAlias = async function(query) {
 
 const Skill = mongoose.model('Skill', skillSchema);
 
-export default Skill; 
+export { Skill }; 

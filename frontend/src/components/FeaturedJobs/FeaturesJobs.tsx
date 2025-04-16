@@ -24,7 +24,7 @@ const FeaturesJobs = () => {
                         key={index}
                         title={job.title}
                         creator={job.creator}
-                        company={job.company}
+                        company={job.company.name}
                         category={job.category}
                         subcategory={job.subcategory}
                         salary={job.salary}
@@ -42,7 +42,7 @@ const FeaturesJobs = () => {
                     />
                 );
             });
-    }, [vacanciesStore.vacancies]);
+    }, [navigation, vacanciesStore]);
 
     return (
         <FeaturesJobsContainer>
@@ -65,6 +65,7 @@ const FeaturesJobs = () => {
                     className="seeAll"
                     title="See all jobs"
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                    onPress={() => navigation("/vacancies")}
                 />
             </div>
             <div className="cards">{renderJobs()}</div>
@@ -72,6 +73,7 @@ const FeaturesJobs = () => {
                 className="seeAllMobile"
                 title="See all jobs"
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                onPress={() => navigation("/vacancies")}
             />
         </FeaturesJobsContainer>
     );
@@ -85,6 +87,7 @@ const FeaturesJobsContainer = styled.div`
     flex-direction: column;
     padding: 60px 5%;
     gap: 30px;
+    min-height: 60vh;
 
     .top {
         display: flex;

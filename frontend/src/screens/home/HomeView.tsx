@@ -8,8 +8,11 @@ import FeaturesJobs from "../../components/FeaturedJobs/FeaturesJobs";
 import Footer from "../../components/Footer/Footer";
 import LatestJobs from "../../components/LatestJobs/LatestJobs";
 import { observer } from "mobx-react-lite";
+import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeModal";
+import useRootStore from "../../shared/hooks/UseRootStore";
 
 const HomeView = () => {
+    const { visibleStore } = useRootStore();
     return (
         <div>
             <Header />
@@ -20,6 +23,9 @@ const HomeView = () => {
             <FeaturesJobs />
             <LatestJobs />
             <Footer />
+            <UploadResumeModal
+                isShow={visibleStore.visible.createResumeModal}
+            />
         </div>
     );
 };

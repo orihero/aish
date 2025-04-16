@@ -4,6 +4,7 @@ import HomeView from "../../screens/home/HomeView";
 import NotfoundView from "../../screens/notfound/NotfoundView";
 import VacancyPreview from "../../screens/vacancyPreview/VacancyPreview";
 import VacanciesView from "../../screens/vacancies/VacanciesView";
+import MyResume from "../../screens/myResume/MyResume";
 
 const AppNavigation = () => {
     return (
@@ -12,6 +13,7 @@ const AppNavigation = () => {
                 <Route path="/" element={<HomeView />} />
                 <Route path="/vacancy/:id" element={<VacancyPreview />} />
                 <Route path="/vacancies" element={<VacanciesView />} />
+                <Route path="/myResume" element={<MyResume />} />
                 <Route path="/*" element={<NotfoundView />} />
             </Routes>
         </BrowserRouter>

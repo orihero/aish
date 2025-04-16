@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { Briefcase, CheckCircle, Clock, FileText, XCircle } from 'lucide-react';
+import { useEffect } from 'react';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../stores/auth.store';
 import { useDashboardStore } from '../stores/dashboard.store';
-import { useCategoriesStore } from '../stores/categories.store';
 import { useJobsStore } from '../stores/jobs.store';
-import { BarChart3, Briefcase, FileText, CheckCircle, Clock, XCircle, MoreVertical } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { JobCard } from './Jobs/components/JobCard';
 import { JobFilters } from './Jobs/components/JobFilters';
-import { useTranslation } from '../hooks/useTranslation';
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -15,7 +14,6 @@ export function Dashboard() {
   const { user } = useAuthStore();
   const { company, stats, isLoading, getEmployerDashboard } = useDashboardStore();
   const { jobs, filters, setFilters } = useJobsStore();
-  const { getCategories } = useCategoriesStore();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -90,8 +88,8 @@ export function Dashboard() {
                 <JobCard
                   key={job.id}
                   job={job}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
+                  onEdit={() => { }}
+                  onDelete={() => { }}
                 />
               ))
             )}
@@ -216,8 +214,8 @@ export function Dashboard() {
               >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7367F0" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#7367F0" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#7367F0" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#7367F0" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -272,9 +270,8 @@ export function Dashboard() {
               <div key={vacancy.id} className="border border-gray-100 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium text-gray-900">{vacancy.title}</h3>
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    vacancy.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-700'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-xs ${vacancy.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-700'
+                    }`}>
                     {vacancy.status}
                   </span>
                 </div>

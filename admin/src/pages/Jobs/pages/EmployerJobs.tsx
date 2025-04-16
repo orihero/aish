@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Briefcase } from 'lucide-react';
 import { useJobsStore } from '../../../stores/jobs.store';
-import { useApplicationsStore } from '../../../stores/Applications.store';
+import { useApplicationsStore } from '../../../stores/application.store';
 import { useTranslation } from '../../../hooks/useTranslation';
 
 export function EmployerJobs() {

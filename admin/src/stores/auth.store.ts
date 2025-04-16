@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../lib/axios';
+import { ResumeData } from '../pages/Register';
 
 interface User {
   id: string;
@@ -15,6 +16,11 @@ interface RegisterData {
   email: string;
   password: string;
   role: 'employer' | 'employee';
+  resumeData?: ResumeData;
+  resumeFile?: {
+    url: string;
+    filename: string;
+  };
 }
 
 interface AuthState {

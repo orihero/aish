@@ -1,14 +1,13 @@
-import { PDFDocument } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import textract from 'textract';
+import { sendApplicationStatusNotification } from '../config/telegram.js';
 import { Resume } from '../models/resume.model.js';
 import { User } from '../models/user.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
-import { startScreeningChat, continueChat } from '../services/chat.service.js';
-import { analyzeResume } from '../services/resume-analyzer.service.js';
+import { startScreeningChat } from '../services/chat.service.js';
 import { generateResumePDF } from '../services/pdf-generator.service.js';
-import { sendApplicationStatusNotification } from '../config/telegram.js';
-import textract from 'textract';
+import { analyzeResume } from '../services/resume-analyzer.service.js';
 
 export const createManualResumeWithRegistration = async (req, res) => {
   try {
@@ -97,83 +96,78 @@ export const createManualResumeWithRegistration = async (req, res) => {
   }
 };
 
-export const analyzeResumeFile = async (file) => {
-  if (!file || !file.path) {
-    throw new Error('No file provided or invalid file path');
-  }
-
+export const analyzeResumeFile = async (req, res) => {
   try {
-    console.log('Reading file:', file.path);
-    
-    // Extract text using textract
-    console.log('Extracting text from file...');
-    let fullText;
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+
+    const filePath = req.file.path;
+    console.log('Reading file:', filePath);
+
     try {
-      fullText = await new Promise((resolve, reject) => {
-        textract.fromFileWithPath(file.path, {
+      console.log('Extracting text from file...');
+      const text = await new Promise((resolve, reject) => {
+        textract.fromFileWithPath(filePath, {
           preserveLineBreaks: true,
           pdftotextOptions: {
             layout: 'raw'
           }
         }, (error, text) => {
           if (error) {
-            console.error('Text extraction error details:', error);
-            if (error.message.includes('pdftotext')) {
-              reject(new Error('PDF text extraction failed. Please ensure poppler is installed and in your PATH.'));
-            } else if (error.message.includes('antiword')) {
-              reject(new Error('DOC text extraction failed. Please ensure antiword is installed and in your PATH.'));
-            } else if (error.message.includes('docx2txt')) {
-              reject(new Error('DOCX text extraction failed. Please ensure docx2txt is installed and in your PATH.'));
-            } else {
-              reject(new Error('Failed to extract text from file. The file might be corrupted or in an unsupported format.'));
-            }
+            console.error('Text extraction error:', error);
+            reject(error);
           } else {
             resolve(text);
           }
         });
       });
-    } catch (extractError) {
-      console.error('Text extraction error:', extractError);
-      throw extractError;
+      
+      if (!text || text.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'The uploaded PDF appears to be a scanned document or image. Please upload a PDF with selectable text or use the manual resume form instead.'
+        });
+      }
+
+      console.log('Analyzing resume with AI...');
+      const analysis = await analyzeResume(text);
+      
+      // Save the file information
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({
+        success: true,
+        data: analysis,
+        fileUrl,
+        fileName: req.file.filename
+      });
+    } catch (error) {
+      console.error('Resume analysis error:', error);
+      
+      // Delete the uploaded file since we couldn't process it
+      fs.unlink(filePath, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+
+      if (error.message.includes('No text content could be extracted')) {
+        return res.status(400).json({
+          success: false,
+          error: 'The uploaded PDF appears to be a scanned document or image. Please upload a PDF with selectable text or use the manual resume form instead.'
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to analyze resume. Please try again or use the manual resume form.'
+      });
     }
-
-    if (!fullText || fullText.trim().length === 0) {
-      throw new Error('No text content could be extracted from the file.');
-    }
-
-    console.log('Successfully extracted text, length:', fullText.length);
-
-    // Analyze resume using OpenRouter API
-    console.log('Analyzing resume text with OpenRouter API...');
-    const parsedData = await analyzeResume(fullText);
-    console.log('Resume analysis complete');
-
-    // Clean up uploaded file
-    try {
-      fs.unlinkSync(file.path);
-    } catch (unlinkError) {
-      console.warn('Failed to delete uploaded file:', unlinkError);
-    }
-
-    return {
-      success: true,
-      data: parsedData
-    };
   } catch (error) {
-    console.error('Resume analysis error:', error);
-    
-    // Clean up uploaded file in case of error
-    try {
-      fs.unlinkSync(file.path);
-    } catch (unlinkError) {
-      console.warn('Failed to delete uploaded file after error:', unlinkError);
-    }
-
-    throw {
+    console.error('Error in analyzeResumeFile:', error);
+    res.status(500).json({
       success: false,
-      error: error.message || 'Failed to analyze resume',
-      details: error
-    };
+      error: 'An unexpected error occurred. Please try again.'
+    });
   }
 };
 
@@ -432,5 +426,63 @@ export const updateApplicationStatus = async (req, res) => {
     res.json(resume);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const getMyApplications = async (req, res) => {
+  try {
+    const resumes = await Resume.find({ user: req.user._id })
+      .populate({
+        path: 'applications.vacancy',
+        select: 'title company description requirements createdAt',
+        populate: {
+          path: 'company',
+          select: 'name logo website description',
+          populate: {
+            path: 'creator',
+            select: 'firstName lastName email'
+          }
+        }
+      });
+
+    // Extract and format applications
+    const applications = resumes.flatMap(resume => 
+      resume.applications.map(app => ({
+        _id: app._id,
+        status: app.status,
+        createdAt: app.createdAt,
+        updatedAt: app.updatedAt,
+        job: {
+          _id: app.vacancy._id,
+          title: app.vacancy.title,
+          description: app.vacancy.description,
+          requirements: app.vacancy.requirements,
+          createdAt: app.vacancy.createdAt,
+          company: {
+            _id: app.vacancy.company._id,
+            name: app.vacancy.company.name,
+            logo: app.vacancy.company.logo,
+            website: app.vacancy.company.website,
+            description: app.vacancy.company.description,
+            contact: {
+              name: `${app.vacancy.company.creator.firstName} ${app.vacancy.company.creator.lastName}`,
+              email: app.vacancy.company.creator.email
+            }
+          }
+        },
+        resume: {
+          id: resume._id,
+          title: resume.name
+        }
+      }))
+    );
+
+    // Sort by appliedAt date (newest first)
+    applications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(applications);
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    res.status(500).json({ message: error.message });
   }
 };

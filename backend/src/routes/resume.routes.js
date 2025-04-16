@@ -14,7 +14,8 @@ import {
   applyToVacancy,
   updateApplicationStatus,
   updateParsedData,
-  downloadResumePDF
+  downloadResumePDF,
+  getMyApplications
 } from '../controllers/resume.controller.js';
 
 const router = express.Router();
@@ -34,17 +35,7 @@ const employeeAuth = async (req, res, next) => {
 };
 
 // Public resume analysis endpoint
-router.post('/analyze', upload.single('cvFile'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'CV file is required' });
-    }
-    const result = await analyzeResumeFile(req.file);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
+router.post('/analyze', upload.single('cvFile'), analyzeResumeFile);
 
 // Public endpoint to create resume and register user
 router.post('/register', [
@@ -80,6 +71,7 @@ router.put('/:id/parsed-data', employeeAuth, updateParsedData);
 router.get('/:id/download-pdf', employeeAuth, downloadResumePDF);
 
 // Application operations
+router.get('/applications/me', employeeAuth, getMyApplications);
 router.post('/:resumeId/apply/:vacancyId', employeeAuth, applyToVacancy);
 
 export default router;

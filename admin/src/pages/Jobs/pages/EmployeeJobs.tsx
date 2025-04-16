@@ -1,96 +1,93 @@
 import { useState, useEffect } from 'react';
-import { useJobsStore } from '../../../stores/jobs.store';
-import { useApplicationsStore } from '../../../stores/Applications.store';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '../../../stores/auth.store';
 import { JobCard } from '../components/JobCard';
-import { Search, Filter } from 'lucide-react';
+import { Spinner } from '../../../components/Spinner';
+import { Alert } from '../../../components/Alert';
+import { EmptyState } from '../../../components/EmptyState';
+import { Job } from '../../../stores/jobs.store';
+import { ApplyModal } from '../components/ApplyModal';
 
-export function EmployeeJobs() {
-  const { jobs, isLoading, error, getJobs } = useJobsStore();
-  const { createApplication } = useApplicationsStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
+interface VacanciesResponse {
+  vacancies: Job[];
+  total: number;
+  pages: number;
+  currentPage: number;
+}
 
-  useEffect(() => {
-    getJobs();
-  }, []);
+export const EmployeeJobs = () => {
+  const { user } = useAuthStore();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  const handleApply = async (jobId: string) => {
-    try {
-      await createApplication(jobId);
-      // Refresh jobs to update application status
-      getJobs();
-    } catch (error) {
-      console.error('Failed to apply for job:', error);
-    }
-  };
-
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesIndustry = !selectedIndustry || job.industry === selectedIndustry;
-    return matchesSearch && matchesIndustry;
+  const { data, isLoading, error } = useQuery<VacanciesResponse>({
+    queryKey: ['jobs'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/vacancies`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch jobs');
+      }
+      return response.json();
+    },
   });
 
-  const industries = [...new Set(jobs.map(job => job.industry))];
+  useEffect(() => {
+    if (data?.vacancies) {
+      setJobs(data.vacancies);
+    }
+  }, [data]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <Spinner size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-md">
-        {error}
-      </div>
+      <Alert variant="error">
+        {error instanceof Error ? error.message : 'An error occurred'}
+      </Alert>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <EmptyState
+        type="jobs"
+        action={
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Refresh Jobs
+          </button>
+        }
+      />
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Available Jobs</h1>
-      </div>
-
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <select
-            value={selectedIndustry}
-            onChange={(e) => setSelectedIndustry(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">All Industries</option>
-            {industries.map(industry => (
-              <option key={industry} value={industry}>{industry}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.map((job) => (
-          <JobCard 
-            key={job.id} 
+    <>
+      <div className="space-y-4">
+        {jobs.map((job) => (
+          <JobCard
+            key={job._id}
             job={job}
-            onApply={() => handleApply(job.id)}
-            showApplyButton={true}
+            showApplyButton={user?.role === 'employee'}
+            onApply={() => setSelectedJob(job)}
           />
         ))}
       </div>
-    </div>
+
+      {selectedJob && (
+        <ApplyModal
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+        />
+      )}
+    </>
   );
-} 
+}; 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export interface Resume {
-  id: string;
+  _id: string;
   name: string;
   userId: string;
   createdAt: string;
@@ -84,39 +84,73 @@ export const useResumesStore = create<ResumesState>((set) => ({
   getMyResumes: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("/api/resumes/me");
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/resumes/my`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch resumes');
+      }
+
       const data = await response.json();
-      set({ resumes: data, loading: false });
+      set({ resumes: Array.isArray(data) ? data : [], loading: false });
     } catch (error) {
-      set({ error: "Failed to fetch resumes", loading: false });
+      set({ error: error instanceof Error ? error.message : "Failed to fetch resumes", loading: false });
     }
   },
   createResume: async (data) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("/api/resumes", {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/resumes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create resume');
+      }
+
       const resume = await response.json();
       set((state) => ({
         resumes: [...state.resumes, resume],
         loading: false,
       }));
     } catch (error) {
-      set({ error: "Failed to create resume", loading: false });
+      set({ error: error instanceof Error ? error.message : "Failed to create resume", loading: false });
     }
   },
 
   analyzeResume: async (file) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("/api/resumes/analyze", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/resumes/analyze`, {
       method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: formData,
     });
 

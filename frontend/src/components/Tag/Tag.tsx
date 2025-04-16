@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { Colors } from "../../shared/utils/color";
 
 interface TagProps {
     text: string;
+    isConstant?: boolean; // optional prop
 }
 
 interface StyledTagProps {
@@ -26,10 +28,30 @@ const StyledTag = styled.span<StyledTagProps>`
     font-weight: 500;
     background-color: ${(props) => props.$backgroundColor};
     color: ${(props) => props.$textColor};
+    text-align: center;
 `;
 
-export function Tag({ text }: TagProps) {
-    const colors = generateRandomPastelColor();
+export function Tag({ text, isConstant = false }: TagProps) {
+    const [colors, setColors] = useState<{
+        background: string;
+        text: string;
+    } | null>(null);
+
+    useEffect(() => {
+        if (!isConstant) {
+            const generatedColors = generateRandomPastelColor();
+            setColors(generatedColors);
+        } else {
+            setColors({
+                background: Colors.light,
+                text: Colors.lightGray,
+            });
+        }
+    }, [isConstant]);
+
+    if (!colors) {
+        return null;
+    }
 
     return (
         <StyledTag

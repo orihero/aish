@@ -1,15 +1,13 @@
+import { ArrowRight, Building2, Facebook, Github, Loader2, Mail, Twitter, User2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Building2, User2, ArrowRight, Facebook, Twitter, Github, Mail, Loader2 } from 'lucide-react'
+import { useTranslation } from '../hooks/useTranslation'
+import { api } from '../lib/axios'
 import { useAuthStore } from '../stores/auth.store'
-import { useResumesStore } from '../stores/resumes.store'
 import { ResumeUpload } from './Profile/components/ResumeUpload'
 import { ManualResumeForm } from './Register/components/ManualResumeForm'
 import { ResumePreview } from './Register/components/ResumePreview'
-import { useTranslation } from '../hooks/useTranslation'
-import { api } from '../lib/axios'
 
-type Role = 'talent' | 'business'
 type Step = 'role' | 'upload' | 'manual' | 'preview' | 'account' | 'details' | 'resume'
 
 interface FormData {
@@ -18,6 +16,11 @@ interface FormData {
   email: string;
   password: string;
   role: 'employer' | 'employee';
+  resumeData?: ResumeData;
+  resumeFile?: {
+    url: string;
+    filename: string;
+  };
 }
 
 interface Profile {
@@ -58,7 +61,7 @@ interface Reference {
   reference: string;
 }
 
-interface ApiResumeResponse {
+interface ResumeAnalysisResponse {
   basics: {
     name: string;
     label: string;
@@ -89,7 +92,6 @@ interface ApiResumeResponse {
     startDate: string;
     endDate: string;
     summary: string;
-    highlights: string[];
   }>;
   education: Array<{
     institution: string;
@@ -114,6 +116,8 @@ interface ApiResumeResponse {
   projects: Array<{
     name: string;
     description: string;
+    highlights: string[];
+    keywords: string[];
     startDate: string;
     url: string;
   }>;
@@ -126,43 +130,47 @@ export interface ResumeData {
     label: string;
     email: string;
     phone: string;
+    summary?: string;
+    image?: string;
     location: {
       city: string;
       countryCode: string;
     };
-    hourlyRate?: string;
-    summary?: string;
-    image?: string;
   };
-  work: {
+  work: Array<{
     name: string;
     position: string;
     startDate: string;
     endDate: string;
     summary: string;
+    highlights: string[];
     technologies: string[];
-  }[];
-  education: {
+  }>;
+  education: Array<{
     institution: string;
     area: string;
     studyType: string;
     startDate: string;
     endDate: string;
     gpa: string;
-  }[];
-  skills: {
+  }>;
+  skills: Array<{
     name: string;
-    level?: string;
-    keywords?: string[];
-  }[];
-  projects?: {
+    level: string;
+    keywords: string[];
+  }>;
+  projects?: Array<{
     name: string;
     description?: string;
     highlights?: string[];
     keywords?: string[];
     startDate?: string;
     url?: string;
-  }[];
+  }>;
+  cvFile?: {
+    url: string;
+    filename: string;
+  };
 }
 
 const initialResumeData: ResumeData = {
@@ -175,8 +183,6 @@ const initialResumeData: ResumeData = {
       city: '',
       countryCode: ''
     },
-    hourlyRate: '$21/h',
-    summary: ''
   },
   work: [],
   education: [],
@@ -187,7 +193,6 @@ const initialResumeData: ResumeData = {
 export function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [currentStep, setCurrentStep] = useState<Step>('role')
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData)
   const [formData, setFormData] = useState<FormData>({
@@ -198,91 +203,121 @@ export function Register() {
     role: 'employee'
   })
   const { register, isLoading, error, clearError } = useAuthStore()
-  const { createResume } = useResumesStore()
   const { t } = useTranslation()
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [resumeFile, setResumeFile] = useState<{ url: string; filename: string } | undefined>(undefined);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await register(formData)
-      if (selectedRole === 'talent' && resumeData) {
-        await createResume({
-          name: `${formData.firstName}'s Resume`,
-          parsedData: resumeData
-        })
+      if (!resumeFile?.url || !resumeFile?.filename) {
+        throw new Error('Resume file information is missing')
       }
+      await register({
+        ...formData,
+        resumeData,
+        resumeFile
+      })
       navigate('/dashboard')
     } catch (error) {
       // Error is handled by the store
     }
   }
 
-  const handleUploadResume = async (name: string, file: File) => {
+  const handleUploadResume = async (file: File) => {
     try {
       setIsAnalyzing(true);
       const formData = new FormData();
       formData.append('cvFile', file);
 
-      console.log('Uploading resume...');
-      const response = await api.post<{ success: boolean; data: ApiResumeResponse }>('/resumes/analyze', formData, {
+      const response = await api.post<{ 
+        success: boolean; 
+        data?: ResumeAnalysisResponse; 
+        fileUrl?: string; 
+        fileName?: string;
+        error?: string;
+      }>('/resumes/analyze', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      console.log('Resume analysis response:', response.data);
-      const responseData = response.data.data;
-      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to analyze resume');
+      }
+
+      if (!response.data.fileUrl || !response.data.fileName) {
+        throw new Error('Failed to get file information from server')
+      }
+
+      const fileInfo = {
+        url: response.data.fileUrl,
+        filename: response.data.fileName
+      };
+      setResumeFile(fileInfo);
+
+      // Transform the API response to match our ResumeData structure
       const parsedData: ResumeData = {
         basics: {
-          name: responseData.basics.name || '',
-          label: responseData.basics.label || '',
-          email: responseData.basics.email || '',
-          phone: responseData.basics.phone || '',
+          name: response.data.data?.basics?.name || 'No Name',
+          label: response.data.data?.basics?.label || 'No Title',
+          email: response.data.data?.basics?.email || '',
+          phone: response.data.data?.basics?.phone || '',
+          summary: response.data.data?.basics?.summary || '',
+          image: response.data.data?.basics?.image || '',
           location: {
-            city: responseData.basics.location?.city || '',
-            countryCode: responseData.basics.location?.countryCode || ''
-          },
-          hourlyRate: '$21/h',
-          summary: responseData.basics.summary || '',
-          image: responseData.basics.image || ''
+            city: response.data.data?.basics?.location?.city || '',
+            countryCode: response.data.data?.basics?.location?.countryCode || ''
+          }
         },
-        work: responseData.work.map((job) => ({
+        work: (response.data.data?.work || []).map(job => ({
           name: job.name || '',
           position: job.position || '',
           startDate: job.startDate || '',
           endDate: job.endDate || '',
           summary: job.summary || '',
-          technologies: [] // We'll extract technologies from skills
+          highlights: [], // API doesn't provide highlights
+          technologies: [] // API doesn't provide technologies
         })),
-        education: responseData.education.map((edu) => ({
+        education: (response.data.data?.education || []).map(edu => ({
           institution: edu.institution || '',
           area: edu.area || '',
           studyType: edu.studyType || '',
           startDate: edu.startDate || '',
           endDate: edu.endDate || '',
-          gpa: ''
+          gpa: ''  // API doesn't provide GPA
         })),
-        skills: responseData.skills.map((skill) => ({
+        skills: (response.data.data?.skills || []).map(skill => ({
           name: skill.name || '',
-          level: skill.level || '',
+          level: skill.level || 'Intermediate',
           keywords: skill.keywords || []
         })),
-        projects: responseData.projects.map((project) => ({
-          name: project.name || '',
-          description: project.description || '',
-          highlights: [],
-          keywords: [],
-          startDate: project.startDate || '',
-          url: project.url || ''
+        projects: (response.data.data?.projects || []).map(project => ({
+          name: project?.name || '',
+          description: project?.description || '',
+          highlights: project?.highlights || [],
+          keywords: project?.keywords || [],
+          startDate: project?.startDate || '',
+          url: project?.url || ''
         }))
       };
 
+      console.log('Transformed Resume Data:', parsedData);
       setResumeData(parsedData);
       setCurrentStep('preview');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error uploading resume:', error);
+      // Show error message to user
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze resume';
+      if (errorMessage.includes('scanned document')) {
+        // If it's a scanned PDF, suggest using manual form
+        setCurrentStep('manual');
+        // You might want to show a toast or alert here
+        alert('The uploaded PDF appears to be a scanned document. Please fill in your resume details manually.');
+      } else {
+        // For other errors, show the error message
+        alert(errorMessage || 'Failed to analyze resume. Please try again or use the manual form.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -314,6 +349,7 @@ export function Register() {
       return (
         <ResumePreview
           data={resumeData}
+          resumeFile={resumeFile}
           onDownload={() => {
             // TODO: Implement PDF download
           }}
@@ -337,7 +373,6 @@ export function Register() {
           <div className="mt-8 space-y-4">
             <button
               onClick={() => {
-                setSelectedRole('talent')
                 setCurrentStep('resume')
               }}
               className="w-full p-6 text-left border border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
@@ -358,7 +393,6 @@ export function Register() {
 
             <button
               onClick={() => {
-                setSelectedRole('business')
                 setCurrentStep('details')
               }}
               className="w-full p-6 text-left border border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
@@ -436,8 +470,8 @@ export function Register() {
           </div>
 
           <div className="mt-8 space-y-6">
-            <ResumeUpload onUpload={handleUploadResume} />
-            
+            <ResumeUpload onUpload={handleUploadResume} error={null} />
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
