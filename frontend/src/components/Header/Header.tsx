@@ -6,8 +6,15 @@ import { Images } from "../../shared/assets";
 import Text from "../Text/Text";
 import { HiMenuAlt2 } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
+import LanguageSelect from "../LanguageSelect/LanguageSelec";
+import { useTranslation } from "react-i18next";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+    const { t } = useTranslation();
+    const { visibleStore, resumeStore } = useRootStore();
+    const navigation = useNavigate();
     const handleMenu = () => {
         const menu = document.querySelector(".menu") as HTMLElement;
         if (menu) {
@@ -17,27 +24,32 @@ const Header = () => {
 
     return (
         <HeaderContainer>
-            <div className="left">
+            <div className="headerLeft">
                 <a href="/">
                     <img className="logo" src={Images.logo} alt="Logo" />
                 </a>
                 <div className="nav">
-                    <Text
-                        text="Find Jobs"
+                    {/* <Text
+                        text={t("findJobs")}
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
                     <Text
-                        text="Browse Companies"
+                        text={t("browseCompanies")}
                         textSize="fourteen"
                         color={Colors.textColor}
-                    />
+                    /> */}
                 </div>
             </div>
-            <div className="right">
-                <ButtonComp title="Login" />
+            <div className="headerRight">
+                <LanguageSelect />
+                <ButtonComp title="Hire" />
                 <img src={Images.divider} alt="Divider" height={30} />
-                <ButtonComp title="Sign Up" primary />
+                <ButtonComp
+                    title="Create resume"
+                    primary
+                    onPress={() => visibleStore.show("createResumeModal")}
+                />
             </div>
             <button className="menuIcon" onClick={handleMenu}>
                 <HiMenuAlt2 size={24} color={Colors.textBlack} />
@@ -60,6 +72,9 @@ const Header = () => {
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
+                    <LanguageSelect />
+                    <ButtonComp title="Hire" />
+                    <ButtonComp title="Create Resume" primary />
                 </div>
             </div>
         </HeaderContainer>
@@ -78,13 +93,14 @@ const HeaderContainer = styled.div`
     width: 100%;
     position: fixed;
     z-index: 10;
+    top: 0;
 
     .logo {
         height: 100%;
         object-fit: contain;
     }
 
-    .left {
+    .headerLeft {
         display: flex;
         gap: 30px;
         align-items: center;
@@ -96,7 +112,7 @@ const HeaderContainer = styled.div`
         gap: 30px;
     }
 
-    .right {
+    .headerRight {
         display: flex;
         align-items: center;
         gap: 20px;

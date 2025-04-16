@@ -1,38 +1,70 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
-import Text from "../../components/Text/Text";
-import { Colors } from "../../shared/utils/color";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import FilterBar from "../../components/FilterBar/FilterBar";
 import FindJobs from "../../components/FindJobs/FindJobs";
+import FilterInput from "../../components/FilterInput/FilterInput";
+import { observer } from "mobx-react-lite";
+import useRootStore from "../../shared/hooks/UseRootStore";
 
 const VacanciesView = () => {
+    const { vacanciesStore } = useRootStore();
+    useEffect(() => {
+        vacanciesStore.getVacanciesByQuery();
+        window.scrollTo(0, 0);
+    }, [vacanciesStore]);
+
     return (
         <Container>
             <Header />
-            <Text
-                text="Vacancies"
-                textSize="thirtySix"
-                color={Colors.textBlack}
-                family="ClashDisplay-Semibold"
-            />
-            <div className="body">
-                <FilterBar />
-                <FindJobs />
+            <div className="vacanciesBody">
+                <FilterInput />
+                <div className="filterAndJobs">
+                    <FilterBar />
+                    <FindJobs />
+                </div>
             </div>
             <Footer />
         </Container>
     );
 };
 
-export default VacanciesView;
+export default observer(VacanciesView);
 
 const Container = styled.div`
-    .body {
+    position: relative;
+
+    .vacanciesBody {
+        position: relative;
+        display: flex;
+        flex-direction: column;
         padding: 12vh 5%;
-        display: grid;
-        grid-template-columns: 1fr 4fr;
         gap: 30px;
+        height: 100%;
+    }
+
+    .filterAndJobs {
+        display: grid;
+        gap: 50px;
+        grid-template-columns: 2fr 5.5fr;
+    }
+
+    @media (max-width: 992px) {
+        .vacanciesBody {
+            gap: 20px;
+        }
+        .filterAndJobs {
+            grid-template-columns: 1.2fr 3fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .vacanciesBody {
+            gap: 20px;
+        }
+        .filterAndJobs {
+            grid-template-columns: 1fr;
+        }
     }
 `;

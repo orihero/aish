@@ -11,6 +11,7 @@ import { Images } from "../../shared/assets";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
+import { toJS } from "mobx";
 
 const LatestJobs = () => {
     const { vacanciesStore } = useRootStore();
@@ -26,7 +27,7 @@ const LatestJobs = () => {
                         key={index}
                         title={job.title}
                         creator={job.creator}
-                        company={job.company}
+                        company={job.company.name}
                         category={job.category}
                         subcategory={job.subcategory}
                         salary={job.salary}
@@ -76,6 +77,7 @@ const LatestJobs = () => {
                 className="seeAllMobile"
                 title="See all jobs"
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
+                onPress={() => navigation("/vacancies")}
             />
         </LatestJobsContainer>
     );
@@ -91,6 +93,7 @@ const LatestJobsContainer = styled.div`
     gap: 30px;
     background-image: url(${Images.jobsBack});
     position: relative;
+    min-height: 60vh;
 
     .pattern {
         position: absolute;
