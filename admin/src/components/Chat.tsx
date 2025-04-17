@@ -1,89 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuthStore } from '../stores/auth';
+import { useChatStore } from '../stores/chat.store';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-interface Message {
-  _id: string;
-  sender: string;
-  content: string;
-  createdAt: string;
-}
-
 interface ChatProps {
-  applicationId: string;
+  chatId: string;
 }
 
-export const Chat = ({ applicationId }: ChatProps) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export const Chat = ({ chatId }: ChatProps) => {
   const [newMessage, setNewMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuthStore();
+  const { currentChat, isLoading, getChat, sendMessage } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/messages/${applicationId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch messages');
-        }
-        const data = await response.json();
-        setMessages(data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMessages();
-
-    // Set up WebSocket connection for real-time updates
-    const ws = new WebSocket(`${import.meta.env.VITE_WS_URL}/messages/${applicationId}`);
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setMessages((prev) => [...prev, message]);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [applicationId]);
+    getChat(chatId);
+  }, [chatId, getChat]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [currentChat?.messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/messages/${applicationId}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({ content: newMessage }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
+      await sendMessage(chatId, newMessage);
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -98,26 +40,34 @@ export const Chat = ({ applicationId }: ChatProps) => {
     );
   }
 
+  if (!currentChat) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Chat not found</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-[600px]">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {currentChat.messages.map((message) => (
           <div
             key={message._id}
             className={`flex ${
-              message.sender === user?._id ? 'justify-end' : 'justify-start'
+              message.role === 'user' ? 'justify-end' : 'justify-start'
             }`}
           >
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
-                message.sender === user?._id
+                message.role === 'user'
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
               <p className="text-sm">{message.content}</p>
               <p className="text-xs mt-1 opacity-70">
-                {new Date(message.createdAt).toLocaleTimeString()}
+                {new Date(message.timestamp).toLocaleTimeString()}
               </p>
             </div>
           </div>

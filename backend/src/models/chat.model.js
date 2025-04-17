@@ -19,7 +19,7 @@ const messageSchema = new mongoose.Schema({
 const chatSchema = new mongoose.Schema({
   application: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Resume.applications'
+    ref: 'Application'
   },
   vacancy: {
     type: mongoose.Schema.Types.ObjectId,

@@ -1,6 +1,9 @@
-import express from 'express';
-import { auth } from '../middleware/auth.middleware.js';
-import { validate, vacancyValidation } from '../middleware/validate.middleware.js';
+import express from "express";
+import { auth } from "../middleware/auth.middleware.js";
+import {
+  validate,
+  vacancyValidation,
+} from "../middleware/validate.middleware.js";
 import {
   createVacancy,
   getVacancies,
@@ -9,8 +12,9 @@ import {
   deleteVacancy,
   getFeaturedVacancies,
   getNewestVacancies,
-  getMyVacancies
-} from '../controllers/vacancy.controller.js';
+  getMyVacancies,
+  getEmployeeVacancies,
+} from "../controllers/vacancy.controller.js";
 
 const router = express.Router();
 
@@ -18,23 +22,26 @@ const router = express.Router();
 const employerAuth = async (req, res, next) => {
   try {
     await auth(req, res, () => {
-      if (req.user.role !== 'employer' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Access denied. Employers only.' });
+      if (req.user.role !== "employer" && req.user.role !== "admin") {
+        return res
+          .status(403)
+          .json({ message: "Access denied. Employers only." });
       }
       next();
     });
   } catch (error) {
-    res.status(401).json({ message: 'Please authenticate' });
+    res.status(401).json({ message: "Please authenticate" });
   }
 };
 
-router.post('/', employerAuth, validate(vacancyValidation), createVacancy);
-router.get('/my', employerAuth, getMyVacancies);
-router.get('/', getVacancies);
-router.get('/featured', getFeaturedVacancies);
-router.get('/newest', getNewestVacancies);
-router.get('/:id', getVacancy);
-router.put('/:id', employerAuth, validate(vacancyValidation), updateVacancy);
-router.delete('/:id', employerAuth, deleteVacancy);
+router.post("/", employerAuth, validate(vacancyValidation), createVacancy);
+router.get("/my", employerAuth, getMyVacancies);
+router.get("/employee", auth, getEmployeeVacancies);
+router.get("/", getVacancies);
+router.get("/featured", getFeaturedVacancies);
+router.get("/newest", getNewestVacancies);
+router.get("/:id", getVacancy);
+router.put("/:id", employerAuth, validate(vacancyValidation), updateVacancy);
+router.delete("/:id", employerAuth, deleteVacancy);
 
 export default router;

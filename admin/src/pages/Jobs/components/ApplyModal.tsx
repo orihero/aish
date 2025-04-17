@@ -36,7 +36,7 @@ export const ApplyModal = ({ job, onClose }: ApplyModalProps) => {
         throw new Error('Selected resume not found');
       }
       await createApplication(resume._id, job._id);
-      navigate('/applications', { state: { applicationId: job._id } });
+      navigate('/jobs/my-applications', { state: { applicationId: job._id } });
     } catch (error) {
       console.error('Failed to apply:', error);
       setError(error instanceof Error ? error.message : 'Failed to apply for the job');
