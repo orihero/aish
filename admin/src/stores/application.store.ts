@@ -64,7 +64,7 @@ export const useApplicationsStore = create<ApplicationsState>((set) => ({
   createApplication: async (resumeId: string, jobId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.post(`/applications/resumes/${resumeId}/apply/${jobId}`);
+      const { data } = await api.post(`/applications/apply/${resumeId}/${jobId}`);
       set((state) => ({
         applications: [...state.applications, data],
         isLoading: false,

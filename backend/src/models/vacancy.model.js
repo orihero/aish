@@ -3,22 +3,26 @@ import mongoose from 'mongoose';
 const vacancySchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    index: true
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    required: true
+    required: true,
+    index: true
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: true
+    required: true,
+    index: true
   },
   subcategory: {
     type: mongoose.Schema.Types.ObjectId,
@@ -30,11 +34,11 @@ const vacancySchema = new mongoose.Schema({
   },
   requirements: {
     type: [String],
-    default: []
+    required: true
   },
   responsibilities: {
     type: [String],
-    default: []
+    required: true
   },
   skills: {
     type: [String],
@@ -61,8 +65,7 @@ const vacancySchema = new mongoose.Schema({
     },
     currency: {
       type: String,
-      default: 'USD',
-      enum: ['USD', 'EUR', 'GBP', 'UZS', 'RUB', 'UAH']
+      required: true
     },
     isNegotiable: {
       type: Boolean,
@@ -71,13 +74,15 @@ const vacancySchema = new mongoose.Schema({
   },
   employmentType: {
     type: String,
-    enum: ['full-time', 'part-time', 'contract'],
-    required: true
+    enum: ['full-time', 'part-time', 'contract', 'internship'],
+    required: true,
+    index: true
   },
   workType: {
     type: String,
-    enum: ['remote', 'hybrid', 'onsite'],
-    required: true
+    enum: ['remote', 'hybrid', 'on-site'],
+    required: true,
+    index: true
   },
   location: {
     country: {
@@ -88,12 +93,16 @@ const vacancySchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    address: String
+    address: String,
+    type: String,
+    required: true,
+    index: true
   },
   status: {
     type: String,
     enum: ['draft', 'active', 'closed', 'expired'],
-    default: 'draft'
+    default: 'active',
+    index: true
   },
   isFeatured: {
     type: Boolean,
@@ -103,6 +112,11 @@ const vacancySchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  applications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Application',
+    index: true
+  }],
   applicationsCount: {
     type: Number,
     default: 0
@@ -124,7 +138,12 @@ const vacancySchema = new mongoose.Schema({
       enum: ['basic', 'intermediate', 'fluent', 'native'],
       required: true
     }
-  }]
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    index: true
+  }
 }, {
   timestamps: true
 });
@@ -135,5 +154,10 @@ vacancySchema.index({
   description: 'text',
   skills: 'text'
 });
+
+// Add compound indexes for common query patterns
+vacancySchema.index({ status: 1, createdAt: -1 });
+vacancySchema.index({ title: 1, description: 1 });
+vacancySchema.index({ location: 1, employmentType: 1, workType: 1 });
 
 export const Vacancy = mongoose.model('Vacancy', vacancySchema);

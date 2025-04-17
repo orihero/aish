@@ -1,7 +1,8 @@
-import { Building2, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Building2, Eye, Pencil, Trash2, Clock, FileText, CheckCircle, XCircle, Users, Calendar } from 'lucide-react';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { useAuthStore } from '../../../stores/auth.store';
 import type { Job } from '../../../stores/jobs.store';
+import { format } from 'date-fns';
 
 interface JobCardProps {
   job: Job;
@@ -15,20 +16,23 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
   const { user } = useAuthStore();
   const { t } = useTranslation();
 
-  const formatSalary = (min: string, max: string, currency: string) => {
+  const formatSalary = (min: number, max: number, currency: string) => {
     return `${currency}${min.toLocaleString()} - ${currency}${max.toLocaleString()}`;
   };
 
   const getCategoryName = (category: Job['category']) => {
     if (typeof category === 'string') return category;
-    
-    const mainTitle = category.title.find(t => t.language === 'en')?.value;
-    if (job.subcategory) {
-      const subcategory = category.subcategories.find(s => s._id === job.subcategory);
-      const subTitle = subcategory?.title.find(t => t.language === 'en')?.value;
-      return subTitle ? `${mainTitle} / ${subTitle}` : mainTitle;
+    return category.title;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'reviewed': return <FileText className="w-4 h-4" />;
+      case 'accepted': return <CheckCircle className="w-4 h-4" />;
+      case 'rejected': return <XCircle className="w-4 h-4" />;
+      default: return null;
     }
-    return mainTitle;
   };
 
   return (
@@ -44,9 +48,12 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
           <div className="flex items-start justify-between mb-2">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
-              <span className="text-sm text-gray-600">
-                {getCategoryName(job.category)}
-              </span>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Building2 className="w-4 h-4" />
+                <span>{job.company.name}</span>
+                <span className="text-gray-400">•</span>
+                <span>{job.company.size}</span>
+              </div>
             </div>
             <div className={`px-3 py-1 rounded-full text-sm ${
               job.employmentType === 'full-time' 
@@ -68,18 +75,41 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
               <span className={`px-3 py-1 rounded-full text-sm bg-emerald-50 text-emerald-700`}>
                 {t(`jobs.workType.${job.workType}`)}
               </span>
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700">
+                <Users className="w-4 h-4" />
+                {job.applicationsCount || 0} {t('jobs.applicants')}
+              </span>
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-50 text-gray-700">
+                <Calendar className="w-4 h-4" />
+                {format(new Date(job.createdAt), 'MMM d, yyyy')}
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm font-medium text-gray-900">
                 {formatSalary(job.salary.min, job.salary.max, job.salary.currency)}
               </div>
-              {user?.role === 'employee' && showApplyButton && (
-                <button
-                  onClick={() => onApply?.(job)}
-                  className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm hover:bg-purple-500 font-medium"
-                >
-                  Apply Now
-                </button>
+              {user?.role === 'employee' && (
+                job.isApplied ? (
+                  <div className="flex items-center gap-2">
+                    <div className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 ${
+                      job.applicationStatus === 'pending' ? 'bg-amber-50 text-amber-700' :
+                      job.applicationStatus === 'reviewed' ? 'bg-blue-50 text-blue-700' :
+                      job.applicationStatus === 'accepted' ? 'bg-emerald-50 text-emerald-700' :
+                      job.applicationStatus === 'rejected' ? 'bg-red-50 text-red-700' :
+                      'bg-gray-50 text-gray-700'
+                    }`}>
+                      {getStatusIcon(job.applicationStatus || 'pending')}
+                      {t(`applications.status.${job.applicationStatus || 'pending'}`)}
+                    </div>
+                  </div>
+                ) : showApplyButton && (
+                  <button
+                    onClick={() => onApply?.(job)}
+                    className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm hover:bg-purple-500 font-medium"
+                  >
+                    Apply Now
+                  </button>
+                )
               )}
               {(user?.role === 'admin' || user?.id === job.creator) && (
                 <div className="flex items-center gap-2">

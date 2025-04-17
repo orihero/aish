@@ -81,7 +81,7 @@ function App() {
                   <JobApplications />
                 </PrivateRoute>
               } />
-              <Route path="applications/:applicationId/chat" element={
+              <Route path="chats/:chatId" element={
                 <PrivateRoute>
                   <ApplicationChat />
                 </PrivateRoute>

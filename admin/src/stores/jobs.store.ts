@@ -14,34 +14,28 @@ interface ApiError {
 export interface Job {
   _id: string;
   title: string;
-  creator: string;
-  category: {
-    _id: string;
-    title: Array<{
-      language: string;
-      value: string;
-      _id: string;
-    }>;
-    subcategories: Array<{
-      _id: string;
-      title: Array<{
-        language: string;
-        value: string;
-        _id: string;
-      }>;
-    }>;
-  } | string;
-  subcategory?: string;
   description: string;
-  industry: string;
-  status: 'active' | 'closed' | 'draft';
-  employmentType: 'full-time' | 'part-time' | 'contract';
-  workType: 'remote' | 'hybrid' | 'onsite';
+  requirements: string[];
   salary: {
-    min: string;
-    max: string;
+    min: number;
+    max: number;
     currency: string;
   };
+  category: string | {
+    _id: string;
+    title: string;
+  };
+  employmentType: 'full-time' | 'part-time' | 'contract';
+  workType: 'remote' | 'hybrid' | 'onsite';
+  company: {
+    _id: string;
+    name: string;
+    logo?: string;
+  };
+  creator: string;
+  status: 'active' | 'closed' | 'draft';
+  isApplied?: boolean;
+  applicationStatus?: 'pending' | 'reviewed' | 'accepted' | 'rejected';
 }
 
 interface JobsState {

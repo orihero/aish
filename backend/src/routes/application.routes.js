@@ -5,7 +5,7 @@ import { createApplication, getMyApplications, updateApplicationStatus } from '.
 const router = express.Router();
 
 // Create application
-router.post('/resumes/:resumeId/apply/:jobId', auth, createApplication);
+router.post('/apply/:resumeId/:jobId', auth, createApplication);
 
 // Get my applications
 router.get('/me', auth, getMyApplications);
