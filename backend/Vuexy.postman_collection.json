@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Vuexy API",
-    "description": "Collection for Vuexy job board API endpoints",
+    "description": "Complete collection for Vuexy job board API endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -26,6 +26,7 @@
   "item": [
     {
       "name": "Auth",
+      "description": "Authentication and user management endpoints",
       "item": [
         {
           "name": "Register",
@@ -44,8 +45,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"employer\"\n}"
-            }
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"employer\"\n}",
+              "description": "User registration payload"
+            },
+            "description": "Register a new user with email, password, and role"
           }
         },
         {
@@ -65,8 +68,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
-            }
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
+              "description": "User login credentials"
+            },
+            "description": "Authenticate user and receive JWT token"
           }
         },
         {
@@ -83,7 +88,8 @@
               "raw": "{{baseUrl}}/api/auth/profile",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "profile"]
-            }
+            },
+            "description": "Get current user's profile information"
           }
         },
         {
@@ -103,8 +109,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"test@example.com\"\n}"
-            }
+              "raw": "{\n    \"email\": \"test@example.com\"\n}",
+              "description": "Email for password reset"
+            },
+            "description": "Request password reset link"
           }
         },
         {
@@ -124,162 +132,16 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"token\": \"reset-token\",\n    \"password\": \"newpassword123\"\n}"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Categories",
-      "description": "Category management endpoints",
-      "item": [
-        {
-          "name": "Get Category Stats",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/categories/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "categories", "stats"]
-            }
+              "raw": "{\n    \"token\": \"reset-token\",\n    \"password\": \"newpassword123\"\n}",
+              "description": "Reset token and new password"
+            },
+            "description": "Reset password using token"
           }
         },
         {
-          "name": "Create Initial Categories",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const categories = [",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Software Development' }],",
-                  "        icon: 'Code',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Frontend Development' }], icon: 'Layout' },",
-                  "            { title: [{ language: 'en', value: 'Backend Development' }], icon: 'Database' },",
-                  "            { title: [{ language: 'en', value: 'Mobile Development' }], icon: 'Smartphone' },",
-                  "            { title: [{ language: 'en', value: 'DevOps' }], icon: 'Settings' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Design' }],",
-                  "        icon: 'Palette',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'UI/UX Design' }], icon: 'Figma' },",
-                  "            { title: [{ language: 'en', value: 'Graphic Design' }], icon: 'Image' },",
-                  "            { title: [{ language: 'en', value: 'Motion Design' }], icon: 'Video' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Marketing' }],",
-                  "        icon: 'TrendingUp',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Digital Marketing' }], icon: 'Globe' },",
-                  "            { title: [{ language: 'en', value: 'Content Marketing' }], icon: 'FileText' },",
-                  "            { title: [{ language: 'en', value: 'Social Media' }], icon: 'Share2' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Sales' }],",
-                  "        icon: 'DollarSign',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Business Development' }], icon: 'Briefcase' },",
-                  "            { title: [{ language: 'en', value: 'Account Management' }], icon: 'Users' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Customer Service' }],",
-                  "        icon: 'Headphones',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Customer Support' }], icon: 'MessageCircle' },",
-                  "            { title: [{ language: 'en', value: 'Technical Support' }], icon: 'Tool' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Data' }],",
-                  "        icon: 'BarChart2',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Data Analysis' }], icon: 'PieChart' },",
-                  "            { title: [{ language: 'en', value: 'Data Science' }], icon: 'Activity' },",
-                  "            { title: [{ language: 'en', value: 'Machine Learning' }], icon: 'Brain' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Human Resources' }],",
-                  "        icon: 'Users',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Recruitment' }], icon: 'UserPlus' },",
-                  "            { title: [{ language: 'en', value: 'HR Management' }], icon: 'ClipboardList' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Project Management' }],",
-                  "        icon: 'Target',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Agile' }], icon: 'GitBranch' },",
-                  "            { title: [{ language: 'en', value: 'Scrum Master' }], icon: 'Clock' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Finance' }],",
-                  "        icon: 'DollarSign',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Accounting' }], icon: 'Calculator' },",
-                  "            { title: [{ language: 'en', value: 'Financial Analysis' }], icon: 'TrendingUp' }",
-                  "        ]",
-                  "    },",
-                  "    {",
-                  "        title: [{ language: 'en', value: 'Legal' }],",
-                  "        icon: 'Scale',",
-                  "        subcategories: [",
-                  "            { title: [{ language: 'en', value: 'Corporate Law' }], icon: 'Building' },",
-                  "            { title: [{ language: 'en', value: 'Legal Counsel' }], icon: 'FileText' }",
-                  "        ]",
-                  "    }",
-                  "];",
-                  "",
-                  "// Function to create a category",
-                  "const createCategory = async (category) => {",
-                  "    try {",
-                  "        const response = await pm.sendRequest({",
-                  "            url: pm.variables.get('baseUrl') + '/api/categories',",
-                  "            method: 'POST',",
-                  "            header: {",
-                  "                'Content-Type': 'application/json',",
-                  "                'Authorization': 'Bearer ' + pm.variables.get('token')",
-                  "            },",
-                  "            body: {",
-                  "                mode: 'raw',",
-                  "                raw: JSON.stringify(category)",
-                  "            }",
-                  "        });",
-                  "",
-                  "        console.log(`Created category: ${category.title[0].value}`);",
-                  "        return response;",
-                  "    } catch (error) {",
-                  "        console.error(`Failed to create category: ${category.title[0].value}`, error);",
-                  "    }",
-                  "};",
-                  "",
-                  "// Create all categories sequentially",
-                  "const createCategories = async () => {",
-                  "    for (const category of categories) {",
-                  "        await createCategory(category);",
-                  "    }",
-                  "    console.log('All categories created successfully!');",
-                  "};",
-                  "",
-                  "// Execute the creation",
-                  "createCategories();"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Update Profile",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
@@ -291,14 +153,46 @@
               }
             ],
             "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\"\n}",
+              "description": "Updated profile information"
+            },
+            "description": "Update user profile information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "description": "Category management endpoints",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "url": {
               "raw": "{{baseUrl}}/api/categories",
               "host": ["{{baseUrl}}"],
               "path": ["api", "categories"]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{}"
-            }
+            "description": "Get all job categories with their subcategories"
+          }
+        },
+        {
+          "name": "Get Category Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "stats"]
+            },
+            "description": "Get statistics for all categories"
           }
         },
         {
@@ -322,36 +216,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Technology\"\n    }],\n    \"icon\": \"computer\",\n    \"subcategories\": [{\n        \"title\": [{\n            \"language\": \"en\",\n            \"value\": \"Web Development\"\n        }],\n        \"icon\": \"code\"\n    }]\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Categories",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "categories"]
-            }
-          }
-        },
-        {
-          "name": "Get Category",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "categories", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "category-id"
-                }
-              ]
-            }
+              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Technology\"\n    }],\n    \"icon\": \"computer\",\n    \"subcategories\": [{\n        \"title\": [{\n            \"language\": \"en\",\n            \"value\": \"Web Development\"\n        }],\n        \"icon\": \"code\"\n    }]\n}",
+              "description": "Category creation payload"
+            },
+            "description": "Create a new job category"
           }
         },
         {
@@ -375,14 +243,17 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "category-id"
+                  "value": "category-id",
+                  "description": "ID of the category to update"
                 }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Updated Technology\"\n    }],\n    \"icon\": \"laptop\"\n}"
-            }
+              "raw": "{\n    \"title\": [{\n        \"language\": \"en\",\n        \"value\": \"Updated Technology\"\n    }],\n    \"icon\": \"laptop\"\n}",
+              "description": "Updated category information"
+            },
+            "description": "Update an existing category"
           }
         },
         {
@@ -402,16 +273,19 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "category-id"
+                  "value": "category-id",
+                  "description": "ID of the category to delete"
                 }
               ]
-            }
+            },
+            "description": "Delete a category"
           }
         }
       ]
     },
     {
       "name": "Vacancies",
+      "description": "Job vacancy management endpoints",
       "item": [
         {
           "name": "Get Featured Vacancies",
@@ -421,7 +295,8 @@
               "raw": "{{baseUrl}}/api/vacancies/featured",
               "host": ["{{baseUrl}}"],
               "path": ["api", "vacancies", "featured"]
-            }
+            },
+            "description": "Get featured job vacancies"
           }
         },
         {
@@ -432,7 +307,91 @@
               "raw": "{{baseUrl}}/api/vacancies/newest",
               "host": ["{{baseUrl}}"],
               "path": ["api", "vacancies", "newest"]
-            }
+            },
+            "description": "Get newest job vacancies"
+          }
+        },
+        {
+          "name": "Get Vacancies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies?search=react&category=tech&employmentType=full-time&workType=remote&salaryMin=80000&salaryMax=120000&featured=true&sort=newest&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "react",
+                  "description": "Search term for job title, company, or description"
+                },
+                {
+                  "key": "category",
+                  "value": "tech",
+                  "description": "Filter by category ID"
+                },
+                {
+                  "key": "employmentType",
+                  "value": "full-time",
+                  "description": "Filter by employment type (full-time, part-time, contract, internship)"
+                },
+                {
+                  "key": "workType",
+                  "value": "remote",
+                  "description": "Filter by work type (remote, hybrid, on-site)"
+                },
+                {
+                  "key": "salaryMin",
+                  "value": "80000",
+                  "description": "Minimum salary range"
+                },
+                {
+                  "key": "salaryMax",
+                  "value": "120000",
+                  "description": "Maximum salary range"
+                },
+                {
+                  "key": "featured",
+                  "value": "true",
+                  "description": "Filter featured jobs only"
+                },
+                {
+                  "key": "sort",
+                  "value": "newest",
+                  "description": "Sort by: newest, mostViewed, salaryHigh, salaryLow"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get list of job vacancies with filtering and pagination"
+          }
+        },
+        {
+          "name": "Get Vacancy",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "vacancy-id",
+                  "description": "ID of the vacancy to retrieve"
+                }
+              ]
+            },
+            "description": "Get details of a specific vacancy"
           }
         },
         {
@@ -456,79 +415,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"Senior React Developer\",\n    \"category\": \"category-id\",\n    \"subcategory\": \"subcategory-id\",\n    \"description\": \"We are looking for a Senior React Developer...\",\n    \"salary\": {\n        \"min\": 80000,\n        \"max\": 120000,\n        \"currency\": \"USD\"\n    },\n    \"employmentType\": \"full-time\",\n    \"workType\": \"remote\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Vacancies",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/vacancies?search=react&category=tech&employmentType=full-time&workType=remote&salaryMin=80000&salaryMax=120000&featured=true&sort=newest&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "vacancies"],
-              "query": [
-                {
-                  "key": "search",
-                  "value": "react"
-                },
-                {
-                  "key": "category",
-                  "value": "tech"
-                },
-                {
-                  "key": "employmentType",
-                  "value": "full-time"
-                },
-                {
-                  "key": "workType",
-                  "value": "remote"
-                },
-                {
-                  "key": "salaryMin",
-                  "value": "80000"
-                },
-                {
-                  "key": "salaryMax",
-                  "value": "120000"
-                },
-                {
-                  "key": "featured",
-                  "value": "true"
-                },
-                {
-                  "key": "sort",
-                  "value": "newest",
-                  "description": "Options: newest, mostViewed"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Vacancy",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/vacancies/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "vacancies", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "vacancy-id"
-                }
-              ]
-            }
+              "raw": "{\n    \"title\": \"Senior React Developer\",\n    \"category\": \"category-id\",\n    \"subcategory\": \"subcategory-id\",\n    \"description\": \"We are looking for a Senior React Developer...\",\n    \"salary\": {\n        \"min\": 80000,\n        \"max\": 120000,\n        \"currency\": \"USD\"\n    },\n    \"employmentType\": \"full-time\",\n    \"workType\": \"remote\"\n}",
+              "description": "Vacancy creation payload"
+            },
+            "description": "Create a new job vacancy"
           }
         },
         {
@@ -552,14 +442,17 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "vacancy-id"
+                  "value": "vacancy-id",
+                  "description": "ID of the vacancy to update"
                 }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"Updated Senior React Developer\",\n    \"description\": \"Updated job description...\",\n    \"salary\": {\n        \"min\": 90000,\n        \"max\": 130000\n    }\n}"
-            }
+              "raw": "{\n    \"title\": \"Updated Senior React Developer\",\n    \"description\": \"Updated job description...\",\n    \"salary\": {\n        \"min\": 90000,\n        \"max\": 130000\n    }\n}",
+              "description": "Updated vacancy information"
+            },
+            "description": "Update an existing vacancy"
           }
         },
         {
@@ -579,22 +472,24 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "vacancy-id"
+                  "value": "vacancy-id",
+                  "description": "ID of the vacancy to delete"
                 }
               ]
-            }
+            },
+            "description": "Delete a vacancy"
           }
         }
       ]
     },
     {
       "name": "Resumes",
+      "description": "Resume management endpoints",
       "item": [
         {
           "name": "Analyze Resume",
           "request": {
             "method": "POST",
-            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/resumes/analyze",
               "host": ["{{baseUrl}}"],
@@ -606,10 +501,12 @@
                 {
                   "key": "cvFile",
                   "type": "file",
-                  "src": "/path/to/resume.pdf"
+                  "src": "/path/to/resume.pdf",
+                  "description": "PDF file of the resume to analyze"
                 }
               ]
-            }
+            },
+            "description": "Analyze a resume file and extract information"
           }
         },
         {
@@ -629,8 +526,10 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"password\": \"password123\",\n  \"parsedData\": {\n    \"basics\": {\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"phone\": \"+1234567890\",\n      \"summary\": \"Experienced software engineer...\"\n    },\n    \"skills\": [\n      {\n        \"name\": \"JavaScript\",\n        \"level\": \"Advanced\",\n        \"keywords\": [\"React\", \"Node.js\", \"TypeScript\"]\n      }\n    ],\n    \"languages\": [\n      {\n        \"language\": \"English\",\n        \"fluency\": \"Native\"\n      }\n    ],\n    \"work\": [\n      {\n        \"name\": \"Tech Company\",\n        \"position\": \"Senior Developer\",\n        \"startDate\": \"2020-01\",\n        \"endDate\": \"2023-12\",\n        \"summary\": \"Led development of...\"\n      }\n    ],\n    \"education\": [\n      {\n        \"institution\": \"University of Technology\",\n        \"area\": \"Computer Science\",\n        \"studyType\": \"Bachelor\",\n        \"startDate\": \"2016-09\",\n        \"endDate\": \"2020-06\"\n      }\n    ]\n  }\n}"
-            }
+              "raw": "{\n  \"password\": \"password123\",\n  \"parsedData\": {\n    \"basics\": {\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"phone\": \"+1234567890\",\n      \"summary\": \"Experienced software engineer...\"\n    },\n    \"skills\": [\n      {\n        \"name\": \"JavaScript\",\n        \"level\": \"Advanced\",\n        \"keywords\": [\"React\", \"Node.js\", \"TypeScript\"]\n      }\n    ],\n    \"languages\": [\n      {\n        \"language\": \"English\",\n        \"fluency\": \"Native\"\n      }\n    ],\n    \"work\": [\n      {\n        \"name\": \"Tech Company\",\n        \"position\": \"Senior Developer\",\n        \"startDate\": \"2020-01\",\n        \"endDate\": \"2023-12\",\n        \"summary\": \"Led development of...\"\n      }\n    ],\n    \"education\": [\n      {\n        \"institution\": \"University of Technology\",\n        \"area\": \"Computer Science\",\n        \"studyType\": \"Bachelor\",\n        \"startDate\": \"2016-09\",\n        \"endDate\": \"2020-06\"\n      }\n    ]\n  }\n}",
+              "description": "User registration with parsed resume data"
+            },
+            "description": "Register a new user with parsed resume data"
           }
         },
         {
@@ -654,15 +553,18 @@
                 {
                   "key": "name",
                   "value": "My Software Engineer Resume",
-                  "type": "text"
+                  "type": "text",
+                  "description": "Name of the resume"
                 },
                 {
                   "key": "cvFile",
                   "type": "file",
-                  "src": "/path/to/resume.pdf"
+                  "src": "/path/to/resume.pdf",
+                  "description": "PDF file of the resume"
                 }
               ]
-            }
+            },
+            "description": "Upload a new resume"
           }
         },
         {
@@ -679,7 +581,8 @@
               "raw": "{{baseUrl}}/api/resumes/my",
               "host": ["{{baseUrl}}"],
               "path": ["api", "resumes", "my"]
-            }
+            },
+            "description": "Get all resumes for the current user"
           }
         },
         {
@@ -699,10 +602,12 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to retrieve"
                 }
               ]
-            }
+            },
+            "description": "Get details of a specific resume"
           }
         },
         {
@@ -722,7 +627,8 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to update"
                 }
               ]
             },
@@ -732,15 +638,18 @@
                 {
                   "key": "name",
                   "value": "Updated Resume Name",
-                  "type": "text"
+                  "type": "text",
+                  "description": "New name for the resume"
                 },
                 {
                   "key": "cvFile",
                   "type": "file",
-                  "src": "/path/to/updated-resume.pdf"
+                  "src": "/path/to/updated-resume.pdf",
+                  "description": "Updated PDF file"
                 }
               ]
-            }
+            },
+            "description": "Update an existing resume"
           }
         },
         {
@@ -760,10 +669,12 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to delete"
                 }
               ]
-            }
+            },
+            "description": "Delete a resume"
           }
         },
         {
@@ -787,14 +698,17 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to update"
                 }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"basics\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"summary\": \"Updated professional summary...\"\n  },\n  \"skills\": [\n    {\n      \"name\": \"JavaScript\",\n      \"level\": \"Expert\",\n      \"keywords\": [\"React\", \"Node.js\"]\n    }\n  ]\n}"
-            }
+              "raw": "{\n  \"basics\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"summary\": \"Updated professional summary...\"\n  },\n  \"skills\": [\n    {\n      \"name\": \"JavaScript\",\n      \"level\": \"Expert\",\n      \"keywords\": [\"React\", \"Node.js\"]\n    }\n  ]\n}",
+              "description": "Updated parsed resume data"
+            },
+            "description": "Update parsed data for a resume"
           }
         },
         {
@@ -814,14 +728,22 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to download"
                 }
               ]
-            }
+            },
+            "description": "Download resume PDF file"
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "description": "Job application management endpoints",
+      "item": [
         {
-          "name": "Apply to Vacancy",
+          "name": "Create Application",
           "request": {
             "method": "POST",
             "header": [
@@ -837,14 +759,311 @@
               "variable": [
                 {
                   "key": "resumeId",
-                  "value": "resume-id"
+                  "value": "resume-id",
+                  "description": "ID of the resume to use for application"
                 },
                 {
                   "key": "vacancyId",
-                  "value": "vacancy-id"
+                  "value": "vacancy-id",
+                  "description": "ID of the vacancy to apply for"
                 }
               ]
-            }
+            },
+            "description": "Apply for a job using a specific resume"
+          }
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", "me"]
+            },
+            "description": "Get all job applications for the current user"
+          }
+        },
+        {
+          "name": "Get Application",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "application-id",
+                  "description": "ID of the application to retrieve"
+                }
+              ]
+            },
+            "description": "Get details of a specific application"
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/:id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", ":id", "status"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "application-id",
+                  "description": "ID of the application to update"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"interview\"\n}",
+              "description": "New status for the application"
+            },
+            "description": "Update the status of an application"
+          }
+        },
+        {
+          "name": "Get Applications for Vacancy",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vacancies/:vacancyId/applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vacancies", ":vacancyId", "applications"],
+              "variable": [
+                {
+                  "key": "vacancyId",
+                  "value": "vacancy-id",
+                  "description": "ID of the vacancy to get applications for"
+                }
+              ]
+            },
+            "description": "Get all applications for a specific vacancy"
+          }
+        },
+        {
+          "name": "Get Application Chat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/:id/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", ":id", "chat"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "application-id",
+                  "description": "ID of the application to get chat for"
+                }
+              ]
+            },
+            "description": "Get chat details for a specific application"
+          }
+        },
+        {
+          "name": "Send Application Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/:id/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", ":id", "messages"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "application-id",
+                  "description": "ID of the application to send message to"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Hello, I'm interested in this position\"\n}",
+              "description": "Message content to send"
+            },
+            "description": "Send a message in an application chat"
+          }
+        },
+        {
+          "name": "Get Application Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications/:id/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "applications", ":id", "messages"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "application-id",
+                  "description": "ID of the application to get messages for"
+                }
+              ]
+            },
+            "description": "Get all messages for a specific application"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "description": "Chat management endpoints",
+      "item": [
+        {
+          "name": "Get Chat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/:chatId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", ":chatId"],
+              "variable": [
+                {
+                  "key": "chatId",
+                  "value": "chat-id",
+                  "description": "ID of the chat to retrieve"
+                }
+              ]
+            },
+            "description": "Get chat messages and details"
+          }
+        },
+        {
+          "name": "Get My Chats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", "me"]
+            },
+            "description": "Get all chats for the current user"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/:chatId/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", ":chatId", "messages"],
+              "variable": [
+                {
+                  "key": "chatId",
+                  "value": "chat-id",
+                  "description": "ID of the chat to send message to"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Hello, I'm interested in this position\"\n}",
+              "description": "Message content to send"
+            },
+            "description": "Send a message in a chat"
+          }
+        },
+        {
+          "name": "Evaluate Candidate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/:chatId/evaluate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", ":chatId", "evaluate"],
+              "variable": [
+                {
+                  "key": "chatId",
+                  "value": "chat-id",
+                  "description": "ID of the chat to evaluate"
+                }
+              ]
+            },
+            "description": "Get AI evaluation of the candidate based on chat history"
           }
         }
       ]
@@ -854,12 +1073,14 @@
     {
       "key": "baseUrl",
       "value": "{{baseUrl}}",
-      "type": "string"
+      "type": "string",
+      "description": "Base URL for API requests"
     },
     {
       "key": "token",
       "value": "{{token}}",
-      "type": "string"
+      "type": "string",
+      "description": "JWT authentication token"
     }
   ]
 }
