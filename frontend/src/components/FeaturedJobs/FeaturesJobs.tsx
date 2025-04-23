@@ -7,12 +7,21 @@ import ButtonComp from "../Button/Button";
 import { FiArrowRight } from "react-icons/fi";
 import { observer } from "mobx-react-lite";
 import useRootStore from "../../shared/hooks/UseRootStore";
-import { toJS } from "mobx";
 import { useNavigate } from "react-router-dom";
 
 const FeaturesJobs = () => {
     const { vacanciesStore } = useRootStore();
     const navigation = useNavigate();
+
+    const handleGetVacancy = useCallback(
+        (id: string) => {
+            navigation(`/vacancy/${id}`);
+            vacanciesStore.findVacancyById(id, "featured", () =>
+                vacanciesStore.getVacancyById(id)
+            );
+        },
+        [navigation, vacanciesStore]
+    );
 
     const renderJobs = useCallback(() => {
         if (!vacanciesStore.vacancies?.vacancies?.length) return null;
@@ -22,27 +31,12 @@ const FeaturesJobs = () => {
                 return (
                     <JobCard
                         key={index}
-                        title={job.title}
-                        creator={job.creator}
-                        company={job.company.name}
-                        category={job.category}
-                        subcategory={job.subcategory}
-                        salary={job.salary}
-                        employmentType={job.employmentType}
-                        workType={job.workType}
-                        isFeatured={job.isFeatured}
-                        views={job.views}
-                        timestamps={job.timestamps}
-                        description={job.description}
-                        onPress={() =>
-                            vacanciesStore.getVacancyById(job._id, () =>
-                                navigation(`/vacancy/${job._id}`)
-                            )
-                        }
+                        vacancy={job}
+                        onPress={() => handleGetVacancy(job._id)}
                     />
                 );
             });
-    }, [navigation, vacanciesStore]);
+    }, [handleGetVacancy, vacanciesStore.vacancies.vacancies]);
 
     return (
         <FeaturesJobsContainer>

@@ -5,6 +5,8 @@ import { Colors } from "../../shared/utils/color";
 interface TagProps {
     text: string;
     isConstant?: boolean; // optional prop
+    backColor?: string;
+    color?: string;
 }
 
 interface StyledTagProps {
@@ -31,7 +33,7 @@ const StyledTag = styled.span<StyledTagProps>`
     text-align: center;
 `;
 
-export function Tag({ text, isConstant = false }: TagProps) {
+export function Tag({ text, isConstant = false, backColor, color }: TagProps) {
     const [colors, setColors] = useState<{
         background: string;
         text: string;
@@ -55,8 +57,8 @@ export function Tag({ text, isConstant = false }: TagProps) {
 
     return (
         <StyledTag
-            $backgroundColor={colors.background}
-            $textColor={colors.text}
+            $backgroundColor={backColor || colors.background}
+            $textColor={color || colors.text}
         >
             {text}
         </StyledTag>

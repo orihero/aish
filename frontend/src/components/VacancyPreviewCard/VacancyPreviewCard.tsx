@@ -32,6 +32,16 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
         window.scrollTo(0, 0);
     }, [path, vacanciesStore]);
 
+    const handleGetVacancy = useCallback(
+        (id: string) => {
+            navigation(`/vacancy/${id}`);
+            vacanciesStore.findVacancyById(id, "findJobs", () =>
+                vacanciesStore.getVacancyById(id)
+            );
+        },
+        [navigation, vacanciesStore]
+    );
+
     const renderJobs = useCallback(() => {
         if (!vacanciesStore.vacancies?.vacancies?.length) return null;
         return vacanciesStore.vacancies?.vacancies
@@ -41,27 +51,12 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                     <ShortInfoJobCard
                         isborder
                         key={index}
-                        title={job.title}
-                        creator={job.creator}
-                        company={job.company.name}
-                        category={job.category}
-                        subcategory={job.subcategory}
-                        salary={job.salary}
-                        employmentType={job.employmentType}
-                        workType={job.workType}
-                        isFeatured={job.isFeatured}
-                        views={job.views}
-                        timestamps={job.timestamps}
-                        description={job.description}
-                        onPress={() =>
-                            vacanciesStore.getVacancyById(job._id, () =>
-                                navigation(`/vacancy/${job._id}`)
-                            )
-                        }
+                        vacancy={job}
+                        onPress={() => handleGetVacancy(job._id)}
                     />
                 );
             });
-    }, [navigation, vacanciesStore]);
+    }, [handleGetVacancy, vacanciesStore.vacancies?.vacancies]);
 
     return (
         <Container>
@@ -121,7 +116,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                     <div className="applyBox">
                         <ButtonComp
                             title="Apply"
-                            onPress={() => {}}
+                            onPress={() => visibleStore.show("applyModal")}
                             primary
                             className="apply"
                         />
@@ -129,14 +124,28 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                             <div className="viewsCount">
                                 <Text
                                     text={`${vacancy.views}`}
-                                    textSize="fourteen"
+                                    textSize="sixteen"
                                     family="Epilogue-Regular"
                                     color={Colors.textGray}
-                                    margin="5px 0 0 0"
+                                    paddingTop="3px"
+                                />
+                                <DynamicIcon
+                                    name={"file-check"}
+                                    size={18}
+                                    color={Colors.textGray}
+                                />
+                            </div>
+                            <div className="viewsCount">
+                                <Text
+                                    text={`${vacancy.views}`}
+                                    textSize="sixteen"
+                                    family="Epilogue-Regular"
+                                    color={Colors.textGray}
+                                    paddingTop="3px"
                                 />
                                 <DynamicIcon
                                     name={"eye"}
-                                    size={24}
+                                    size={20}
                                     color={Colors.textGray}
                                 />
                             </div>
@@ -173,11 +182,16 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                         </div>
                     </div>
                     <div className="companyDes">
-                        <Text
-                            text={`${vacancy?.company?.description}`}
-                            textSize="sixteen"
-                            color={Colors.textBlack}
-                        />
+                        {vacancy?.company?.benefits && (
+                            <Text
+                                text={`${vacancy?.company?.benefits?.join(
+                                    ", "
+                                )}`}
+                                textSize="sixteen"
+                                color={Colors.textBlack}
+                                family="Epilogue-Regular"
+                            />
+                        )}
                     </div>
                 </div>
             </div>

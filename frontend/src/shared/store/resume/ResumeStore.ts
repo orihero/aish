@@ -3,15 +3,18 @@ import { makeAutoObservable, reaction, runInAction, toJS } from "mobx";
 import APIs from "../../api/api";
 import {
     defaultResumeState,
+    FullResumeType,
     InterestType,
     LanguageType,
     ResumeType,
     SkillType,
+    User,
 } from "../../../types";
-import { exampleResume } from "../../constants/exampleData";
 import _ from "lodash";
+import { AppRootStore } from "../store";
 
 export class ResumeStore {
+    private readonly rootStore: AppRootStore;
     resumeFormData: FormData = new FormData();
     fileName: string = "";
 
@@ -20,38 +23,75 @@ export class ResumeStore {
     isEdited: boolean = false;
     myResumeId: string = "";
     isHasResume: boolean = true;
-    isCreateResumeLoading: boolean = false;
-    isUpdateResumeLoading: boolean = false;
 
-    constructor() {
+    registerData: User = {} as User;
+
+    loadings: {
+        isCreateResumeLoading: boolean;
+        isUpdateResumeLoading: boolean;
+        isGettingMyResumesLoading: boolean;
+    } = {
+        isCreateResumeLoading: false,
+        isUpdateResumeLoading: false,
+        isGettingMyResumesLoading: false,
+    };
+
+    setLoading = (key: keyof ResumeStore["loadings"]) => {
+        this.loadings[key] = !this.loadings[key];
+    };
+
+    constructor(root: AppRootStore) {
         makeAutoObservable(this);
+        this.rootStore = root;
         reaction(
             () => toJS(this.myResume), // Deep track all changes
             (current) => {
                 this.isEdited = !_.isEqual(current, this.myResumeClone);
             }
         );
-        this.getMyResume();
     }
+    myResumesState: FullResumeType[] = [] as FullResumeType[];
 
-    getMyResume = async () => {
+    setRegisterField = (key: keyof NonNullable<User>, value: any) => {
+        runInAction(() => {
+            if (!this.registerData) this.registerData = {} as never;
+            this.registerData[key] = value;
+        });
+    };
+
+    registerWithResume = async (callback?: () => void) => {
         try {
-            const id = localStorage.getItem("myResumeId");
-            if (!id) {
-                return;
+            const register = await APIs.auth.registerWithResume(
+                this.registerData
+            );
+            if (!register) return;
+            this.rootStore.localStore.setToken({
+                accessToken: register.data?.token,
+            } as never);
+            callback && callback();
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
+
+    getResumeMy = async () => {
+        try {
+            this.setLoading("isGettingMyResumesLoading");
+            const resume = await APIs.resumes.getResumeMy();
+            if (resume.data) {
+                runInAction(() => {
+                    this.myResumesState = resume.data as FullResumeType[];
+                    this.rootStore.authStore.setUserResume(resume.data);
+                    this.rootStore.applicationStore.setSelectedResume(
+                        resume.data[0]
+                    );
+                });
             }
-            runInAction(() => {
-                this.myResumeId = id || "";
-            });
-            const myResume = await APIs.resumes.getResumeById(id);
-            runInAction(() => {
-                if (myResume.data._id) {
-                    this.isHasResume = true;
-                    this.myResume = myResume.data || defaultResumeState;
-                    this.myResumeClone = myResume.data || defaultResumeState;
-                }
-            });
-        } catch (error) {}
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            this.setLoading("isGettingMyResumesLoading");
+        }
     };
 
     saveResume() {
@@ -79,10 +119,8 @@ export class ResumeStore {
     };
 
     onCreateResume = async (callback?: () => void) => {
-        runInAction(() => {
-            this.isCreateResumeLoading = true;
-        });
         try {
+            this.setLoading("isCreateResumeLoading");
             Array.from(this.resumeFormData.entries()).forEach(
                 ([key, value]) => {
                     console.log(key, value);
@@ -95,6 +133,24 @@ export class ResumeStore {
                 runInAction(() => {
                     this.myResume = resume.data.data;
                     this.myResumeClone = resume.data.data;
+                    this.registerData = {
+                        email: resume.data.data.basics.email,
+                        firstName: resume.data.data.basics.name
+                            .split(" ")
+                            .slice(1, 2)
+                            .toString(),
+                        lastName: resume.data.data.basics.name
+                            .split(" ")
+                            .slice(0, 1)
+                            .toString(),
+                        password: "",
+                        confirmPassword: "",
+                        resumeData: resume.data.data,
+                        resumeFile: {
+                            url: resume.data.fileUrl,
+                            filename: resume.data.fileName,
+                        },
+                    };
                 });
 
                 callback && callback();
@@ -102,26 +158,20 @@ export class ResumeStore {
         } catch (error) {
             console.log("error", error);
         } finally {
-            runInAction(() => {
-                this.isCreateResumeLoading = false;
-            });
+            this.setLoading("isCreateResumeLoading");
         }
     };
 
     updateResumeById = async (callback?: () => void) => {
-        runInAction(() => {
-            this.isUpdateResumeLoading = true;
-        });
         try {
+            this.setLoading("isUpdateResumeLoading");
             const res = await APIs.resumes.createResume(this.resumeFormData);
             console.log("res", toJS(res));
             callback && callback();
         } catch (error) {
             console.log("error", error);
         } finally {
-            runInAction(() => {
-                this.isUpdateResumeLoading = false;
-            });
+            this.setLoading("isUpdateResumeLoading");
         }
     };
 

@@ -5,28 +5,56 @@ import { observer } from "mobx-react-lite";
 import FindJobCard from "../FindJobCard/FindJobCard";
 import { useNavigate } from "react-router-dom";
 import { DynamicIcon } from "lucide-react/dynamic";
+import { VacancyType } from "../../types";
+import SpinLoading from "../SpinLoading/SpinLoading";
+import MessageBox from "../MessageBox/MessageBox";
 
 const FindJobs = () => {
-    const { vacanciesStore } = useRootStore();
+    const { vacanciesStore, visibleStore, applicationStore } = useRootStore();
     const navigation = useNavigate();
     const { page } = vacanciesStore.filters;
 
-    const renderJobs = useCallback(() => {
-        if (!vacanciesStore.vacancies.vacancies?.length)
-            return <p>No jobs found.</p>;
+    const onApplyHandle = useCallback(
+        (vacancy: VacancyType) => {
+            applicationStore.respondHandle(vacancy);
+            visibleStore.show("applyModal");
+        },
+        [applicationStore, visibleStore]
+    );
 
-        return vacanciesStore.vacancies.vacancies.map((job, index) => (
-            <FindJobCard
-                key={index}
-                vacancy={job}
-                onPress={() =>
-                    vacanciesStore.getVacancyById(job._id, () =>
-                        navigation(`/vacancy/${job._id}`)
-                    )
-                }
-            />
-        ));
-    }, [navigation, vacanciesStore]);
+    const handleGetVacancy = useCallback(
+        (id: string) => {
+            navigation(`/vacancy/${id}`);
+            vacanciesStore.findVacancyById(id, "findJobs", () =>
+                vacanciesStore.getVacancyById(id)
+            );
+        },
+        [navigation, vacanciesStore]
+    );
+
+    const renderJobs = useCallback(() => {
+        return vacanciesStore.loadings.getVacanciesByQuery ? (
+            <SpinLoading size="large" />
+        ) : vacanciesStore.vacancies?.vacancies?.length === 0 ? (
+            <MessageBox title="No vacancies yet" />
+        ) : (
+            vacanciesStore.vacancies?.vacancies?.map((job, index) => {
+                return (
+                    <FindJobCard
+                        key={index}
+                        vacancy={job}
+                        onPress={() => handleGetVacancy(job._id)}
+                        respondPress={() => onApplyHandle(job)}
+                    />
+                );
+            })
+        );
+    }, [
+        handleGetVacancy,
+        onApplyHandle,
+        vacanciesStore.loadings.getVacanciesByQuery,
+        vacanciesStore.vacancies.vacancies,
+    ]);
 
     const handlePageChange = (newPage: number) => {
         if (newPage > 0 && newPage <= vacanciesStore.vacancies.pages) {
@@ -36,7 +64,11 @@ const FindJobs = () => {
     };
 
     const renderPagination = () => {
-        if (vacanciesStore.vacancies.pages <= 1) return null;
+        if (
+            vacanciesStore.vacancies.pages <= 1 ||
+            !vacanciesStore.vacancies?.vacancies?.length
+        )
+            return null;
 
         const maxVisiblePages = 8;
         const pageNumbers = [];

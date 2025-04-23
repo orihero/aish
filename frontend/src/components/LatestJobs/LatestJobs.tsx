@@ -1,6 +1,4 @@
 import React, { useCallback } from "react";
-import JobCard from "../JobCardWithMoreInfo/JobCardWithMoreInfo";
-import { jobListings } from "../../shared/constants/exampleData";
 import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
@@ -11,11 +9,20 @@ import { Images } from "../../shared/assets";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
-import { toJS } from "mobx";
 
 const LatestJobs = () => {
     const { vacanciesStore } = useRootStore();
     const navigation = useNavigate();
+
+    const handleGetVacancy = useCallback(
+        (id: string) => {
+            navigation(`/vacancy/${id}`);
+            vacanciesStore.findVacancyById(id, "lates", () =>
+                vacanciesStore.getVacancyById(id)
+            );
+        },
+        [navigation, vacanciesStore]
+    );
 
     const renderJobs = useCallback(() => {
         if (!vacanciesStore.vacancies?.vacancies?.length) return null;
@@ -25,27 +32,12 @@ const LatestJobs = () => {
                 return (
                     <ShortJobCard
                         key={index}
-                        title={job.title}
-                        creator={job.creator}
-                        company={job.company.name}
-                        category={job.category}
-                        subcategory={job.subcategory}
-                        salary={job.salary}
-                        employmentType={job.employmentType}
-                        workType={job.workType}
-                        isFeatured={job.isFeatured}
-                        views={job.views}
-                        timestamps={job.timestamps}
-                        description={job.description}
-                        onPress={() =>
-                            vacanciesStore.getVacancyById(job._id, () =>
-                                navigation(`/vacancy/${job._id}`)
-                            )
-                        }
+                        vacancy={job}
+                        onPress={() => handleGetVacancy(job._id)}
                     />
                 );
             });
-    }, [navigation, vacanciesStore]);
+    }, [handleGetVacancy, vacanciesStore.vacancies?.vacancies]);
 
     return (
         <LatestJobsContainer>

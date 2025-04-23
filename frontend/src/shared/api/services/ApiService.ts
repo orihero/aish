@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosInstance } from "axios";
 import { combineConfig, combineUrls } from "../../helper/api";
 import { Env } from "../../../env";
+import { TOKENS } from "../../store/localStore/LocalStore";
 
 export default class ApiService {
     private readonly axios: AxiosInstance;
@@ -13,7 +14,38 @@ export default class ApiService {
                 Accept: "application/json",
             },
         });
+
+        this.axios.interceptors.request.use(
+            (config: any) => {
+                const token = window.localStorage.getItem(TOKENS);
+                if (!token) {
+                    return config;
+                }
+                const { accessToken } = JSON.parse(token);
+                if (accessToken) {
+                    config.headers = {
+                        ...config.headers,
+                        Authorization: `Bearer ${accessToken}`,
+                    };
+                }
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
+            }
+        );
     }
+
+    public setAccessToken = (accessToken: string) => {
+        this.axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+    };
+
+    public clearAccessToken = () => {
+        delete this.axios.defaults.headers.common.Authorization;
+    };
+
+    public hasAuthorizationHeader = () =>
+        !!this.axios.defaults.headers.common.Authorization;
 
     methods = {
         get: <R>(url: string, config?: AxiosRequestConfig) =>

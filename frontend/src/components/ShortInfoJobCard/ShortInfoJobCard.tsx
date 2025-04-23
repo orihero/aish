@@ -1,29 +1,15 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 import Text from "../Text/Text";
-import ButtonComp from "../Button/Button";
 import { Colors } from "../../shared/utils/color";
 import { Images } from "../../shared/assets";
-import { CreatorType, SalaryType, translationType } from "../../types";
+import { VacancyType } from "../../types";
 import { observer } from "mobx-react-lite";
 import Avatar from "../Avatar/Avatar";
 import { Tag } from "../Tag/Tag";
 
 type Props = {
-    title: string;
-    creator: CreatorType;
-    company: string;
-    category: {
-        title: translationType[];
-    };
-    subcategory: string;
-    description: string;
-    salary: SalaryType;
-    employmentType: string;
-    workType: string;
-    isFeatured: boolean;
-    views: number;
-    timestamps: boolean;
+    vacancy: VacancyType;
     onPress?: () => void;
     isborder?: boolean;
 };
@@ -39,22 +25,7 @@ const tagColors: { [key: string]: string } = {
     TechnologyBack: Colors.lightTomato,
 };
 
-const ShortJobCard: FC<Props> = ({
-    title,
-    creator,
-    company,
-    category,
-    subcategory,
-    salary,
-    employmentType,
-    workType,
-    isFeatured,
-    views,
-    timestamps,
-    description,
-    onPress,
-    isborder,
-}) => {
+const ShortJobCard: FC<Props> = ({ vacancy, onPress, isborder }) => {
     return (
         <JobCardContainer
             onClick={onPress}
@@ -64,30 +35,25 @@ const ShortJobCard: FC<Props> = ({
                 cursor: "pointer",
             }}
         >
-            <Avatar
-                imageUrl={
-                    "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-                }
-            />
+            <Avatar imageUrl={vacancy?.company?.logo} />
             <Content>
                 <JobTitle>
                     <Text
-                        text={title}
+                        text={vacancy?.title}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
                     <Text
-                        text={`${creator.firstName} - ${creator.lastName}`}
+                        text={vacancy?.company?.name}
                         textSize="twelve"
                         color={Colors.textGray}
                         family="Epilogue-Regular"
                     />
                 </JobTitle>
                 <Tags>
-                    <Tag text={employmentType} />
+                    <Tag text={vacancy?.employmentType} />
                     <img src={Images.divider} height={20} alt="" />
-
-                    <Tag text={workType} />
+                    <Tag text={vacancy?.workType} />
                 </Tags>
             </Content>
         </JobCardContainer>

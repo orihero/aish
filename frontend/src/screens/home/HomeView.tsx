@@ -10,6 +10,8 @@ import LatestJobs from "../../components/LatestJobs/LatestJobs";
 import { observer } from "mobx-react-lite";
 import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeModal";
 import useRootStore from "../../shared/hooks/UseRootStore";
+import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import ApplyModal from "../../components/ApplyModal/ApplyModal";
 
 const HomeView = () => {
     const { visibleStore } = useRootStore();
@@ -26,6 +28,8 @@ const HomeView = () => {
             <UploadResumeModal
                 isShow={visibleStore.visible.createResumeModal}
             />
+            <RegisterModal isShow={visibleStore.visible.registerModal} />
+            <ApplyModal isShow={visibleStore.visible.applyModal} />
         </div>
     );
 };

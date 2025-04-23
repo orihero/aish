@@ -2,25 +2,18 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
-import { CreatorType, SalaryType, translationType } from "../../types";
+import {
+    CreatorType,
+    SalaryType,
+    translationType,
+    VacancyType,
+} from "../../types";
 import Avatar from "../Avatar/Avatar";
 import { Tag } from "../Tag/Tag";
+import { observer } from "mobx-react-lite";
 
 type Props = {
-    title: string;
-    creator: CreatorType;
-    company: string;
-    category: {
-        title: translationType[];
-    };
-    subcategory: string;
-    description: string;
-    salary: SalaryType;
-    employmentType: string;
-    workType: string;
-    isFeatured: boolean;
-    views: number;
-    timestamps: boolean;
+    vacancy: VacancyType;
     onPress?: () => void;
 };
 
@@ -35,48 +28,33 @@ type Props = {
 //     TechnologyBack: Colors.lightTomato,
 // };
 
-const JobCard: FC<Props> = ({
-    category,
-    subcategory,
-    title,
-    creator,
-    company,
-    salary,
-    employmentType,
-    workType,
-    isFeatured,
-    views,
-    timestamps,
-    description,
-    onPress,
-}) => {
+const JobCard: FC<Props> = ({ vacancy, onPress }) => {
     return (
         <JobCardContainer onClick={onPress}>
             <Header>
-                <Avatar
-                    imageUrl={
-                        "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-                    }
-                />
-                <JobTypeButton>{employmentType}</JobTypeButton>
+                <div className="companyInfo">
+                    <Avatar imageUrl={vacancy?.company?.logo} />
+                    <Text
+                        text={vacancy?.company?.name}
+                        textSize="twelve"
+                        color={Colors.textGray}
+                        family="Epilogue-Regular"
+                    />
+                </div>
+                <JobTypeButton>{vacancy?.employmentType}</JobTypeButton>
             </Header>
             <Content>
                 <Text
-                    text={title}
+                    text={vacancy?.title}
                     textSize="sixteen"
                     color={Colors.textBlack}
                 />
-                <Text
-                    text={`${creator.firstName} - ${creator.firstName}`}
-                    textSize="twelve"
-                    color={Colors.textGray}
-                    family="Epilogue-Regular"
-                />
+
                 <Text
                     text={
-                        description.length > 50
-                            ? `${description.slice(0, 50)}...`
-                            : description
+                        vacancy?.description.length > 50
+                            ? `${vacancy?.description.slice(0, 50)}...`
+                            : vacancy?.description
                     }
                     textSize="twelve"
                     color={Colors.textGray}
@@ -86,13 +64,13 @@ const JobCard: FC<Props> = ({
                 />
             </Content>
             <Tags>
-                <Tag text={workType} />
+                <Tag text={vacancy?.workType} />
             </Tags>
         </JobCardContainer>
     );
 };
 
-export default JobCard;
+export default observer(JobCard);
 
 const JobCardContainer = styled.div`
     display: flex;
@@ -106,10 +84,10 @@ const JobCardContainer = styled.div`
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     border-radius: 10px;
 
-    &:hover {
+    /* &:hover {
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         transform: translateY(-2px);
-    }
+    } */
 
     @media (max-width: 1200px) {
         min-width: 320px;
@@ -120,6 +98,12 @@ const Header = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    .companyInfo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 `;
 
 const JobTypeButton = styled.button`

@@ -7,11 +7,14 @@ import FindJobs from "../../components/FindJobs/FindJobs";
 import FilterInput from "../../components/FilterInput/FilterInput";
 import { observer } from "mobx-react-lite";
 import useRootStore from "../../shared/hooks/UseRootStore";
+import ApplyModal from "../../components/ApplyModal/ApplyModal";
+import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeModal";
+import RegisterModal from "../../components/RegisterModal/RegisterModal";
 
 const VacanciesView = () => {
-    const { vacanciesStore } = useRootStore();
+    const { vacanciesStore, visibleStore } = useRootStore();
     useEffect(() => {
-        vacanciesStore.getVacanciesByQuery();
+        vacanciesStore.getVacancies();
         window.scrollTo(0, 0);
     }, [vacanciesStore]);
 
@@ -26,6 +29,12 @@ const VacanciesView = () => {
                 </div>
             </div>
             <Footer />
+            <ApplyModal isShow={visibleStore.visible.applyModal} />{" "}
+            <UploadResumeModal
+                isShow={visibleStore.visible.createResumeModal}
+            />
+            <RegisterModal isShow={visibleStore.visible.registerModal} />
+            <ApplyModal isShow={visibleStore.visible.applyModal} />
         </Container>
     );
 };

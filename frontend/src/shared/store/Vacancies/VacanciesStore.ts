@@ -9,7 +9,7 @@ export class VacanciesStore {
         makeAutoObservable(this);
         this.rootStore = root;
         this.getVacancies();
-        this.getFeaturedVacancies();
+        // this.getFeaturedVacancies();
         this.getLatesVacancies();
     }
 
@@ -29,6 +29,24 @@ export class VacanciesStore {
         sort: "newest",
         page: 1,
         limit: 10,
+    };
+
+    loadings: {
+        vacancies: boolean;
+        featuredVacancies: boolean;
+        latesVacancies: boolean;
+        getVacanciesByQuery: boolean;
+        getVacancyById: boolean;
+    } = {
+        vacancies: false,
+        featuredVacancies: false,
+        latesVacancies: false,
+        getVacanciesByQuery: false,
+        getVacancyById: false,
+    };
+
+    setLoading = (key: keyof VacanciesStore["loadings"]) => {
+        this.loadings[key] = !this.loadings[key];
     };
 
     setFilter<K extends keyof typeof this.filters>(
@@ -79,6 +97,7 @@ export class VacanciesStore {
 
     getVacanciesByQuery = async () => {
         try {
+            this.setLoading("getVacanciesByQuery");
             const response = await APIs.jobs.getVacanciesByQuery(
                 this.queryParams
             );
@@ -91,11 +110,14 @@ export class VacanciesStore {
             });
         } catch (error) {
             console.error("Failed to fetch featured jobs:", error);
+        } finally {
+            this.setLoading("getVacanciesByQuery");
         }
     };
 
     getVacancies = async () => {
         try {
+            this.setLoading("vacancies");
             const response = await APIs.jobs.getVacancies();
             if (response.statusText !== "OK") {
                 throw new Error("Network response was not ok");
@@ -105,11 +127,14 @@ export class VacanciesStore {
             });
         } catch (error) {
             console.error("Failed to fetch featured jobs:", error);
+        } finally {
+            this.setLoading("vacancies");
         }
     };
 
     getFeaturedVacancies = async () => {
         try {
+            this.setLoading("featuredVacancies");
             const response = await APIs.jobs.getVacanciesFeatured();
             if (response.statusText !== "OK") {
                 throw new Error("Network response was not ok");
@@ -119,11 +144,14 @@ export class VacanciesStore {
             });
         } catch (error) {
             console.error("Failed to fetch featured jobs:", error);
+        } finally {
+            this.setLoading("featuredVacancies");
         }
     };
 
     getLatesVacancies = async () => {
         try {
+            this.setLoading("latesVacancies");
             const response = await APIs.jobs.getVacanciesLatest();
             if (response.statusText !== "OK") {
                 throw new Error("Network response was not ok");
@@ -133,32 +161,48 @@ export class VacanciesStore {
             });
         } catch (error) {
             console.error("Failed to fetch featured jobs:", error);
+        } finally {
+            this.setLoading("latesVacancies");
         }
     };
 
-    getVacancyById = async (id: string, callback?: () => void) => {
+    findVacancyById = (id: string, where?: string, callback?: () => void) => {
+        runInAction(() => {
+            if (where === "latest") {
+                this.previewVacancy = this.latesVacancies.vacancies.find(
+                    (vacancy: VacancyType) => vacancy._id === id
+                ) as never;
+            }
+            if (where === "feutured") {
+                this.previewVacancy = this.featuredVacancies.vacancies.find(
+                    (vacancy: VacancyType) => vacancy._id === id
+                ) as never;
+            }
+            if (where === "findJobs") {
+                this.previewVacancy = this.vacancies.vacancies.find(
+                    (vacancy: VacancyType) => vacancy._id === id
+                ) as never;
+            }
+        });
+        if (callback) {
+            callback();
+        }
+    };
+
+    getVacancyById = async (id: string) => {
         try {
+            this.setLoading("getVacancyById");
             const response = await APIs.jobs.getVacancyById(id);
             if (response.statusText !== "OK") {
                 throw new Error("Network response was not ok");
             }
-            const companyData =
-                await this.rootStore.companiesStore.getCompanyById(
-                    response.data.company as never
-                );
-
             runInAction(() => {
-                this.previewVacancy = {
-                    ...response.data,
-                    company: companyData,
-                } as never;
-
-                if (callback) {
-                    callback();
-                }
+                this.previewVacancy = response.data;
             });
         } catch (error) {
             console.error("Failed to fetch featured jobs:", error);
+        } finally {
+            this.setLoading("getVacancyById");
         }
     };
 }
