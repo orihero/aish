@@ -12,6 +12,9 @@ type Props = {
     primary?: boolean;
     icon?: string | React.ReactNode | undefined;
     className?: string;
+    backColor?: string;
+    color?: string;
+    loading?: boolean;
 };
 
 const ButtonComp: FC<Props> = ({
@@ -21,6 +24,9 @@ const ButtonComp: FC<Props> = ({
     primary,
     icon,
     className,
+    backColor,
+    color,
+    loading,
 }) => {
     return (
         <ButtonContainer
@@ -28,6 +34,7 @@ const ButtonComp: FC<Props> = ({
             onClick={onPress}
             $primary={primary}
             className={className}
+            style={{ backgroundColor: backColor && backColor }}
         >
             <Text
                 text={title}

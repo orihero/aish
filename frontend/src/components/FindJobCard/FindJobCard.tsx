@@ -13,12 +13,13 @@ import IconComp from "../../shared/constants/iconBtn";
 type Props = {
     vacancy: VacancyType;
     onPress?: () => void;
+    respondPress?: () => void;
 };
 
-const FindJobCard: FC<Props> = ({ vacancy, onPress }) => {
+const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
     return (
-        <Container onClick={onPress}>
-            <div className="info">
+        <Container>
+            <div className="info" onClick={onPress}>
                 <div className="titleBox">
                     <Text
                         text={vacancy.title}
@@ -30,15 +31,29 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress }) => {
                     <div className="views">
                         <div className="viewsCount">
                             <Text
-                                text={`${vacancy.views}`}
-                                textSize="fourteen"
+                                text={`${vacancy.applicationsCount}`}
+                                textSize="sixteen"
                                 family="Epilogue-Regular"
                                 color={Colors.textGray}
-                                margin="5px 0 0 0"
+                                paddingTop="3px"
+                            />
+                            <DynamicIcon
+                                name={"file-check"}
+                                size={18}
+                                color={Colors.textGray}
+                            />
+                        </div>
+                        <div className="viewsCount">
+                            <Text
+                                text={`${vacancy.views}`}
+                                textSize="sixteen"
+                                family="Epilogue-Regular"
+                                color={Colors.textGray}
+                                paddingTop="3px"
                             />
                             <DynamicIcon
                                 name={"eye"}
-                                size={24}
+                                size={20}
                                 color={Colors.textGray}
                             />
                         </div>
@@ -53,27 +68,43 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress }) => {
                         />
                     </div>
                 </div>
+                <div className="company">
+                    <Avatar size={40} imageUrl={vacancy.company.logo} />
+                    <Text
+                        text={`${vacancy.company.name}`}
+                        color={Colors.textBlack}
+                        textSize="fourteen"
+                        family="Epilogue-Regular"
+                        paddingTop="3px"
+                    />
+                    <div className="tags">
+                        <Tag text={vacancy.workType} />
+                        <Tag text={vacancy.employmentType} />
+                    </div>
+                </div>
+                <Text
+                    text={`${vacancy.description.slice(0, 200) + "..."}`}
+                    color={Colors.textBlack}
+                    textSize="fourteen"
+                    family="Epilogue-Regular"
+                    paddingTop="3px"
+                />
+            </div>
+            <div className="companyAndApply">
                 <Text
                     text={`Salary: ${vacancy.salary.min}-${vacancy.salary.max} ${vacancy.salary.currency}`}
                     color={Colors.textBlack}
                     textSize="eighteen"
                     family="Epilogue-Regular"
+                    paddingTop="3px"
+                />
+                <ButtonComp
+                    title="Apply"
+                    primary
+                    className="apply"
+                    onPress={respondPress}
                 />
             </div>
-            <div className="tags">
-                <Tag text={vacancy.workType} />
-                <Tag text={vacancy.employmentType} />
-            </div>
-            <div className="company">
-                <Avatar size={30} />
-                <Text
-                    text={`${vacancy.creator.firstName} ${vacancy.creator.lastName}`}
-                    color={Colors.textBlack}
-                    textSize="fourteen"
-                    family="Epilogue-Regular"
-                />
-            </div>
-            <ButtonComp title="Respond" primary className="respond" />
         </Container>
     );
 };
@@ -89,6 +120,7 @@ const Container = styled.div`
     padding: 20px;
     border-radius: 16px;
     cursor: pointer;
+    position: relative;
 
     .titleBox {
         display: flex;
@@ -112,11 +144,18 @@ const Container = styled.div`
         align-items: center;
         gap: 10px;
     }
-    .respond {
+    .companyAndApply {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .apply {
         display: flex;
         justify-content: center;
         width: 150px;
         border-radius: 10px;
+        position: relative;
+        z-index: 10;
     }
 
     .views {

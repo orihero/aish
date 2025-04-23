@@ -4,10 +4,15 @@ import styled from "styled-components";
 type Props = {
     icon: React.ReactNode;
     onClick?: () => void;
+    disabled?: boolean;
 };
 
-const IconComp: FC<Props> = ({ icon, onClick }) => {
-    return <IconContainer onClick={onClick}>{icon}</IconContainer>;
+const IconComp: FC<Props> = ({ icon, onClick, disabled }) => {
+    return (
+        <IconContainer onClick={onClick} disabled={disabled}>
+            {icon}
+        </IconContainer>
+    );
 };
 
 export default IconComp;
@@ -25,5 +30,8 @@ const IconContainer = styled.button`
     transition: 0.3s;
     &:hover {
         transform: scale(1.1);
+    }
+    &:disabled {
+        opacity: 0.6;
     }
 `;

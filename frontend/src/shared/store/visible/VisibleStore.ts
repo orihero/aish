@@ -10,6 +10,9 @@ export class VisibleStore {
         something: false,
         createResumeModal: false,
         isResumeEditable: false,
+        registerModal: false,
+        applyModal: false,
+        resumeSelect: false,
     };
 
     setLang(lang: string) {

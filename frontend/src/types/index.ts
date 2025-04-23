@@ -1,3 +1,36 @@
+export type Session = {
+    success: boolean;
+    message: string;
+    data: {
+        accessToken: string;
+        refreshToken: string;
+    };
+};
+
+export type User = {
+    email: string;
+    phone?: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    confirmPassword: string;
+    resumeData: ResumeType;
+    resumeFile: { url: string; filename: string };
+};
+
+export interface UserFullType {
+    id: string;
+    user: string;
+    name: string;
+    phone: string;
+    email: string;
+    fileUrl: string;
+    firstName: string;
+    lastName: string;
+    fileName: string;
+    resume: FullResumeType[];
+}
+
 export type translationType = {
     language: string;
     value: string;
@@ -54,6 +87,7 @@ export type VacancyType = {
     views: number;
     timestamps: boolean;
     createdAt: string;
+    applicationsCount: number;
 };
 
 export type VacanciesType = {
@@ -78,6 +112,7 @@ export type CompanyType = {
         address?: string;
     };
     contact: {
+        name?: string;
         email: string;
         phone?: string;
     };
@@ -112,11 +147,8 @@ export interface ResumeType {
     user: string; // userId
     name: string;
     phone: string;
-    cvFile: {
-        url: string;
-        filename: string;
-    };
-
+    fileUrl: string;
+    fileName: string;
     basics: {
         name: string;
         label: string;
@@ -149,6 +181,49 @@ export interface ResumeType {
     createdAt: string; // ISO Date
     updatedAt: string; // ISO Date
 }
+
+export type FullResumeType = {
+    user: string;
+    __v: number;
+    _id: string;
+    cvFile: {
+        url: string;
+        filename: string;
+    };
+    parsedData: {
+        basics: {
+            name: string;
+            label: string;
+            image: string;
+            email: string;
+            phone: string;
+            url: string;
+            summary: string;
+            location: {
+                address: string;
+                postalCode: string;
+                city: string;
+                region: string;
+                countryCode: string;
+            };
+            profiles: ProfileType[];
+        };
+        work: WorkType[];
+        volunteer: VolunteerType[];
+        education: EducationType[];
+        certifications: CertificationType[];
+        awards: AwardType[];
+        publications: PublicationType[];
+        skills: SkillType[];
+        languages: LanguageType[];
+        interests: InterestType[];
+        projects: ProjectType[];
+        references: ReferenceType[];
+    };
+    applications: ApplicationType[];
+    createdAt: string; // ISO Date
+    updatedAt: string; // ISO Date
+};
 
 export type ProfileType = {
     network: string;
@@ -244,12 +319,6 @@ export type ReferenceType = {
 
 export const defaultReferences: ReferenceType[] = [];
 
-export type ApplicationType = {
-    vacancy: string;
-    appliedAt: string;
-    status: "pending" | "reviewed" | "accepted" | "rejected";
-};
-
 export const defaultApplications: ApplicationType[] = [];
 
 export type LanguageType = {
@@ -264,10 +333,8 @@ export const defaultResumeState: ResumeType = {
     user: "",
     name: "",
     phone: "",
-    cvFile: {
-        url: "",
-        filename: "",
-    },
+    fileName: "",
+    fileUrl: "",
     basics: {
         name: "",
         label: "",
@@ -299,4 +366,56 @@ export const defaultResumeState: ResumeType = {
     applications: [],
     createdAt: "",
     updatedAt: "",
+};
+
+export type ApplicationType = {
+    _id: string;
+    createdAt: string;
+    status: string;
+    updatedAt: string;
+    chat: {
+        _id: string;
+    };
+    job: Job;
+    resume: {
+        id: string;
+        title: string;
+    };
+};
+
+export type Candidate = {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    createdAt: string;
+};
+
+export type Job = {
+    company: CompanyType;
+    createdAt: string;
+    description: string;
+    requirements: string[];
+    title: string;
+    _id: string;
+};
+
+export type Message = {
+    _id: string;
+    role: "assistant" | "user";
+    content: string;
+    timestamp: string;
+};
+
+export type ChatType = {
+    _id: string;
+    user: string;
+    resume: string;
+    application: ApplicationType;
+    status: "pending" | "accepted" | "rejected"; // extend as needed
+    createdAt: string;
+    updatedAt: string;
+    candidate: Candidate;
+    messages: Message[];
+    __v: number;
 };

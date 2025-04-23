@@ -17,11 +17,11 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import domtoimage from "dom-to-image";
 import { toJS } from "mobx";
+import RegisterModal from "../../components/RegisterModal/RegisterModal";
 
-const MyResume = () => {
+const ResumePreview = () => {
     const { resumeStore, visibleStore } = useRootStore();
     const printRef = useRef<null>(null);
-    console.log("resume", toJS(resumeStore.myResume));
 
     const handleDownloadPdf = () => {
         const element = printRef.current;
@@ -46,8 +46,7 @@ const MyResume = () => {
 
     return (
         <MyResumeContainer>
-            <Header />
-            <div className="fixedIcons">
+            <div className="header">
                 {resumeStore.isEdited && (
                     <ButtonComp
                         title="Save"
@@ -61,7 +60,7 @@ const MyResume = () => {
                         onClick={handleDownloadPdf}
                     />
                 </div>
-                <div className="iconBtn">
+                {/* <div className="iconBtn">
                     <IconComp
                         icon={
                             <DynamicIcon
@@ -77,7 +76,12 @@ const MyResume = () => {
                             visibleStore.toglevisible("isResumeEditable")
                         }
                     />
-                </div>
+                </div> */}
+                <ButtonComp
+                    title="Continue"
+                    primary
+                    onPress={() => visibleStore.show("registerModal")}
+                />
             </div>
             <div className="box" ref={printRef}>
                 <div className="resumeLeft">
@@ -675,11 +679,12 @@ const MyResume = () => {
                     </div>
                 </div>
             </div>
+            <RegisterModal isShow={visibleStore.visible.registerModal} />
         </MyResumeContainer>
     );
 };
 
-export default observer(MyResume);
+export default observer(ResumePreview);
 
 const MyResumeContainer = styled.div`
     .box {
@@ -687,18 +692,20 @@ const MyResumeContainer = styled.div`
         grid-template-columns: 300px auto;
         gap: 20px;
         /* background-color: ${Colors.light}; */
-        margin-top: 16vh;
+        margin-top: 20px;
         /* padding: 0 20px; */
         position: relative;
     }
 
-    .fixedIcons {
-        position: fixed;
-        right: 20px;
-        top: 11vh;
+    .header {
         display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        width: 100%;
+        height: 10vh;
         gap: 10px;
-        z-index: 12;
+        padding: 0 5%;
+        background-color: ${Colors.light};
     }
 
     .iconBtn {

@@ -11,7 +11,7 @@ type Props = {
 const MessageBox: FC<Props> = ({ title }) => {
     return (
         <Container>
-            <Text textSize="twenty" color={Colors.textBlack} text={title} />
+            <Text textSize="sixteen" color={Colors.textBlack} text={title} />
         </Container>
     );
 };

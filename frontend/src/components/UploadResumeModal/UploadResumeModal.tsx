@@ -20,7 +20,10 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
     const navigation = useNavigate();
 
     const CreateResume = () => {
-        resumeStore.onCreateResume(() => navigation("/myResume"));
+        resumeStore.onCreateResume(() => {
+            navigation("/resumePreview");
+            visibleStore.hide("createResumeModal");
+        });
     };
 
     return (
@@ -34,7 +37,7 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
                 </div>
                 <Text
                     text={
-                        resumeStore.isCreateResumeLoading
+                        resumeStore.loadings.isCreateResumeLoading
                             ? "Please wait! Resume is being analyzed, this will take some time. Do not refresh the window!"
                             : "Please select your resume or cvFile"
                     }
@@ -43,7 +46,7 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
                     textAlign={"center"}
                     lineHeight={20}
                 />
-                {!resumeStore.isCreateResumeLoading && (
+                {!resumeStore.loadings.isCreateResumeLoading && (
                     <label htmlFor="resume-upload" className="uploadIcon">
                         <DynamicIcon
                             name="upload-cloud"
@@ -69,7 +72,7 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
                         )}
                     </label>
                 )}
-                {resumeStore.isCreateResumeLoading ? (
+                {resumeStore.loadings.isCreateResumeLoading ? (
                     <Spin size="large" />
                 ) : (
                     <ButtonComp
