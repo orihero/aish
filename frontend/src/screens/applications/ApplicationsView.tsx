@@ -9,6 +9,7 @@ import ApplicationCard from "../../components/ApplicationCard/ApplicationCard";
 import { useNavigate } from "react-router-dom";
 import MessageBox from "../../components/MessageBox/MessageBox";
 import SpinLoading from "../../components/SpinLoading/SpinLoading";
+import { ApplicationType } from "../../types";
 
 const ApplicationsView = () => {
     const { applicationStore, chatStore } = useRootStore();
@@ -29,18 +30,20 @@ const ApplicationsView = () => {
     const renderApplicationCard = useCallback(() => {
         return applicationStore.loadings.isGettingMyApplicationsLoading ? (
             <SpinLoading size="large" />
-        ) : applicationStore.myApplications.length === 0 ? (
+        ) : applicationStore.myApplications?.length === 0 ? (
             <MessageBox title="No applications yet" />
         ) : (
-            applicationStore.myApplications.map((item, index) => {
-                return (
-                    <ApplicationCard
-                        key={index}
-                        application={item}
-                        goToChat={() => getChats(item.chat._id)}
-                    />
-                );
-            })
+            applicationStore.myApplications?.map(
+                (item: ApplicationType, index) => {
+                    return (
+                        <ApplicationCard
+                            key={index}
+                            application={item}
+                            goToChat={() => getChats(item.chat._id)}
+                        />
+                    );
+                }
+            )
         );
     }, [
         applicationStore.loadings.isGettingMyApplicationsLoading,

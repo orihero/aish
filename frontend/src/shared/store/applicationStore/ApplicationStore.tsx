@@ -14,7 +14,7 @@ export class ApplicationStore {
     selectedResume: FullResumeType = {} as FullResumeType;
     respondVacancy: VacancyType = {} as VacancyType;
 
-    myApplications: ApplicationType[] = [];
+    myApplications: ApplicationType[] = [] as ApplicationType[];
 
     loadings: {
         isGettingMyApplicationsLoading: boolean;
