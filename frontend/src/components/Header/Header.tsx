@@ -17,7 +17,7 @@ import { toJS } from "mobx";
 
 const Header = () => {
     const { t } = useTranslation();
-    const { visibleStore, localStore } = useRootStore();
+    const { visibleStore, authStore } = useRootStore();
 
     const navigation = useNavigate();
     const handleMenu = () => {
@@ -54,7 +54,7 @@ const Header = () => {
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
-                    {localStore.session.accessToken && (
+                    {authStore.isAuthorized && (
                         <Text
                             text={"Applications"}
                             textSize="fourteen"
@@ -67,14 +67,14 @@ const Header = () => {
             </div>
             <div className="headerRight">
                 {/* <LanguageSelect /> */}
-                {!localStore.session.accessToken && <ButtonComp title="Hire" />}
+                {!authStore.isAuthorized && <ButtonComp title="Hire" />}
                 <img src={Images.divider} alt="Divider" height={30} />
                 <ButtonComp
                     title="Create resume"
                     primary
                     onPress={() => visibleStore.show("createResumeModal")}
                 />
-                {localStore.session.accessToken && (
+                {authStore.isAuthorized && (
                     <div className="profile">
                         <IconComp
                             icon={
