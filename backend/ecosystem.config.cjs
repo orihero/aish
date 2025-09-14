@@ -1,21 +1,20 @@
-export default {
+module.exports = {
   apps: [
     {
-      name: 'admin-vite',
-      script: 'npm',
-      args: 'run dev',
+      name: 'aish-backend-api',
+      script: 'src/index.js',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'development',
-        PORT: 5173
+        PORT: 5000
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 5173
+        PORT: 5000
       },
       watch: ['src'],
-      ignore_watch: ['node_modules', 'dist', 'logs'],
+      ignore_watch: ['node_modules', 'logs', 'uploads'],
       watch_options: {
         followSymlinks: false
       },
@@ -36,9 +35,9 @@ export default {
       host: 'your-server.com',
       ref: 'origin/main',
       repo: 'your-repo-url',
-      path: '/var/www/production/admin',
+      path: '/var/www/production/backend',
       'pre-deploy-local': '',
-      'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.js --env production',
+      'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
       'pre-setup': ''
     }
   }

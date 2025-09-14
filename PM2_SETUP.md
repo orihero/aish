@@ -2,6 +2,8 @@
 
 This project includes PM2 ecosystem files for managing all applications in the job board system.
 
+**Note**: Backend and Admin applications use `.cjs` extension for ecosystem files due to ES module compatibility requirements.
+
 ## Applications
 
 - **Backend**: Node.js API server (Port 5000)
@@ -31,7 +33,7 @@ npm run pm2:start:prod
 #### Backend Only
 ```bash
 cd backend
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 ```
 
 #### Frontend Only
@@ -43,7 +45,7 @@ pm2 start ecosystem.config.js
 #### Admin Only
 ```bash
 cd admin
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 ```
 
 ### PM2 Commands
@@ -118,7 +120,7 @@ deploy: {
     ref: 'origin/main',
     repo: 'your-repo-url',
     path: '/var/www/production',
-    'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production'
+    'post-deploy': 'npm install && pm2 reload ecosystem.config.cjs --env production'
   }
 }
 ```
