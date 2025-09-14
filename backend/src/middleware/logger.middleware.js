@@ -1,19 +1,4 @@
-import chalk from "chalk";
-
-function formatHeaders(headers) {
-    return Object.entries(headers)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n    ");
-}
-
-function formatBody(body) {
-    if (!body) return "No body";
-    try {
-        return JSON.stringify(body, null, 2);
-    } catch (error) {
-        return body;
-    }
-}
+import { Logger } from "../utils/logger.js";
 
 export const requestLogger = (req, res, next) => {
     // Store original send
@@ -22,27 +7,32 @@ export const requestLogger = (req, res, next) => {
     // Get request time
     const startTime = Date.now();
 
-    // Log request
-    console.log(
-        "\n" + chalk.yellow("⟶ REQUEST ") + chalk.gray(new Date().toISOString())
+    // Log request with enhanced formatting
+    Logger.request(
+        req.method, 
+        req.originalUrl, 
+        req.headers, 
+        req.body
     );
-    console.log(chalk.yellow("URL: ") + `${req.method} ${req.originalUrl}`);
-    console.log(chalk.yellow("Headers:\n    ") + formatHeaders(req.headers));
-    console.log(chalk.yellow("Body:\n") + chalk.white(formatBody(req.body)));
 
     // Override send
     res.send = function (body) {
         // Log response
         const duration = Date.now() - startTime;
-        console.log(
-            "\n" + chalk.green("⟵ RESPONSE ") + chalk.gray(`${duration}ms`)
+        
+        // Parse response body for logging
+        let responseData = null;
+        try {
+            responseData = typeof body === 'string' ? JSON.parse(body) : body;
+        } catch (e) {
+            responseData = body;
+        }
+
+        Logger.response(
+            res.statusCode, 
+            responseData, 
+            duration
         );
-        console.log(chalk.green("Status: ") + res.statusCode);
-        console.log(
-            chalk.green("Headers:\n    ") + formatHeaders(res.getHeaders())
-        );
-        console.log(chalk.green("Body:\n") + chalk.white(formatBody(body)));
-        console.log(chalk.gray("──────────────────────────────────────"));
 
         // Restore original send
         res.send = originalSend;

@@ -2,9 +2,18 @@ import { Vacancy } from "../models/vacancy.model.js";
 import { sendNewJobNotification } from "../config/telegram.js";
 import { Company } from "../models/company.model.js";
 import { Application } from "../models/application.model.js";
+import { Logger } from "../utils/logger.js";
 
 export const createVacancy = async (req, res) => {
   try {
+    Logger.info('💼 Creating new vacancy', { 
+      userId: req.user._id, 
+      title: req.body.title,
+      category: req.body.category,
+      employmentType: req.body.employmentType,
+      workType: req.body.workType
+    });
+
     const {
       title,
       category,
@@ -26,16 +35,43 @@ export const createVacancy = async (req, res) => {
       workType,
     });
 
+    Logger.debug('💾 Saving vacancy to database', { 
+      vacancyId: vacancy._id, 
+      title: vacancy.title 
+    });
     await vacancy.save();
+    
+    Logger.info('📢 Sending job notification', { vacancyId: vacancy._id });
     await sendNewJobNotification(vacancy);
+    
+    Logger.success('🎉 Vacancy created successfully', { 
+      vacancyId: vacancy._id, 
+      title: vacancy.title,
+      creator: req.user._id
+    });
+    
     res.status(201).json(vacancy);
   } catch (error) {
+    Logger.error('❌ Error creating vacancy', error);
     res.status(400).json({ message: error.message });
   }
 };
 
 export const getVacancies = async (req, res) => {
   try {
+    Logger.info('🔍 Fetching vacancies', { 
+      userId: req.user?._id,
+      query: req.query,
+      filters: {
+        search: req.query.search,
+        category: req.query.category,
+        employmentType: req.query.employmentType,
+        workType: req.query.workType,
+        featured: req.query.featured,
+        my: req.query.my
+      }
+    });
+
     const {
       search,
       category,
@@ -113,16 +149,35 @@ export const getVacancies = async (req, res) => {
       .limit(Number(limit))
       .sort(sortOptions);
 
-    console.log("====================================");
-    console.log(req.user);
-    console.log("====================================");
+    const totalVacancies = await Vacancy.countDocuments(query);
+
+    Logger.success('✅ Vacancies fetched successfully', { 
+      count: vacancies.length,
+      totalVacancies,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      filters: Object.keys(query)
+    });
+
+    res.json({
+      vacancies,
+      totalVacancies,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalVacancies / parseInt(limit)),
+    });
   } catch (error) {
+    Logger.error('❌ Error fetching vacancies', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 export const getVacancy = async (req, res) => {
   try {
+    Logger.info('👀 Getting vacancy details', { 
+      vacancyId: req.params.id,
+      userId: req.user?._id
+    });
+
     const vacancy = await Vacancy.findById(req.params.id)
       // First increment the views
       .findOneAndUpdate(
@@ -146,11 +201,20 @@ export const getVacancy = async (req, res) => {
       });
 
     if (!vacancy) {
+      Logger.warning('⚠️ Vacancy not found', { vacancyId: req.params.id });
       return res.status(404).json({ message: "Vacancy not found" });
     }
 
+    Logger.success('✅ Vacancy retrieved successfully', { 
+      vacancyId: vacancy._id,
+      title: vacancy.title,
+      views: vacancy.views,
+      creator: vacancy.creator?._id
+    });
+
     res.json(vacancy);
   } catch (error) {
+    Logger.error('❌ Error getting vacancy', error);
     res.status(500).json({ message: error.message });
   }
 };

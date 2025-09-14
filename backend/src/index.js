@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import { errorHandler } from "./middleware/error.middleware.js";
+import { requestLogger } from "./middleware/logger.middleware.js";
+import { Logger } from "./utils/logger.js";
 import applicationRoutes from "./routes/application.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
@@ -20,7 +22,7 @@ export const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-// app.use(requestLogger);
+app.use(requestLogger);
 app.use("/uploads", express.static("uploads"));
 
 // Routes
@@ -37,8 +39,8 @@ app.use("/api/applications", applicationRoutes);
 // Connect to MongoDB
 mongoose
     .connect(process.env.MONGODB_URI)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((error) => console.error("MongoDB connection error:", error));
+    .then(() => Logger.success("🚀 Connected to MongoDB", { uri: process.env.MONGODB_URI }))
+    .catch((error) => Logger.error("❌ MongoDB connection error", error));
 
 // Basic route
 app.get("/", (req, res) => {
@@ -52,6 +54,10 @@ app.use(errorHandler);
 if (process.env.NODE_ENV !== "test") {
     const PORT = process.env.PORT || 5001;
     app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+        Logger.success(`🎉 Server is running on port ${PORT}`, { 
+            port: PORT, 
+            environment: process.env.NODE_ENV || 'development',
+            timestamp: new Date().toISOString()
+        });
     });
 }

@@ -1,4 +1,4 @@
-const url = "http://35.226.44.232:5001";
+const url = "http://localhost:5000";
 
 export const Env = {
     ApiUrl: `${url}/`,

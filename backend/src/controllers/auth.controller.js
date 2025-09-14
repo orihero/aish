@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { User } from '../models/user.model.js';
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { Resume } from '../models/resume.model.js';
+import { Logger } from '../utils/logger.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -11,9 +12,18 @@ const generateToken = (userId) => {
 
 export const register = async (req, res) => {
   try {
+    Logger.info('👤 Starting user registration', { 
+      email: req.body.email, 
+      phone: req.body.phone, 
+      firstName: req.body.firstName, 
+      lastName: req.body.lastName, 
+      role: req.body.role 
+    });
+
     const { email, phone, password, firstName, lastName, role, resumeData, resumeFile } = req.body;
 
     // Check if user already exists with email or phone
+    Logger.debug('🔍 Checking for existing user', { email, phone });
     const existingUser = await User.findOne({
       $or: [
         ...(email ? [{ email }] : []),
@@ -22,12 +32,17 @@ export const register = async (req, res) => {
     });
 
     if (existingUser) {
+      Logger.warning('⚠️ User already exists', { 
+        existingEmail: existingUser.email, 
+        existingPhone: existingUser.phone 
+      });
       return res.status(400).json({ 
         message: `A user with the email ${existingUser.email} already exists. Please try logging in instead.`
       });
     }
 
     // Create new user
+    Logger.info('👤 Creating new user', { email, firstName, lastName, role: role || 'employee' });
     const user = new User({
       email,
       phone,
@@ -40,6 +55,12 @@ export const register = async (req, res) => {
     // If resume data is provided and user is an employee, create resume
     let resume;
     if (resumeData && (role === 'employee' || !role)) {
+      Logger.info('📄 Creating resume for employee', { 
+        userId: user._id, 
+        hasResumeFile: !!resumeFile,
+        resumeDataKeys: Object.keys(resumeData || {})
+      });
+      
       resume = new Resume({
         userId: user._id,
         name: `${firstName} ${lastName}'s Resume`,
@@ -51,6 +72,7 @@ export const register = async (req, res) => {
       });
 
       // Save both documents
+      Logger.debug('💾 Saving user and resume to database');
       await Promise.all([
         user.save(),
         resume.save()
@@ -59,11 +81,15 @@ export const register = async (req, res) => {
       // Update user with resume reference
       user.resume = resume._id;
       await user.save();
+      Logger.success('✅ User and resume created successfully', { userId: user._id, resumeId: resume._id });
     } else {
+      Logger.debug('💾 Saving user to database (no resume)');
       await user.save();
+      Logger.success('✅ User created successfully', { userId: user._id });
     }
 
     // Generate token
+    Logger.debug('🔑 Generating JWT token', { userId: user._id });
     const token = generateToken(user._id);
 
     // Return response with populated resume if exists
@@ -71,7 +97,7 @@ export const register = async (req, res) => {
       ? await User.findById(user._id).populate('resume')
       : user;
 
-    res.status(201).json({
+    const responseData = {
       user: {
         id: populatedUser._id,
         email: populatedUser.email,
@@ -82,33 +108,47 @@ export const register = async (req, res) => {
         resume: populatedUser.resume
       },
       token
+    };
+
+    Logger.success('🎉 Registration completed successfully', { 
+      userId: populatedUser._id, 
+      email: populatedUser.email,
+      hasResume: !!populatedUser.resume
     });
+
+    res.status(201).json(responseData);
   } catch (error) {
-    console.error('Registration error:', error);
+    Logger.error('❌ Registration error', error);
     res.status(400).json({ message: error.message });
   }
 };
 
 export const login = async (req, res) => {
   try {
+    Logger.info('🔐 Starting user login', { email: req.body.email });
     const { email, password } = req.body;
 
     // Find user
+    Logger.debug('🔍 Looking up user by email', { email });
     const user = await User.findOne({ email });
     if (!user) {
+      Logger.warning('⚠️ Login failed - user not found', { email });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    Logger.debug('👤 User found, checking password', { userId: user._id, email: user.email });
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      Logger.warning('⚠️ Login failed - invalid password', { userId: user._id, email: user.email });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Generate token
+    Logger.debug('🔑 Generating JWT token for login', { userId: user._id });
     const token = generateToken(user._id);
 
-    res.json({
+    const responseData = {
       user: {
         id: user._id,
         email: user.email,
@@ -117,36 +157,55 @@ export const login = async (req, res) => {
         role: user.role
       },
       token
+    };
+
+    Logger.success('🎉 Login successful', { 
+      userId: user._id, 
+      email: user.email, 
+      role: user.role 
     });
+
+    res.json(responseData);
   } catch (error) {
+    Logger.error('❌ Login error', error);
     res.status(400).json({ message: error.message });
   }
 };
 
 export const getProfile = async (req, res) => {
   try {
+    Logger.info('👤 Getting user profile', { userId: req.user._id });
     const user = req.user;
-    res.json({
+    
+    const profileData = {
       id: user._id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role
-    });
+    };
+
+    Logger.success('✅ Profile retrieved successfully', { userId: user._id });
+    res.json(profileData);
   } catch (error) {
+    Logger.error('❌ Error getting profile', error);
     res.status(400).json({ message: error.message });
   }
 };
 
 export const forgotPassword = async (req, res) => {
   try {
+    Logger.info('🔐 Starting password reset request', { email: req.body.email });
     const { email } = req.body;
 
+    Logger.debug('🔍 Looking up user for password reset', { email });
     const user = await User.findOne({ email });
     if (!user) {
+      Logger.warning('⚠️ Password reset failed - user not found', { email });
       return res.status(404).json({ message: 'User not found' });
     }
 
+    Logger.info('🔑 Generating reset token', { userId: user._id });
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetPasswordToken = crypto
@@ -155,21 +214,27 @@ export const forgotPassword = async (req, res) => {
       .digest('hex');
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
+    Logger.debug('💾 Saving reset token to database', { userId: user._id });
     await user.save();
 
     // Send reset email
+    Logger.info('📧 Sending password reset email', { email: user.email });
     await sendResetPasswordEmail(user.email, resetToken);
 
+    Logger.success('✅ Password reset email sent successfully', { userId: user._id, email: user.email });
     res.json({ message: 'Password reset email sent' });
   } catch (error) {
+    Logger.error('❌ Password reset error', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 export const resetPassword = async (req, res) => {
   try {
+    Logger.info('🔐 Starting password reset process', { hasToken: !!req.body.token });
     const { token, password } = req.body;
 
+    Logger.debug('🔍 Validating reset token');
     const hashedToken = crypto
       .createHash('sha256')
       .update(token)
@@ -181,26 +246,41 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
+      Logger.warning('⚠️ Password reset failed - invalid or expired token');
       return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
+    Logger.info('🔑 Updating user password', { userId: user._id });
     user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
+    Logger.debug('💾 Saving updated password to database', { userId: user._id });
     await user.save();
 
+    Logger.success('✅ Password reset successful', { userId: user._id, email: user.email });
     res.json({ message: 'Password reset successful' });
   } catch (error) {
+    Logger.error('❌ Password reset error', error);
     res.status(400).json({ message: error.message });
   }
 };
 
 export const registerWithResume = async (req, res) => {
   try {
+    Logger.info('👤 Starting user registration with resume', { 
+      email: req.body.email, 
+      phone: req.body.phone, 
+      firstName: req.body.firstName, 
+      lastName: req.body.lastName,
+      hasResumeData: !!req.body.resumeData,
+      hasResumeFile: !!req.body.resumeFile
+    });
+
     const { email, phone, password, firstName, lastName, resumeData, resumeFile } = req.body;
 
     // Check if user already exists with email or phone
+    Logger.debug('🔍 Checking for existing user', { email, phone });
     const existingUser = await User.findOne({
       $or: [
         ...(email ? [{ email }] : []),
@@ -209,12 +289,17 @@ export const registerWithResume = async (req, res) => {
     });
 
     if (existingUser) {
+      Logger.warning('⚠️ User already exists', { 
+        existingEmail: existingUser.email, 
+        existingPhone: existingUser.phone 
+      });
       return res.status(400).json({ 
         message: `User already exists with this ${existingUser.email ? 'email' : 'phone number'}`
       });
     }
 
     // Create new user
+    Logger.info('👤 Creating new employee user', { email, firstName, lastName });
     let user = new User({
       email,
       phone,
@@ -224,9 +309,16 @@ export const registerWithResume = async (req, res) => {
       role: 'employee'
     });
 
+    Logger.debug('💾 Saving user to database');
     user = await user.save();
 
     // Create resume document first
+    Logger.info('📄 Creating resume document', { 
+      userId: user._id, 
+      hasResumeFile: !!resumeFile,
+      resumeDataKeys: Object.keys(resumeData || {})
+    });
+    
     const resume = new Resume({
       user: user,
       name: `${firstName} ${lastName}'s Resume`,
@@ -238,19 +330,23 @@ export const registerWithResume = async (req, res) => {
     });
 
     // Save both documents
+    Logger.debug('💾 Saving resume to database');
     await resume.save()
 
     // Update user with resume reference
+    Logger.debug('🔗 Linking resume to user');
     user.resume = resume._id;
     await user.save();
 
     // Generate token
+    Logger.debug('🔑 Generating JWT token', { userId: user._id });
     const token = generateToken(user._id);
 
     // Return response with populated resume
+    Logger.debug('🔍 Populating user with resume data');
     const populatedUser = await User.findById(user._id).populate('resume');
 
-    res.status(201).json({
+    const responseData = {
       user: {
         id: populatedUser._id,
         email: populatedUser.email,
@@ -261,9 +357,17 @@ export const registerWithResume = async (req, res) => {
         resume: populatedUser.resume
       },
       token
+    };
+
+    Logger.success('🎉 Registration with resume completed successfully', { 
+      userId: populatedUser._id, 
+      email: populatedUser.email,
+      resumeId: resume._id
     });
+
+    res.status(201).json(responseData);
   } catch (error) {
-    console.error('Registration error:', error);
+    Logger.error('❌ Registration with resume error', error);
     res.status(400).json({ message: error.message });
   }
 };

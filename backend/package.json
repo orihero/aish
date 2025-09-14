@@ -9,6 +9,8 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "axios": "^1.12.1",
     "bcryptjs": "^2.4.3",
     "chalk": "^5.4.1",
     "cors": "^2.8.5",
@@ -19,7 +21,10 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
     "multer": "^1.4.5-lts.1",
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemailer": "^7.0.6",
     "nvm": "^0.0.4",
+    "pdf-lib": "^1.17.1",
     "readable-stream": "^4.7.0",
     "textract": "^2.5.0",
     "winston": "^3.8.2"
