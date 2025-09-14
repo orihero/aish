@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'backend-api',
+      name: 'aish-backend-api',
       script: 'src/index.js',
       instances: 1,
       exec_mode: 'fork',
