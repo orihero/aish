@@ -27,6 +27,12 @@ const APIs = {
 
         getMyAccount: () =>
             apiService.methods.get<UserFullType>(`api/auth/profile`),
+
+        login: (data:{email:string,password:string}) =>
+            apiService.methods.post<UserFullType>(
+                `api/auth/login`,
+                data
+            ),
     },
     categories: {
         getCategories: () =>
@@ -113,6 +119,18 @@ const APIs = {
                         "Content-Type": "multipart/form-data",
                     },
                 }
+            ),
+
+        updateResumeData: (resumeId: string, parsedData: any) =>
+            apiService.methods.put<ResumeType>(
+                `api/resumes/${resumeId}/parsed-data`,
+                parsedData
+            ),
+
+        downloadResume: (resumeId: string) =>
+            apiService.methods.get<Blob>(
+                `api/resumes/${resumeId}/download-pdf`,
+                { responseType: 'blob' }
             ),
     },
 

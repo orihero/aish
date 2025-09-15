@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { FullResumeType, UserFullType } from "../../types";
+import { FullResumeType } from "../../types";
 import { Colors } from "../../shared/utils/color";
 import Text from "../Text/Text";
 import Avatar from "../Avatar/Avatar";
@@ -9,6 +9,7 @@ import IconComp from "../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { toJS } from "mobx";
 import { useNavigate } from "react-router-dom";
+import useRootStore from "../../shared/hooks/UseRootStore";
 
 type Props = {
     resume: FullResumeType;
@@ -18,9 +19,27 @@ type Props = {
 const ResumeCard: FC<Props> = ({ resume, onPress }) => {
     console.log("resume", toJS(resume));
     const navigation = useNavigate();
+    const { resumeStore, visibleStore } = useRootStore();
 
     const ToEditResume = () => {
+        resumeStore.setResumeForEditing(resume);
+        visibleStore.show("isResumeEditable");
         navigation("/resumePreview");
+    };
+
+    const handleDownloadResume = async () => {
+        try {
+            const result = await resumeStore.downloadResumePDF(resume._id, resume.parsedData.basics.name);
+            if (result.success) {
+                console.log("Resume downloaded successfully");
+            } else {
+                console.error("Failed to download resume:", result.error);
+                alert("Failed to download resume. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error downloading resume:", error);
+            alert("An error occurred while downloading the resume.");
+        }
     };
 
     return (
@@ -54,8 +73,15 @@ const ResumeCard: FC<Props> = ({ resume, onPress }) => {
                 </div>
             </div>
             <div className="rightBox">
-                <IconComp icon={<DynamicIcon name="download-cloud" />} />
-                <IconComp icon={<DynamicIcon name="edit" />} />
+                <IconComp 
+                    icon={<DynamicIcon name="download-cloud" />} 
+                    onClick={handleDownloadResume}
+                    disabled={resumeStore.loadings.isDownloadingResume}
+                />
+                <IconComp 
+                    icon={<DynamicIcon name="edit" />} 
+                    onClick={ToEditResume}
+                />
             </div>
         </ResumeCardContainer>
     );

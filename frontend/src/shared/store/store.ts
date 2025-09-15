@@ -42,7 +42,6 @@ export class AppRootStore {
     runHasToken = () => {
         if (!this.localStore.session.accessToken) return;
         this.authStore.getMe();
-        console.log("All requests are done!");
     };
 
     private run = () => {
@@ -51,7 +50,9 @@ export class AppRootStore {
 
             Promise.all(list)
                 .then(() => this.runHasToken())
-                .catch(() => console.log("Requests failed!"));
+                .catch(() => {
+                    // Handle initialization errors silently
+                });
         });
     };
 }

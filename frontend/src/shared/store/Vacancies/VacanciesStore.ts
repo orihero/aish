@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction, toJS } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import APIs from "../../api/api";
 import { VacanciesType, VacancyType } from "../../../types";
 import { AppRootStore } from "../store";
@@ -8,8 +8,9 @@ export class VacanciesStore {
     constructor(root: AppRootStore) {
         makeAutoObservable(this);
         this.rootStore = root;
-        this.getVacancies();
-        // this.getFeaturedVacancies();
+        // Initialize with cached data if available
+        this.getVacanciesByQuery();
+        this.getFeaturedVacancies();
         this.getLatesVacancies();
     }
 
@@ -17,6 +18,35 @@ export class VacanciesStore {
     latesVacancies: VacanciesType = {} as VacanciesType;
     vacancies: VacanciesType = {} as VacanciesType;
     previewVacancy: VacancyType = {} as VacancyType;
+
+    // Cache management
+    private cacheLoaded: {
+        vacancies: boolean;
+        featuredVacancies: boolean;
+        latesVacancies: boolean;
+    } = {
+        vacancies: false,
+        featuredVacancies: false,
+        latesVacancies: false,
+    };
+
+    private lastFetch: {
+        vacancies: number;
+        featuredVacancies: number;
+        latesVacancies: number;
+    } = {
+        vacancies: 0,
+        featuredVacancies: 0,
+        latesVacancies: 0,
+    };
+
+    private vacancyCache: Map<string, VacancyType> = new Map();
+    private lastVacancyFetch: Map<string, number> = new Map();
+    private lastQueryParams: string = "";
+
+    // Cache TTL (Time To Live) in milliseconds
+    private readonly VACANCIES_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+    private readonly VACANCY_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
     filters = {
         search: "",
@@ -95,27 +125,48 @@ export class VacanciesStore {
         return params.toString();
     }
 
-    getVacanciesByQuery = async () => {
+    getVacanciesByQuery = async (forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const queryKey = this.queryParams;
+        const isCacheValid = this.cacheLoaded.vacancies && 
+            (now - this.lastFetch.vacancies) < this.VACANCIES_CACHE_TTL &&
+            queryKey === this.lastQueryParams;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            return;
+        }
+
         try {
             this.setLoading("getVacanciesByQuery");
-            const response = await APIs.jobs.getVacanciesByQuery(
-                this.queryParams
-            );
+            const response = await APIs.jobs.getVacanciesByQuery(queryKey);
 
             if (response.statusText !== "OK") {
                 throw new Error("Network response was not ok");
             }
             runInAction(() => {
-                this.vacancies = response.data as never;
+                this.vacancies = response.data as VacanciesType;
+                this.cacheLoaded.vacancies = true;
+                this.lastFetch.vacancies = now;
+                this.lastQueryParams = queryKey;
             });
         } catch (error) {
-            console.error("Failed to fetch featured jobs:", error);
+            console.error("Failed to fetch vacancies by query:", error);
         } finally {
             this.setLoading("getVacanciesByQuery");
         }
     };
 
-    getVacancies = async () => {
+    getVacancies = async (forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const isCacheValid = this.cacheLoaded.vacancies && 
+            (now - this.lastFetch.vacancies) < this.VACANCIES_CACHE_TTL;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            return;
+        }
+
         try {
             this.setLoading("vacancies");
             const response = await APIs.jobs.getVacancies();
@@ -123,16 +174,27 @@ export class VacanciesStore {
                 throw new Error("Network response was not ok");
             }
             runInAction(() => {
-                this.vacancies = response.data as never;
+                this.vacancies = response.data as VacanciesType;
+                this.cacheLoaded.vacancies = true;
+                this.lastFetch.vacancies = now;
             });
         } catch (error) {
-            console.error("Failed to fetch featured jobs:", error);
+            console.error("Failed to fetch all vacancies:", error);
         } finally {
             this.setLoading("vacancies");
         }
     };
 
-    getFeaturedVacancies = async () => {
+    getFeaturedVacancies = async (forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const isCacheValid = this.cacheLoaded.featuredVacancies && 
+            (now - this.lastFetch.featuredVacancies) < this.VACANCIES_CACHE_TTL;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            return;
+        }
+
         try {
             this.setLoading("featuredVacancies");
             const response = await APIs.jobs.getVacanciesFeatured();
@@ -140,16 +202,27 @@ export class VacanciesStore {
                 throw new Error("Network response was not ok");
             }
             runInAction(() => {
-                this.featuredVacancies = response.data as never;
+                this.featuredVacancies = response.data as VacanciesType;
+                this.cacheLoaded.featuredVacancies = true;
+                this.lastFetch.featuredVacancies = now;
             });
         } catch (error) {
-            console.error("Failed to fetch featured jobs:", error);
+            console.error("Failed to fetch featured vacancies:", error);
         } finally {
             this.setLoading("featuredVacancies");
         }
     };
 
-    getLatesVacancies = async () => {
+    getLatesVacancies = async (forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const isCacheValid = this.cacheLoaded.latesVacancies && 
+            (now - this.lastFetch.latesVacancies) < this.VACANCIES_CACHE_TTL;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            return;
+        }
+
         try {
             this.setLoading("latesVacancies");
             const response = await APIs.jobs.getVacanciesLatest();
@@ -157,10 +230,12 @@ export class VacanciesStore {
                 throw new Error("Network response was not ok");
             }
             runInAction(() => {
-                this.latesVacancies = response.data as never;
+                this.latesVacancies = response.data as VacanciesType;
+                this.cacheLoaded.latesVacancies = true;
+                this.lastFetch.latesVacancies = now;
             });
         } catch (error) {
-            console.error("Failed to fetch featured jobs:", error);
+            console.error("Failed to fetch latest vacancies:", error);
         } finally {
             this.setLoading("latesVacancies");
         }
@@ -171,17 +246,17 @@ export class VacanciesStore {
             if (where === "latest") {
                 this.previewVacancy = this.latesVacancies.vacancies.find(
                     (vacancy: VacancyType) => vacancy._id === id
-                ) as never;
+                ) as VacancyType;
             }
-            if (where === "feutured") {
+            if (where === "featured") {
                 this.previewVacancy = this.featuredVacancies.vacancies.find(
                     (vacancy: VacancyType) => vacancy._id === id
-                ) as never;
+                ) as VacancyType;
             }
             if (where === "findJobs") {
                 this.previewVacancy = this.vacancies.vacancies.find(
                     (vacancy: VacancyType) => vacancy._id === id
-                ) as never;
+                ) as VacancyType;
             }
         });
         if (callback) {
@@ -189,7 +264,20 @@ export class VacanciesStore {
         }
     };
 
-    getVacancyById = async (id: string) => {
+    getVacancyById = async (id: string, forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const lastFetch = this.lastVacancyFetch.get(id) || 0;
+        const isCacheValid = this.vacancyCache.has(id) && 
+            (now - lastFetch) < this.VACANCY_CACHE_TTL;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            runInAction(() => {
+                this.previewVacancy = this.vacancyCache.get(id)!;
+            });
+            return;
+        }
+
         try {
             this.setLoading("getVacancyById");
             const response = await APIs.jobs.getVacancyById(id);
@@ -198,11 +286,47 @@ export class VacanciesStore {
             }
             runInAction(() => {
                 this.previewVacancy = response.data;
+                this.vacancyCache.set(id, response.data);
+                this.lastVacancyFetch.set(id, now);
             });
         } catch (error) {
-            console.error("Failed to fetch featured jobs:", error);
+            console.error("Failed to fetch vacancy by ID:", error);
         } finally {
             this.setLoading("getVacancyById");
         }
     };
+
+    // Cache management methods
+    clearCache = () => {
+        this.vacancyCache.clear();
+        this.lastVacancyFetch.clear();
+        this.cacheLoaded = {
+            vacancies: false,
+            featuredVacancies: false,
+            latesVacancies: false,
+        };
+        this.lastFetch = {
+            vacancies: 0,
+            featuredVacancies: 0,
+            latesVacancies: 0,
+        };
+        this.lastQueryParams = "";
+    };
+
+    invalidateVacancyCache = (vacancyId: string) => {
+        this.vacancyCache.delete(vacancyId);
+        this.lastVacancyFetch.delete(vacancyId);
+    };
+
+    invalidateVacanciesCache = (type: 'vacancies' | 'featuredVacancies' | 'latesVacancies') => {
+        this.cacheLoaded[type] = false;
+        this.lastFetch[type] = 0;
+    };
+
+    // Force refresh methods for when user explicitly wants fresh data
+    refreshVacancies = () => this.getVacancies(true);
+    refreshFeaturedVacancies = () => this.getFeaturedVacancies(true);
+    refreshLatestVacancies = () => this.getLatesVacancies(true);
+    refreshVacancyById = (id: string) => this.getVacancyById(id, true);
+    refreshVacanciesByQuery = () => this.getVacanciesByQuery(true);
 }

@@ -6,11 +6,13 @@ import { observer } from "mobx-react-lite";
 import IconComp from "../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
 import useRootStore from "../../shared/hooks/UseRootStore";
-import { toKebabCase2 } from "../../shared/helper/replicate";
 import ButtonComp from "../Button/Button";
+import { useTranslation } from "react-i18next";
+import { getTranslatedEmploymentType, getTranslatedWorkType } from "../../shared/utils/translationHelpers";
 
 const FilterBar = () => {
-    const { vacanciesStore } = useRootStore();
+    const { vacanciesStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
     const [isShowFilter, setIsShowFilter] = React.useState(true);
     const [salary, setSalary] = React.useState(500);
     const [currency, setCurrency] = React.useState("$");
@@ -31,7 +33,7 @@ const FilterBar = () => {
 
     const formatSalary = (value: number) => {
         if (currency === "so'm") {
-            return `${value?.toLocaleString("ru-RU").replaceAll(",", " ")}`;
+            return `${value?.toLocaleString("ru-RU").replace(/,/g, " ")}`;
         } else {
             return value?.toLocaleString("en-US");
         }
@@ -70,7 +72,7 @@ const FilterBar = () => {
             <div className="content">
                 <div className="title">
                     <Text
-                        text="Filter"
+                        text={t("filter")}
                         textSize="eighteen"
                         color={Colors.textBlack}
                     />
@@ -98,11 +100,11 @@ const FilterBar = () => {
                     }}
                 >
                     <Text
-                        text="Employment Type"
+                        text={t("employmentType")}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
-                    {["Full Time", "Part Time", "Contract"].map((type) => (
+                    {["full-time", "part-time", "contract"].map((type) => (
                         <label
                             className="emplymentType"
                             key={type}
@@ -111,17 +113,11 @@ const FilterBar = () => {
                             <input
                                 type="checkbox"
                                 id={type}
-                                checked={vacanciesStore.filters.employmentType.includes(
-                                    toKebabCase2(type)
-                                )}
-                                onChange={() =>
-                                    handleEmploymentTypeChange(
-                                        toKebabCase2(type)
-                                    )
-                                }
+                                checked={vacanciesStore.filters.employmentType.includes(type)}
+                                onChange={() => handleEmploymentTypeChange(type)}
                             />
                             <Text
-                                text={type}
+                                text={getTranslatedEmploymentType(type, visibleStore.currentLang)}
                                 textSize="sixteen"
                                 color={Colors.textBlack}
                                 family="Epilogue-Regular"
@@ -138,11 +134,11 @@ const FilterBar = () => {
                     }}
                 >
                     <Text
-                        text="Work Type"
+                        text={t("workType")}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
-                    {["Remote", "Hybrid", "Onsite"].map((type) => (
+                    {["remote", "hybrid", "on-site"].map((type) => (
                         <label
                             className="emplymentType"
                             key={type}
@@ -151,15 +147,11 @@ const FilterBar = () => {
                             <input
                                 type="checkbox"
                                 id={type}
-                                checked={vacanciesStore.filters.workType.includes(
-                                    toKebabCase2(type)
-                                )}
-                                onChange={() =>
-                                    handleWorkTypeChange(toKebabCase2(type))
-                                }
+                                checked={vacanciesStore.filters.workType.includes(type)}
+                                onChange={() => handleWorkTypeChange(type)}
                             />
                             <Text
-                                text={type}
+                                text={getTranslatedWorkType(type, visibleStore.currentLang)}
                                 textSize="sixteen"
                                 color={Colors.textBlack}
                                 family="Epilogue-Regular"
@@ -177,7 +169,7 @@ const FilterBar = () => {
                 >
                     <div className="salaryInputWrapper">
                         <Text
-                            text="Salary Range"
+                            text={t("salaryRange")}
                             textSize="sixteen"
                             color={Colors.textBlack}
                             margin="5px 0 0 0"
@@ -230,7 +222,7 @@ const FilterBar = () => {
                     </div>
                 </div>
                 <ButtonComp
-                    title="Apply"
+                    title={t("apply")}
                     primary
                     className="applyBtn"
                     onPress={handleSearchPress}

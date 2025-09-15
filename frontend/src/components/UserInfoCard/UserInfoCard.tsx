@@ -9,9 +9,11 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import IconComp from "../../shared/constants/iconBtn";
 import { toJS } from "mobx";
+import { useTranslation } from "react-i18next";
 
 const UserInfoCard = () => {
     const { resumeStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
 
     return (
         <UserInfoCardContainer>
@@ -32,7 +34,7 @@ const UserInfoCard = () => {
                     isEditable={visibleStore.visible.isResumeEditable}
                     textAlign={"center"}
                     onChange={(e) => resumeStore.setBasicsField("name", e)}
-                    placeholder="Name"
+                    placeholder={t("name")}
                 />
                 <Text
                     text={resumeStore.myResume?.basics?.phone || ""}
@@ -41,7 +43,7 @@ const UserInfoCard = () => {
                     isEditable={visibleStore.visible.isResumeEditable}
                     textAlign={"center"}
                     onChange={(e) => resumeStore.setBasicsField("phone", e)}
-                    placeholder="Phone number"
+                    placeholder={t("phoneNumber")}
                 />
                 <Text
                     text={resumeStore.myResume?.basics?.email || ""}
@@ -50,7 +52,7 @@ const UserInfoCard = () => {
                     isEditable={visibleStore.visible.isResumeEditable}
                     textAlign={"center"}
                     onChange={(e) => resumeStore.setBasicsField("email", e)}
-                    placeholder="Email"
+                    placeholder={t("email")}
                 />
                 <Text
                     text={
@@ -129,7 +131,7 @@ const UserInfoCard = () => {
                 <div className="skillRate">
                     <div className="comunitySkill">
                         <Text
-                            text="Comunity skill"
+                            text={t("communitySkill")}
                             textSize="fourteen"
                             color={Colors.textBlack}
                         />

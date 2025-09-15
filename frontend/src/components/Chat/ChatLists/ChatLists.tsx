@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ChatItemCard from "../ChatItemCard/ChatItemCard";
@@ -9,6 +9,7 @@ import Text from "../../Text/Text";
 import IconComp from "../../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
 import SpinLoading from "../../SpinLoading/SpinLoading";
+import { useTranslation } from "react-i18next";
 
 interface Chat {
     id: string;
@@ -18,8 +19,14 @@ interface Chat {
 const ChatList: React.FC = () => {
     const navigation = useNavigate();
     const { chatStore } = useRootStore();
+    const { t } = useTranslation();
 
     const { id: selectedId } = useParams<{ id?: string }>();
+
+    // Load chats on component mount (will use cache if available)
+    useEffect(() => {
+        chatStore.getMyChats();
+    }, [chatStore]);
 
     const onChatHandle = useCallback(
         (chatId: string) => {
@@ -54,11 +61,11 @@ const ChatList: React.FC = () => {
         <Sidebar>
             <div
                 className="chatsTitle"
-                onClick={() => navigation("/applications")}
+                onClick={() => navigation('/applications')}
             >
                 <IconComp icon={<DynamicIcon name="chevron-left" />} />
                 <Text
-                    text="Chats"
+                    text={t("chats")}
                     textSize="twentyTwo"
                     color={Colors.textBlack}
                     paddingTop="3px"

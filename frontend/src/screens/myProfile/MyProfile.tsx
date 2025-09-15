@@ -4,8 +4,6 @@ import Header from "../../components/Header/Header";
 import Text from "../../components/Text/Text";
 import { Colors } from "../../shared/utils/color";
 import useRootStore from "../../shared/hooks/UseRootStore";
-import Avatar from "../../components/Avatar/Avatar";
-import { toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import ResumeCard from "../../components/ResumeCard/ResumeCard";
 import PersonalInfoCard from "../../components/PersonalInfoCard/PersonalInfoCard";
@@ -37,7 +35,7 @@ const MyProfile = () => {
             <div className="box">
                 <div className="bItem">
                     <Text
-                        text="Profle"
+                        text="Profile"
                         textSize="twentyEight"
                         color={Colors.textBlack}
                     />

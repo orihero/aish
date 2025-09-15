@@ -7,6 +7,8 @@ import { VacancyType } from "../../types";
 import { observer } from "mobx-react-lite";
 import Avatar from "../Avatar/Avatar";
 import { Tag } from "../Tag/Tag";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { getTranslatedEmploymentType, getTranslatedWorkType, getTranslatedValue } from "../../shared/utils/translationHelpers";
 
 type Props = {
     vacancy: VacancyType;
@@ -26,6 +28,8 @@ const tagColors: { [key: string]: string } = {
 };
 
 const ShortJobCard: FC<Props> = ({ vacancy, onPress, isborder }) => {
+    const { visibleStore } = useRootStore();
+    
     return (
         <JobCardContainer
             onClick={onPress}
@@ -39,7 +43,7 @@ const ShortJobCard: FC<Props> = ({ vacancy, onPress, isborder }) => {
             <Content>
                 <JobTitle>
                     <Text
-                        text={vacancy?.title}
+                        text={getTranslatedValue(vacancy?.title, visibleStore.currentLang)}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
@@ -51,9 +55,9 @@ const ShortJobCard: FC<Props> = ({ vacancy, onPress, isborder }) => {
                     />
                 </JobTitle>
                 <Tags>
-                    <Tag text={vacancy?.employmentType} />
+                    <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} />
                     <img src={Images.divider} height={20} alt="" />
-                    <Tag text={vacancy?.workType} />
+                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
                 </Tags>
             </Content>
         </JobCardContainer>

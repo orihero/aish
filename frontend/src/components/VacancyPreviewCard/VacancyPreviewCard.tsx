@@ -13,15 +13,22 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import IconComp from "../../shared/constants/iconBtn";
 import { Tag } from "../Tag/Tag";
 import Avatar from "../Avatar/Avatar";
+import { useTranslation } from "react-i18next";
+import { getTranslatedEmploymentType, getTranslatedWorkType, getTranslatedValue } from "../../shared/utils/translationHelpers";
 
 type Props = {
     vacancy: VacancyType;
 };
 
 const FrontendInternCard: FC<Props> = ({ vacancy }) => {
-    const { vacanciesStore, visibleStore } = useRootStore();
+    const { vacanciesStore, visibleStore, applicationStore } = useRootStore();
     const navigation = useNavigate();
+    const { t } = useTranslation();
     const path = window.location.pathname;
+    
+    // Check if user has already applied to this vacancy
+    const hasApplied = applicationStore.hasAppliedToVacancy(vacancy._id);
+    const chatId = applicationStore.getChatIdForVacancy(vacancy._id);
 
     useEffect(() => {
         const pathArray = path.split("/");
@@ -62,61 +69,89 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
         <Container>
             <div className="info-card">
                 <div className="work-info">
-                    <Text
-                        text={vacancy?.title}
-                        textSize="twentyEight"
-                        color="#000"
-                        family="ClashDisplay-Semibold"
-                    />
-                    <Text
-                        text={`The salary: ${vacancy?.salary?.min}-${vacancy?.salary?.max} ${vacancy?.salary?.currency}`}
-                        textSize="sixteen"
-                        color={Colors.textBlack}
-                    />
-                    <div className="item">
+                    <div className="job-header">
                         <Text
-                            text={`Work Experience:`}
-                            textSize="sixteen"
-                            color={Colors.textBlack}
+                            text={vacancy.title}
+                            textSize="twentyEight"
+                            color="#000"
+                            family="ClashDisplay-Semibold"
                         />
-                        <Tag text={`not required`} />
+                        <div className="job-meta">
+                            <div className="meta-item">
+                                <DynamicIcon name="dollar-sign" size={18} color={Colors.mainBlue} />
+                                <span className="meta-label">{t("theSalary")}</span>
+                                <span className="meta-value">{vacancy?.salary?.min}-{vacancy?.salary?.max} {vacancy?.salary?.currency}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="item">
-                        <Text
-                            text={`Employment:`}
-                            textSize="sixteen"
-                            color={Colors.textBlack}
-                        />
-                        <Tag text={`${vacancy?.employmentType}`} />
-                    </div>
-                    <div className="item">
-                        <Text
-                            text={`Work format:`}
-                            textSize="sixteen"
-                            color={Colors.textBlack}
-                        />
-                        <Tag text={`${vacancy?.workType}`} />
-                    </div>
-                    <div className="item">
-                        <Text
-                            text="Category:"
-                            textSize="sixteen"
-                            color={Colors.textBlack}
-                        />
-                        <Tag
-                            text={`${
-                                vacancy?.category?.title.find(
-                                    (item) =>
-                                        item.language ===
-                                        visibleStore.currentLang
-                                )?.value
-                            }`}
-                        />
+                    
+                    <div className="job-details">
+                        <div className="detail-item">
+                            <div className="detail-icon">
+                                <DynamicIcon name="briefcase" size={20} color={Colors.mainBlue} />
+                            </div>
+                            <div className="detail-content">
+                                <span className="detail-label">{t("workExperience")}</span>
+                                <div>
+                                    <Tag text={t("notRequired")} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="detail-item">
+                            <div className="detail-icon">
+                                <DynamicIcon name="clock" size={20} color={Colors.mainBlue} />
+                            </div>
+                            <div className="detail-content">
+                                <span className="detail-label">{t("employment")}</span>
+                                <div>
+                                <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="detail-item">
+                            <div className="detail-icon">
+                                <DynamicIcon name="map-pin" size={20} color={Colors.mainBlue} />
+                            </div>
+                            <div className="detail-content">
+                                <span className="detail-label">{t("workFormat")}</span>
+                                <div>
+                                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="detail-item">
+                            <div className="detail-icon">
+                                <DynamicIcon name="tag" size={20} color={Colors.mainBlue} />
+                            </div>
+                            <div className="detail-content">
+                                <span className="detail-label">{t("category")}</span>
+                                <div>
+                                    <Tag
+                                        text={getTranslatedValue(
+                                            vacancy?.category?.title,
+                                            visibleStore.currentLang
+                                        )}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div className="applyBox">
                         <ButtonComp
-                            title="Apply"
-                            onPress={() => visibleStore.show("applyModal")}
+                            title={hasApplied ? t("goToChat") : t("apply")}
+                            onPress={() => {
+                                if (hasApplied && chatId) {
+                                    // Navigate to chat if already applied
+                                    navigation(`/chat/${chatId}`);
+                                } else {
+                                    // Show apply modal if not applied
+                                    applicationStore.respondHandle(vacancy);
+                                    visibleStore.show("applyModal");
+                                }
+                            }}
                             primary
                             className="apply"
                         />
@@ -162,49 +197,82 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                     </div>
                 </div>
                 <div className="company">
-                    <div className="companyInfo">
-                        <div className="logo">
-                            <Avatar imageUrl={vacancy?.company?.logo} />
+                    <div className="company-card">
+                        <div className="company-header">
+                            <div className="company-logo">
+                                <Avatar imageUrl={vacancy?.company?.logo} />
+                            </div>
+                            <div className="company-info">
+                                <Text
+                                    text={`${vacancy?.company?.name}`}
+                                    textSize="eighteen"
+                                    color={Colors.textBlack}
+                                    family="ClashDisplay-Semibold"
+                                />
+                                <div className="company-location">
+                                    <DynamicIcon name="map-pin" size={14} color={Colors.textGray} />
+                                    <Text
+                                        text={`${vacancy?.company?.location.address} ${vacancy?.company?.location.city} ${vacancy?.company?.location.country}`}
+                                        textSize="twelve"
+                                        color={Colors.textGray}
+                                        family="Epilogue-Regular"
+                                        margin="0 0 0 4px"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <Text
-                                text={`${vacancy?.company?.name}`}
-                                textSize="eighteen"
-                                color={Colors.textBlack}
-                            />
-                            <Text
-                                text={`${vacancy?.company?.location.address} ${vacancy?.company?.location.city} ${vacancy?.company?.location.country}`}
-                                textSize="twelve"
-                                color={Colors.textBlack}
-                                family="Epilogue-Regular"
-                                margin="5px 0 0 0"
-                            />
-                        </div>
-                    </div>
-                    <div className="companyDes">
-                        {vacancy?.company?.benefits && (
-                            <Text
-                                text={`${vacancy?.company?.benefits?.join(
-                                    ", "
-                                )}`}
-                                textSize="sixteen"
-                                color={Colors.textBlack}
-                                family="Epilogue-Regular"
-                            />
+                        
+                        {vacancy?.company?.benefits && vacancy?.company?.benefits.length > 0 && (
+                            <div className="company-benefits">
+                                <div className="benefits-header">
+                                    <DynamicIcon name="gift" size={16} color={Colors.mainBlue} />
+                                    <span className="benefits-title">{t("benefits")}</span>
+                                </div>
+                                <div className="benefits-list">
+                                    {vacancy?.company?.benefits?.map((benefit, index) => (
+                                        <div key={index} className="benefit-item">
+                                            <DynamicIcon name="check-circle" size={14} color={Colors.green} />
+                                            <span className="benefit-text">{benefit}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
-            <div className="extra-info">
-                <Text
-                    text={vacancy?.description}
-                    textSize="sixteen"
-                    color={Colors.textBlack}
-                />
+            <div className="job-description">
+                <div className="description-header">
+                    <DynamicIcon name="file-text" size={20} color={Colors.mainBlue} />
+                    <Text
+                        text={t("jobDescription")}
+                        textSize="twenty"
+                        color={Colors.textBlack}
+                        family="ClashDisplay-Semibold"
+                    />
+                </div>
+                <div className="description-content">
+                    <div className="description-text">
+                        {vacancy?.description ? (
+                            vacancy.description
+                                .split('\n')
+                                .filter(paragraph => paragraph.trim() !== '')
+                                .map((paragraph, index) => (
+                                    <p key={index}>
+                                        {paragraph.trim()}
+                                    </p>
+                                ))
+                        ) : (
+                            <p className="no-description">
+                                {t("noDescriptionAvailable")}
+                            </p>
+                        )}
+                    </div>
+                </div>
             </div>
             <div className="other-vacancies">
                 <Text
-                    text="These vacancies are suitable for you"
+                    text={t("theseVacancies")}
                     textSize="twenty"
                     color={Colors.textBlack}
                 />
@@ -230,17 +298,98 @@ const Container = styled.div`
     .work-info {
         display: flex;
         flex-direction: column;
-        padding: 20px;
-        gap: 10px;
+        padding: 24px;
+        gap: 20px;
         border: 1px solid ${Colors.lineColor};
-        border-radius: 16px;
+        border-radius: 20px;
         width: 55%;
+        background: ${Colors.white};
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
-    .item {
+    .job-header {
         display: flex;
-        gap: 10px;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid ${Colors.lineColor};
+    }
+
+    .job-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .meta-item {
+        display: flex;
         align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: ${Colors.mainBlueLight};
+        border-radius: 12px;
+        border: 1px solid rgba(70, 64, 222, 0.1);
+    }
+
+    .meta-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: ${Colors.textGray};
+    }
+
+    .meta-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: ${Colors.textBlack};
+        margin-left: auto;
+    }
+
+    .job-details {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: ${Colors.light};
+        border-radius: 12px;
+        border: 1px solid ${Colors.lineColor};
+        transition: all 0.2s ease;
+        
+        &:hover {
+            border-color: ${Colors.mainBlue};
+            box-shadow: 0 2px 8px rgba(70, 64, 222, 0.1);
+        }
+    }
+
+    .detail-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: ${Colors.mainBlueLight};
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+
+    .detail-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .detail-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: ${Colors.textGray};
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .company {
@@ -250,17 +399,199 @@ const Container = styled.div`
         width: 40%;
     }
 
-    .companyInfo {
+    .company-card {
         display: flex;
+        flex-direction: column;
         border: 1px solid ${Colors.lineColor};
-        border-radius: 16px;
-        padding: 20px;
-        gap: 10px;
+        border-radius: 20px;
+        padding: 24px;
+        background: ${Colors.white};
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        gap: 20px;
     }
 
-    .extra-info {
-        width: 50%;
-        padding: 20px 0;
+    .company-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid ${Colors.lineColor};
+    }
+
+    .company-logo {
+        flex-shrink: 0;
+    }
+
+    .company-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .company-location {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .company-benefits {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .benefits-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .benefits-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: ${Colors.textBlack};
+    }
+
+    .benefits-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: ${Colors.lightGreen};
+        border-radius: 8px;
+        border: 1px solid rgba(86, 205, 173, 0.2);
+    }
+
+    .benefit-text {
+        font-size: 14px;
+        color: ${Colors.textBlack};
+        font-weight: 500;
+    }
+
+    .job-description {
+        width: 100%;
+        padding: 24px;
+        background: ${Colors.white};
+        border: 1px solid ${Colors.lineColor};
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        margin: 20px 0;
+    }
+
+    .description-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid ${Colors.lineColor};
+    }
+
+    .description-content {
+        line-height: 1.6;
+    }
+
+    .description-text {
+        font-size: 16px;
+        color: ${Colors.textBlack};
+        line-height: 1.6;
+        font-family: 'Epilogue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 400;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        
+        p {
+            margin: 0 0 16px 0;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+        
+        ul, ol {
+            margin: 0 0 16px 0;
+            padding-left: 20px;
+            
+            li {
+                margin-bottom: 8px;
+                
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+        
+        strong, b {
+            font-weight: 600;
+        }
+        
+        em, i {
+            font-style: italic;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin: 20px 0 12px 0;
+            font-weight: 600;
+            color: ${Colors.textBlack};
+            
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+        
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 18px; }
+        h4 { font-size: 16px; }
+        h5 { font-size: 14px; }
+        h6 { font-size: 12px; }
+        
+        blockquote {
+            margin: 16px 0;
+            padding: 12px 16px;
+            background: ${Colors.light};
+            border-left: 4px solid ${Colors.mainBlue};
+            border-radius: 0 8px 8px 0;
+        }
+        
+        code {
+            background: ${Colors.light};
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+        }
+        
+        pre {
+            background: ${Colors.light};
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 16px 0;
+            
+            code {
+                background: none;
+                padding: 0;
+            }
+        }
+        
+        .no-description {
+            color: ${Colors.textGray};
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+            background: ${Colors.light};
+            border-radius: 8px;
+            border: 1px dashed ${Colors.lineColor};
+        }
     }
 
     .apply {
@@ -270,11 +601,6 @@ const Container = styled.div`
         border-radius: 10px;
     }
 
-    .companyInfo {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-    }
 
     .other-vacancies {
         display: flex;
@@ -319,21 +645,46 @@ const Container = styled.div`
             flex-direction: column;
             gap: 20px;
         }
+        
         .work-info {
             width: 100%;
+            padding: 20px;
         }
+        
         .company {
             width: 100%;
         }
-        .extra-info {
-            width: 100%;
+        
+        .company-card {
+            padding: 20px;
         }
+        
+        .job-description {
+            width: 100%;
+            padding: 20px;
+            margin: 16px 0;
+        }
+        
         .apply {
             width: 100%;
         }
 
-        .companyInfo {
-            gap: 10px;
+        .company-header {
+            gap: 12px;
+        }
+
+        .detail-item {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        .detail-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .meta-item {
+            padding: 10px 12px;
         }
     }
 `;

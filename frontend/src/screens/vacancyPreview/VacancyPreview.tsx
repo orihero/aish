@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -6,9 +6,16 @@ import FrontendInternCard from "../../components/VacancyPreviewCard/VacancyPrevi
 import { observer } from "mobx-react-lite";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import ApplyModal from "../../components/ApplyModal/ApplyModal";
+import LoginModal from "../../components/LoginModal/LoginModal";
 
 const VacancyPreview = () => {
-    const { vacanciesStore, visibleStore } = useRootStore();
+    const { vacanciesStore, visibleStore, applicationStore } = useRootStore();
+    
+    // Load applications when component mounts
+    useEffect(() => {
+        applicationStore.getMyApplications();
+    }, [applicationStore]);
+    
     return (
         <Container>
             <Header />
@@ -16,6 +23,7 @@ const VacancyPreview = () => {
                 <FrontendInternCard vacancy={vacanciesStore.previewVacancy} />
             </div>
             <ApplyModal isShow={visibleStore.visible.applyModal} />
+            <LoginModal isShow={visibleStore.visible.loginModal} />
             <Footer />
         </Container>
     );

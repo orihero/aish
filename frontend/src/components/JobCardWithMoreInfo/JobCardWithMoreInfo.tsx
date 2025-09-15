@@ -2,15 +2,12 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
-import {
-    CreatorType,
-    SalaryType,
-    translationType,
-    VacancyType,
-} from "../../types";
+import { VacancyType } from "../../types";
 import Avatar from "../Avatar/Avatar";
 import { Tag } from "../Tag/Tag";
 import { observer } from "mobx-react-lite";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { getTranslatedEmploymentType, getTranslatedWorkType, getTranslatedValue } from "../../shared/utils/translationHelpers";
 
 type Props = {
     vacancy: VacancyType;
@@ -29,6 +26,8 @@ type Props = {
 // };
 
 const JobCard: FC<Props> = ({ vacancy, onPress }) => {
+    const { visibleStore } = useRootStore();
+    
     return (
         <JobCardContainer onClick={onPress}>
             <Header>
@@ -41,11 +40,11 @@ const JobCard: FC<Props> = ({ vacancy, onPress }) => {
                         family="Epilogue-Regular"
                     />
                 </div>
-                <JobTypeButton>{vacancy?.employmentType}</JobTypeButton>
+                <JobTypeButton>{getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)}</JobTypeButton>
             </Header>
             <Content>
                 <Text
-                    text={vacancy?.title}
+                    text={getTranslatedValue(vacancy?.title, visibleStore.currentLang)}
                     textSize="sixteen"
                     color={Colors.textBlack}
                 />
@@ -64,7 +63,7 @@ const JobCard: FC<Props> = ({ vacancy, onPress }) => {
                 />
             </Content>
             <Tags>
-                <Tag text={vacancy?.workType} />
+                <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
             </Tags>
         </JobCardContainer>
     );
