@@ -1,4 +1,4 @@
-const url = "http://localhost:5000";
+const url = "https://aish.yaqiin.app";
 
 export const Env = {
     ApiUrl: `${url}/`,

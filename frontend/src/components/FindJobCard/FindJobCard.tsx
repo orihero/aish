@@ -9,6 +9,10 @@ import { Tag } from "../Tag/Tag";
 import ButtonComp from "../Button/Button";
 import Avatar from "../Avatar/Avatar";
 import IconComp from "../../shared/constants/iconBtn";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getTranslatedEmploymentType, getTranslatedWorkType } from "../../shared/utils/translationHelpers";
 
 type Props = {
     vacancy: VacancyType;
@@ -17,6 +21,24 @@ type Props = {
 };
 
 const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
+    const { applicationStore, visibleStore } = useRootStore();
+    const navigation = useNavigate();
+    const { t } = useTranslation();
+    
+    // Check if user has already applied to this vacancy
+    const hasApplied = applicationStore.hasAppliedToVacancy(vacancy._id);
+    const chatId = applicationStore.getChatIdForVacancy(vacancy._id);
+    
+    const handleApplyOrChat = () => {
+        if (hasApplied && chatId) {
+            // Navigate to chat if already applied
+            navigation(`/chat/${chatId}`);
+        } else {
+            // Show apply modal if not applied
+            respondPress?.();
+        }
+    };
+
     return (
         <Container>
             <div className="info" onClick={onPress}>
@@ -78,8 +100,8 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
                         paddingTop="3px"
                     />
                     <div className="tags">
-                        <Tag text={vacancy.workType} />
-                        <Tag text={vacancy.employmentType} />
+                        <Tag text={getTranslatedWorkType(vacancy.workType, visibleStore.currentLang)} />
+                        <Tag text={getTranslatedEmploymentType(vacancy.employmentType, visibleStore.currentLang)} />
                     </div>
                 </div>
                 <Text
@@ -92,17 +114,17 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
             </div>
             <div className="companyAndApply">
                 <Text
-                    text={`Salary: ${vacancy.salary.min}-${vacancy.salary.max} ${vacancy.salary.currency}`}
+                    text={`${t("salary")}: ${vacancy.salary.min}-${vacancy.salary.max} ${vacancy.salary.currency}`}
                     color={Colors.textBlack}
                     textSize="eighteen"
                     family="Epilogue-Regular"
                     paddingTop="3px"
                 />
                 <ButtonComp
-                    title="Apply"
+                    title={hasApplied ? t("goToChat") : t("apply")}
                     primary
                     className="apply"
-                    onPress={respondPress}
+                    onPress={handleApplyOrChat}
                 />
             </div>
         </Container>

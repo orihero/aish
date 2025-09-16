@@ -8,11 +8,21 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { VacancyType } from "../../types";
 import SpinLoading from "../SpinLoading/SpinLoading";
 import MessageBox from "../MessageBox/MessageBox";
+import { useTranslation } from "react-i18next";
+import { toJS } from "mobx";
 
 const FindJobs = () => {
     const { vacanciesStore, visibleStore, applicationStore } = useRootStore();
     const navigation = useNavigate();
     const { page } = vacanciesStore.filters;
+    const { t } = useTranslation();
+    console.log("vacanciesStore.vacancies", toJS(vacanciesStore.vacancies));
+
+    // Load data when component mounts
+    useEffect(() => {
+        applicationStore.getMyApplications();
+        vacanciesStore.getVacanciesByQuery();
+    }, [applicationStore, vacanciesStore]);
 
     const onApplyHandle = useCallback(
         (vacancy: VacancyType) => {
@@ -33,31 +43,34 @@ const FindJobs = () => {
     );
 
     const renderJobs = useCallback(() => {
-        return vacanciesStore.loadings.getVacanciesByQuery ? (
-            <SpinLoading size="large" />
-        ) : vacanciesStore.vacancies?.vacancies?.length === 0 ? (
-            <MessageBox title="No vacancies yet" />
-        ) : (
-            vacanciesStore.vacancies?.vacancies?.map((job, index) => {
-                return (
-                    <FindJobCard
-                        key={index}
-                        vacancy={job}
-                        onPress={() => handleGetVacancy(job._id)}
-                        respondPress={() => onApplyHandle(job)}
-                    />
-                );
-            })
-        );
-    }, [
-        handleGetVacancy,
-        onApplyHandle,
-        vacanciesStore.loadings.getVacanciesByQuery,
-        vacanciesStore.vacancies.vacancies,
-    ]);
+        // Show loading only if we're actually loading and have no cached data
+        const isLoading = vacanciesStore.loadings.getVacanciesByQuery && 
+            (!vacanciesStore.vacancies?.vacancies || vacanciesStore.vacancies.vacancies.length === 0);
+        
+        if (isLoading) {
+            return <SpinLoading size="large" />;
+        }
+        
+        // Show empty state only if we have no data and are not loading
+        if (!vacanciesStore.vacancies?.vacancies || vacanciesStore.vacancies.vacancies.length === 0) {
+            return <MessageBox title={t("noVacanciesYet")} />;
+        }
+        
+        // Render jobs
+        return vacanciesStore.vacancies.vacancies.map((job, index) => {
+            return (
+                <FindJobCard
+                    key={index}
+                    vacancy={job}
+                    onPress={() => handleGetVacancy(job._id)}
+                    respondPress={() => onApplyHandle(job)}
+                />
+            );
+        });
+    }, [handleGetVacancy, onApplyHandle, t, vacanciesStore.loadings.getVacanciesByQuery, vacanciesStore.vacancies.vacancies]);
 
     const handlePageChange = (newPage: number) => {
-        if (newPage > 0 && newPage <= vacanciesStore.vacancies.pages) {
+        if (newPage > 0 && newPage <= vacanciesStore.vacancies.totalPages) {
             vacanciesStore.setFilter("page", newPage);
             vacanciesStore.getVacanciesByQuery();
         }
@@ -65,7 +78,7 @@ const FindJobs = () => {
 
     const renderPagination = () => {
         if (
-            vacanciesStore.vacancies.pages <= 1 ||
+            vacanciesStore.vacancies.totalPages <= 1 ||
             !vacanciesStore.vacancies?.vacancies?.length
         )
             return null;
@@ -82,19 +95,19 @@ const FindJobs = () => {
 
         // Middle pages
         let startPage = Math.max(2, page - 2);
-        let endPage = Math.min(vacanciesStore.vacancies.pages - 1, page + 2);
+        let endPage = Math.min(vacanciesStore.vacancies.totalPages - 1, page + 2);
 
         if (page <= 4) {
             endPage = Math.min(
-                vacanciesStore.vacancies.pages - 1,
+                vacanciesStore.vacancies.totalPages - 1,
                 maxVisiblePages - 1
             );
         }
 
-        if (page >= vacanciesStore.vacancies.pages - 3) {
+        if (page >= vacanciesStore.vacancies.totalPages - 3) {
             startPage = Math.max(
                 2,
-                vacanciesStore.vacancies.pages - (maxVisiblePages - 2)
+                vacanciesStore.vacancies.totalPages - (maxVisiblePages - 2)
             );
         }
 
@@ -102,13 +115,13 @@ const FindJobs = () => {
             pageNumbers.push(i);
         }
 
-        if (endPage < vacanciesStore.vacancies.pages - 1) {
+        if (endPage < vacanciesStore.vacancies.totalPages - 1) {
             pageNumbers.push("...");
         }
 
         // Always show last page
-        if (vacanciesStore.vacancies.pages > 1) {
-            pageNumbers.push(vacanciesStore.vacancies.pages);
+        if (vacanciesStore.vacancies.totalPages > 1) {
+            pageNumbers.push(vacanciesStore.vacancies.totalPages);
         }
 
         return (
@@ -135,7 +148,7 @@ const FindJobs = () => {
                 )}
 
                 <PageButton
-                    disabled={page === vacanciesStore.vacancies.pages}
+                    disabled={page === vacanciesStore.vacancies.totalPages}
                     onClick={() => handlePageChange(page + 1)}
                 >
                     <DynamicIcon name="chevron-right" size={18} />
@@ -158,31 +171,6 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
-`;
-
-const Pagination = styled.div`
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-
-    button {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        background-color: #eee;
-
-        &.active {
-            background-color: #333;
-            color: white;
-        }
-
-        &:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-    }
 `;
 
 const StyledPagination = styled.div`

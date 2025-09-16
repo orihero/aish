@@ -6,6 +6,35 @@
     scroll-behavior: smooth;
 }
 
+/* Prevent font swapping during page transitions */
+html, body {
+    font-family: "Epilogue-Medium";
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure consistent font loading across all elements */
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select {
+    /* font-family: inherit; */
+}
+
+/* Prevent font swapping during page transitions */
+.font-stable {
+    font-family: "Epilogue-Medium" !important;
+    font-display: swap;
+}
+
+/* Ensure text elements maintain consistent rendering */
+.text-stable {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-variant-ligatures: none;
+}
+
 a {
     text-decoration: none;
 }
@@ -18,42 +47,66 @@ textarea::placeholder {
     font-family: "Epilogue-Regular";
     src: url("./shared/assets/fonts/Epilogue/static/Epilogue-Regular.ttf")
         format("truetype");
+    font-display: swap;
+    font-weight: 400;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "Epilogue-Medium";
     src: url("./shared/assets/fonts/Epilogue/static/Epilogue-Medium.ttf")
         format("truetype");
+    font-display: swap;
+    font-weight: 500;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "Epilogue-SemiBold";
     src: url("./shared/assets/fonts/Epilogue/static/Epilogue-SemiBold.ttf")
         format("truetype");
+    font-display: swap;
+    font-weight: 600;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "Epilogue-Bold";
     src: url("./shared/assets/fonts/Epilogue/static/Epilogue-Bold.ttf")
         format("truetype");
+    font-display: swap;
+    font-weight: 700;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "ClashDisplay-Regular";
     src: url("./shared/assets/fonts/ClashDisplay_Complete/Fonts/WEB/fonts/ClashDisplay-Regular.ttf");
+    font-display: swap;
+    font-weight: 400;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "ClashDisplay-Medium";
     src: url("./shared/assets/fonts/ClashDisplay_Complete/Fonts/WEB/fonts/ClashDisplay-Medium.ttf");
+    font-display: swap;
+    font-weight: 500;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "ClashDisplay-Semibold";
     src: url("./shared/assets/fonts/ClashDisplay_Complete/Fonts/WEB/fonts/ClashDisplay-Semibold.ttf");
+    font-display: swap;
+    font-weight: 600;
+    font-style: normal;
 }
 
 @font-face {
     font-family: "ClashDisplay-Bold";
     src: url("./shared/assets/fonts/ClashDisplay_Complete/Fonts/WEB/fonts/ClashDisplay-Bold.ttf");
+    font-display: swap;
+    font-weight: 700;
+    font-style: normal;
 }

@@ -18,10 +18,12 @@ import jsPDF from "jspdf";
 import domtoimage from "dom-to-image";
 import { toJS } from "mobx";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import { useNavigate } from "react-router-dom";
 
 const ResumePreview = () => {
     const { resumeStore, visibleStore } = useRootStore();
     const printRef = useRef<null>(null);
+    const navigate = useNavigate();
 
     const handleDownloadPdf = () => {
         const element = printRef.current;
@@ -47,13 +49,6 @@ const ResumePreview = () => {
     return (
         <MyResumeContainer>
             <div className="header">
-                {resumeStore.isEdited && (
-                    <ButtonComp
-                        title="Save"
-                        primary
-                        onPress={() => resumeStore.saveResume()}
-                    />
-                )}
                 <div className="iconBtn">
                     <IconComp
                         icon={<DynamicIcon name="download" size={24} />}
@@ -78,9 +73,16 @@ const ResumePreview = () => {
                     />
                 </div> */}
                 <ButtonComp
-                    title="Continue"
+                    title={visibleStore.visible.isResumeEditable ? "Save" : "Continue"}
                     primary
-                    onPress={() => visibleStore.show("registerModal")}
+                    onPress={() => 
+                        visibleStore.visible.isResumeEditable 
+                            ? resumeStore.saveResume(() => {
+                                // Navigate back to profile after saving
+                                navigate("/myProfile");
+                            })
+                            : visibleStore.show("registerModal")
+                    }
                 />
             </div>
             <div className="box" ref={printRef}>

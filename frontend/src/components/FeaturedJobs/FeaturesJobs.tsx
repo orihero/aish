@@ -8,15 +8,22 @@ import { FiArrowRight } from "react-icons/fi";
 import { observer } from "mobx-react-lite";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const FeaturesJobs = () => {
     const { vacanciesStore } = useRootStore();
     const navigation = useNavigate();
+    const { t } = useTranslation();
+
+    // Load featured vacancies when component mounts
+    // useEffect(() => {
+    //     vacanciesStore.getFeaturedVacancies();
+    // }, [vacanciesStore]);
 
     const handleGetVacancy = useCallback(
         (id: string) => {
             navigation(`/vacancy/${id}`);
-            vacanciesStore.findVacancyById(id, "featured", () =>
+            vacanciesStore.findVacancyById(id, "findJobs", () =>
                 vacanciesStore.getVacancyById(id)
             );
         },
@@ -24,7 +31,7 @@ const FeaturesJobs = () => {
     );
 
     const renderJobs = useCallback(() => {
-        if (!vacanciesStore.vacancies?.vacancies?.length) return null;
+        if (!vacanciesStore?.vacancies?.vacancies?.length) return null;
         return vacanciesStore.vacancies.vacancies
             .slice(0, 8)
             .map((job, index) => {
@@ -43,13 +50,13 @@ const FeaturesJobs = () => {
             <div className="top">
                 <div className="title">
                     <Text
-                        text="Featured"
+                        text={t("featured")}
                         textSize="thirtySix"
                         color={Colors.textBlack}
                         family="ClashDisplay-Semibold"
                     />
                     <Text
-                        text="jobs"
+                        text={t("featuredJobs")}
                         textSize="thirtySix"
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
@@ -57,7 +64,7 @@ const FeaturesJobs = () => {
                 </div>
                 <ButtonComp
                     className="seeAll"
-                    title="See all jobs"
+                    title={t("seeAllJobs")}
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                     onPress={() => navigation("/vacancies")}
                 />
@@ -65,7 +72,7 @@ const FeaturesJobs = () => {
             <div className="cards">{renderJobs()}</div>
             <ButtonComp
                 className="seeAllMobile"
-                title="See all jobs"
+                title={t("seeAllJobs")}
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                 onPress={() => navigation("/vacancies")}
             />

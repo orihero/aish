@@ -12,6 +12,7 @@ import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeMo
 import useRootStore from "../../shared/hooks/UseRootStore";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
 import ApplyModal from "../../components/ApplyModal/ApplyModal";
+import LoginModal from "../../components/LoginModal/LoginModal";
 
 const HomeView = () => {
     const { visibleStore } = useRootStore();
@@ -19,7 +20,7 @@ const HomeView = () => {
         <div>
             <Header />
             <EntranceComp />
-            <Companies />
+            {/* <Companies /> */}
             <Categories />
             <AdminBanner />
             <FeaturesJobs />
@@ -30,6 +31,7 @@ const HomeView = () => {
             />
             <RegisterModal isShow={visibleStore.visible.registerModal} />
             <ApplyModal isShow={visibleStore.visible.applyModal} />
+            <LoginModal isShow={visibleStore.visible.loginModal} />
         </div>
     );
 };

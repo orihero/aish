@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
@@ -9,10 +9,17 @@ import { Images } from "../../shared/assets";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const LatestJobs = () => {
     const { vacanciesStore } = useRootStore();
     const navigation = useNavigate();
+    const { t } = useTranslation();
+
+    // Load vacancies when component mounts
+    useEffect(() => {
+        vacanciesStore.getVacancies();
+    }, [vacanciesStore]);
 
     const handleGetVacancy = useCallback(
         (id: string) => {
@@ -44,13 +51,13 @@ const LatestJobs = () => {
             <div className="top">
                 <div className="title">
                     <Text
-                        text="Latest"
+                        text={t("latest")}
                         textSize="thirtySix"
                         color={Colors.textBlack}
                         family="ClashDisplay-Semibold"
                     />
                     <Text
-                        text="jobs open"
+                        text={t("jobsOpen")}
                         textSize="thirtySix"
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
@@ -58,7 +65,7 @@ const LatestJobs = () => {
                 </div>
                 <ButtonComp
                     className="seeAll"
-                    title="See all jobs"
+                    title={t("seeAllJobs")}
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                     onPress={() => navigation("/vacancies")}
                 />
@@ -67,7 +74,7 @@ const LatestJobs = () => {
             <img className="pattern" src={Images.walcomePatter} alt="pattern" />
             <ButtonComp
                 className="seeAllMobile"
-                title="See all jobs"
+                title={t("seeAllJobs")}
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                 onPress={() => navigation("/vacancies")}
             />

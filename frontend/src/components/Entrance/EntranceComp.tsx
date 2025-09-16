@@ -7,8 +7,10 @@ import ButtonComp from "../Button/Button";
 import SearchInput from "../SearchInput/SearchInput";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const EntranceComp = () => {
+    const { t } = useTranslation();
     const { vacanciesStore } = useRootStore();
     const navigation = useNavigate();
 
@@ -25,13 +27,13 @@ const EntranceComp = () => {
             <div className="left">
                 <div>
                     <Text
-                        text="Discover more than"
+                        text={t("discoverMoreThan")}
                         textSize="seventy"
                         color={Colors.black}
                         family="ClashDisplay-Semibold"
                     />
                     <Text
-                        text="5000+ Jobs"
+                        text={t("jobsCount")}
                         textSize="seventy"
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
@@ -39,7 +41,7 @@ const EntranceComp = () => {
                     <img src={Images.line} alt="Line" className="line" />
                 </div>
                 <Text
-                    text="Great platform for the job seeker that searching for new career heights and passionate about startups."
+                    text={t("welcomeMessage")}
                     textSize="fourteen"
                     color={Colors.textColor}
                     family="Epilogue-Regular"
@@ -47,19 +49,19 @@ const EntranceComp = () => {
                 />
                 <div className="searchBx">
                     <SearchInput
-                        placeholder="Job title or keyword"
+                        placeholder={t("jobTitleOrKeyword")}
                         className="searchInput"
                         onChange={handleChange}
                     />
                     <ButtonComp
-                        title="Search my job"
+                        title={t("searchMyJob")}
                         primary
                         className="searchBtn"
                         onPress={handleSearchPress}
                     />
                 </div>
                 <Text
-                    text="Popular : UI Designer, UX Researcher, Android, Admin"
+                    text={t("popularSearches")}
                     textSize="fourteen"
                     color={Colors.textBlack}
                     family="Epilogue-Regular"

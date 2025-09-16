@@ -60,7 +60,7 @@ const ButtonContainer = styled.button<{ $primary?: boolean }>`
     padding: 10px 20px;
     cursor: pointer;
     transition: 0.3s;
-
+    border-radius: 10px;
     &:disabled {
         opacity: 0.4;
     }

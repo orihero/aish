@@ -13,11 +13,10 @@ import { useNavigate } from "react-router-dom";
 import IconComp from "../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { observer } from "mobx-react-lite";
-import { toJS } from "mobx";
 
 const Header = () => {
     const { t } = useTranslation();
-    const { visibleStore, localStore } = useRootStore();
+    const { visibleStore, authStore } = useRootStore();
 
     const navigation = useNavigate();
     const handleMenu = () => {
@@ -35,6 +34,16 @@ const Header = () => {
         navigation("/applications");
     };
 
+    const handleUserIconClick = () => {
+        if (localStore.session.accessToken) {
+            // User is logged in, go to profile
+            handleMyProfile();
+        } else {
+            // User is not logged in, show login modal
+            visibleStore.show("loginModal");
+        }
+    };
+
     return (
         <HeaderContainer>
             <div className="headerLeft">
@@ -44,19 +53,19 @@ const Header = () => {
                 <div className="nav">
                     <a href="/vacancies">
                         <Text
-                            text={"Find Jobs"}
+                            text={t("findJobs")}
                             textSize="fourteen"
                             color={Colors.textColor}
                         />
                     </a>
                     <Text
-                        text={"Browse Companies"}
+                        text={t("browseCompanies")}
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
-                    {localStore.session.accessToken && (
+                    {authStore.isAuthorized && (
                         <Text
-                            text={"Applications"}
+                            text={t("applications")}
                             textSize="fourteen"
                             color={Colors.textColor}
                             onPress={handleMyApplications}
@@ -66,28 +75,39 @@ const Header = () => {
                 </div>
             </div>
             <div className="headerRight">
-                {/* <LanguageSelect /> */}
-                {!localStore.session.accessToken && <ButtonComp title="Hire" />}
+                <LanguageSelect />
+                {!authStore.isAuthorized && <ButtonComp title={t("hire")} />}
                 <img src={Images.divider} alt="Divider" height={30} />
                 <ButtonComp
-                    title="Create resume"
+                    title={t("createResume")}
                     primary
                     onPress={() => visibleStore.show("createResumeModal")}
                 />
-                {localStore.session.accessToken && (
-                    <div className="profile">
-                        <IconComp
-                            icon={
-                                <DynamicIcon
-                                    color={Colors.mainBlue}
-                                    name="circle-user"
-                                    size={32}
-                                />
-                            }
-                            onClick={handleMyProfile}
+                <div className="profile">
+                    <IconComp
+                        icon={
+                            <DynamicIcon
+                                color={Colors.mainBlue}
+                                name="circle-user"
+                                size={32}
+                            />
+                        }
+                        onClick={handleUserIconClick}
+                    />
+                </div>
+            </div>
+            {/* Mobile profile icon - always visible on mobile */}
+            <div className="mobileProfile">
+                <IconComp
+                    icon={
+                        <DynamicIcon
+                            color={Colors.mainBlue}
+                            name="circle-user"
+                            size={32}
                         />
-                    </div>
-                )}
+                    }
+                    onClick={handleUserIconClick}
+                />
             </div>
             <button className="menuIcon" onClick={handleMenu}>
                 <HiMenuAlt2 size={24} color={Colors.textBlack} />
@@ -100,19 +120,34 @@ const Header = () => {
                     <img src={Images.logo} alt="logo" />
                 </div>
                 <div className="menuNav">
+                    <a href="/vacancies">
+                        <Text
+                            text={t("findJobs")}
+                            textSize="fourteen"
+                            color={Colors.textColor}
+                        />
+                    </a>
                     <Text
-                        text="Find Jobs"
+                        text={t("browseCompanies")}
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
-                    <Text
-                        text="Browse Companies"
-                        textSize="fourteen"
-                        color={Colors.textColor}
-                    />
+                    {localStore.session.accessToken && (
+                        <Text
+                            text={t("applications")}
+                            textSize="fourteen"
+                            color={Colors.textColor}
+                            onPress={handleMyApplications}
+                            cursor="pointer"
+                        />
+                    )}
                     <LanguageSelect />
-                    <ButtonComp title="Hire" />
-                    <ButtonComp title="Create Resume" primary />
+                    {!localStore.session.accessToken && <ButtonComp title={t("hire")} />}
+                    <ButtonComp 
+                        title={t("createResume")} 
+                        primary 
+                        onPress={() => visibleStore.show("createResumeModal")}
+                    />
                 </div>
             </div>
         </HeaderContainer>
@@ -130,10 +165,17 @@ const HeaderContainer = styled.div`
     height: 10vh;
     width: 100%;
     position: fixed;
-    z-index: 10;
+    z-index: 100;
     top: 0;
 
     .profile {
+        background-color: ${Colors.lineColor};
+        padding: 5px;
+        border-radius: 50%;
+    }
+
+    .mobileProfile {
+        display: none;
         background-color: ${Colors.lineColor};
         padding: 5px;
         border-radius: 50%;
@@ -203,7 +245,7 @@ const HeaderContainer = styled.div`
     }
 
     @media (max-width: 768px) {
-        .right {
+        .headerRight {
             display: none;
         }
 
@@ -213,6 +255,14 @@ const HeaderContainer = styled.div`
 
         .menuIcon {
             display: flex;
+        }
+
+        .mobileProfile {
+            display: block;
+        }
+
+        .headerLeft {
+            gap: 15px;
         }
     }
 

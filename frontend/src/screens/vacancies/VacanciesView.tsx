@@ -10,6 +10,7 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import ApplyModal from "../../components/ApplyModal/ApplyModal";
 import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeModal";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import LoginModal from "../../components/LoginModal/LoginModal";
 
 const VacanciesView = () => {
     const { vacanciesStore, visibleStore } = useRootStore();
@@ -29,12 +30,12 @@ const VacanciesView = () => {
                 </div>
             </div>
             <Footer />
-            <ApplyModal isShow={visibleStore.visible.applyModal} />{" "}
+            <ApplyModal isShow={visibleStore.visible.applyModal} />
             <UploadResumeModal
                 isShow={visibleStore.visible.createResumeModal}
             />
             <RegisterModal isShow={visibleStore.visible.registerModal} />
-            <ApplyModal isShow={visibleStore.visible.applyModal} />
+            <LoginModal isShow={visibleStore.visible.loginModal} />
         </Container>
     );
 };

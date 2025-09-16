@@ -26,14 +26,23 @@ export class ResumeStore {
 
     registerData: User = {} as User;
 
+    // Cache management
+    private resumesLoaded: boolean = false;
+    private lastResumesFetch: number = 0;
+    
+    // Cache TTL (Time To Live) in milliseconds
+    private readonly RESUMES_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
     loadings: {
         isCreateResumeLoading: boolean;
         isUpdateResumeLoading: boolean;
         isGettingMyResumesLoading: boolean;
+        isDownloadingResume: boolean;
     } = {
         isCreateResumeLoading: false,
         isUpdateResumeLoading: false,
         isGettingMyResumesLoading: false,
+        isDownloadingResume: false,
     };
 
     setLoading = (key: keyof ResumeStore["loadings"]) => {
@@ -68,13 +77,25 @@ export class ResumeStore {
             this.rootStore.localStore.setToken({
                 accessToken: register.data?.token,
             } as never);
+            runInAction(() => {
+                this.rootStore.authStore.isAuthorized = true;
+            });
             callback && callback();
         } catch (error) {
             console.log("error", error);
         }
     };
 
-    getResumeMy = async () => {
+    getResumeMy = async (forceRefresh: boolean = false) => {
+        const now = Date.now();
+        const isCacheValid = this.resumesLoaded && 
+            (now - this.lastResumesFetch) < this.RESUMES_CACHE_TTL;
+
+        // Return cached data if valid and not forcing refresh
+        if (isCacheValid && !forceRefresh) {
+            return;
+        }
+
         try {
             this.setLoading("isGettingMyResumesLoading");
             const resume = await APIs.resumes.getResumeMy();
@@ -85,6 +106,8 @@ export class ResumeStore {
                     this.rootStore.applicationStore.setSelectedResume(
                         resume.data[0]
                     );
+                    this.resumesLoaded = true;
+                    this.lastResumesFetch = now;
                 });
             }
         } catch (error) {
@@ -94,18 +117,34 @@ export class ResumeStore {
         }
     };
 
-    saveResume() {
+    saveResume = async (callback?: () => void) => {
         const { name, phone, email } = this.myResume.basics;
 
         if (!name.trim() || !phone.trim() || !email.trim()) {
-            alert("Iltimos, ism, telefon va email maydonlarini to‘ldiring.");
+            alert("Iltimos, ism, telefon va email maydonlarini to'ldiring.");
             return;
         }
 
-        // Deep copy — clone the resume
-        this.myResumeClone = { ...this.myResume };
-        alert("Resume muvaffaqiyatli saqlandi!");
-    }
+        try {
+            if (this.myResumeId) {
+                // Update existing resume
+                await this.updateResumeById();
+            } else {
+                // Create new resume
+                await this.onCreateResume();
+            }
+            
+            // Deep copy — clone the resume
+            this.myResumeClone = { ...this.myResume };
+            alert("Resume muvaffaqiyatli saqlandi!");
+            
+            // Call callback for navigation or other actions
+            callback && callback();
+        } catch (error) {
+            console.error("Error saving resume:", error);
+            alert("Resume saqlashda xatolik yuz berdi. Qaytadan urinib ko'ring.");
+        }
+    };
     setResume = (file?: File) => {
         if (file) {
             const newFormData = new FormData();
@@ -165,11 +204,18 @@ export class ResumeStore {
     updateResumeById = async (callback?: () => void) => {
         try {
             this.setLoading("isUpdateResumeLoading");
-            const res = await APIs.resumes.createResume(this.resumeFormData);
+            
+            // Update the parsed data directly
+            const res = await APIs.resumes.updateResumeData(this.myResumeId, this.myResume);
             console.log("res", toJS(res));
+            
+            // Refresh the resumes list to get updated data
+            await this.getResumeMy(true);
+            
             callback && callback();
         } catch (error) {
             console.log("error", error);
+            throw error; // Re-throw to handle in saveResume
         } finally {
             this.setLoading("isUpdateResumeLoading");
         }
@@ -617,5 +663,81 @@ export class ResumeStore {
         runInAction(() => {
             this.myResume?.references?.splice(index, 1);
         });
+    };
+
+    // Cache management methods
+    clearResumesCache = () => {
+        this.resumesLoaded = false;
+        this.lastResumesFetch = 0;
+    };
+
+    invalidateResumesCache = () => {
+        this.resumesLoaded = false;
+        this.lastResumesFetch = 0;
+    };
+
+    // Force refresh method for when user explicitly wants fresh data
+    refreshResumes = () => this.getResumeMy(true);
+
+    // Set resume for editing
+    setResumeForEditing = (resume: FullResumeType) => {
+        runInAction(() => {
+            // Convert FullResumeType.parsedData to ResumeType format
+            this.myResume = {
+                ...resume.parsedData,
+                _id: resume._id,
+                user: resume.user,
+                name: resume.cvFile.filename || "Resume",
+                phone: resume.parsedData.basics.phone,
+                fileUrl: resume.cvFile.url,
+                fileName: resume.cvFile.filename,
+                applications: resume.applications,
+                createdAt: resume.createdAt,
+                updatedAt: resume.updatedAt
+            } as ResumeType;
+            
+            this.myResumeClone = { ...this.myResume };
+            this.myResumeId = resume._id;
+            this.isEdited = false; // Reset edit state
+        });
+    };
+
+    // Download resume as PDF
+    downloadResumePDF = async (resumeId: string, resumeName?: string) => {
+        try {
+            this.setLoading("isDownloadingResume");
+            
+            const response = await APIs.resumes.downloadResume(resumeId);
+            
+            // Create blob from response data
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Set filename - use provided name or default
+            const fileName = resumeName ? `${resumeName}.pdf` : `resume_${resumeId}.pdf`;
+            link.download = fileName;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error downloading resume:', error);
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to download resume' 
+            };
+        } finally {
+            this.setLoading("isDownloadingResume");
+        }
     };
 }

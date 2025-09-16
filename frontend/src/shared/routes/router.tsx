@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import HomeView from "../../screens/home/HomeView";
 import NotfoundView from "../../screens/notfound/NotfoundView";
 import VacancyPreview from "../../screens/vacancyPreview/VacancyPreview";
@@ -14,11 +14,15 @@ const AppNavigation = () => {
     const { session } = useRootStore().localStore;
     const navigation = useNavigate();
 
-    // useEffect(() => {
-    //     if (!session.accessToken) {
-    //         navigation("/");
-    //     }
-    // }, [navigation, session.accessToken]);
+    useEffect(() => {
+        // Only redirect to home if user is not authenticated and trying to access protected routes
+        const protectedRoutes = ['/myProfile', '/applications', '/chats'];
+        const currentPath = window.location.pathname;
+        
+        if (!session.accessToken && protectedRoutes.some(route => currentPath.startsWith(route))) {
+            navigation("/");
+        }
+    }, [navigation, session.accessToken]);
 
     return (
         <Routes>
@@ -28,7 +32,7 @@ const AppNavigation = () => {
             <Route path="/resumePreview" element={<ResumePreview />} />
             <Route path="/myProfile" element={<MyProfile />} />
             <Route path="/applications" element={<ApplicationsView />} />
-            <Route path="/" element={<ChatsView />} />
+            <Route path="/chats" element={<ChatsView />} />
             <Route path="/chat/:id" element={<ChatsView />} />
             <Route path="/*" element={<NotfoundView />} />
         </Routes>

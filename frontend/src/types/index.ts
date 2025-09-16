@@ -93,6 +93,9 @@ export type VacancyType = {
 export type VacanciesType = {
     currentPage: number;
     pages: number;
+    hasNextPage: boolean;
+    nextPage: number | null;
+    totalPages: number;
     total: number;
     vacancies: VacancyType[];
 };

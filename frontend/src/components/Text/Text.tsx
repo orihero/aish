@@ -68,13 +68,13 @@ const Text: React.FC<Props> = ({
     return isEditable ? (
         <textarea
             id={id}
-            className={`${styles.text} ${styles[textSize]} ${className}`}
+            className={`${styles.text} ${styles[textSize]} ${className} font-stable text-stable`}
             value={text}
             placeholder={placeholder ? placeholder : ""}
             style={{
                 margin: margin,
                 color: color ? color : "#fff",
-                fontFamily: family,
+                fontFamily: family || "Epilogue-Medium",
                 textAlign: textAlign,
                 position: positon,
                 zIndex: zIndex,
@@ -89,9 +89,9 @@ const Text: React.FC<Props> = ({
                 borderBottom: `1px solid ${
                     isEditable ? Colors.lineColor : Colors.black
                 }`,
-                resize: "none", // foydalanuvchi o‘lchamini o‘zgartira olmasligi uchun
+                resize: "none", // foydalanuvchi o'lchamini o'zgartira olmasligi uchun
                 overflow: "hidden", // scroll bo'lmasin
-                background: "transparent", // fon yo‘q bo‘lsin
+                background: "transparent", // fon yo'q bo'lsin
             }}
             onChange={(e) => onChange?.(e.target.value)}
             rows={rows ? rows : 1} // Boshlang'ich qatorlar soni
@@ -101,13 +101,13 @@ const Text: React.FC<Props> = ({
             id={id}
             className={`${styles.text} ${styles[textSize]} ${className} ${
                 isTag && styles.tag
-            }`}
+            } font-stable text-stable`}
             onClick={onPress}
             dangerouslySetInnerHTML={{ __html: text }}
             style={{
                 margin: margin,
                 color: color ? color : "#fff",
-                fontFamily: family,
+                fontFamily: family || "Epilogue-Medium",
                 textAlign: textAlign,
                 position: positon,
                 zIndex: zIndex,
