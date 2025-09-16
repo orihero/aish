@@ -15,6 +15,8 @@ export class AuthStore {
     }
     isGetMeLoading = false;
 
+    isAuthorized: boolean = false;
+
     getMe = async () => {
         runInAction(() => {
             this.isGetMeLoading = true;
@@ -26,6 +28,7 @@ export class AuthStore {
             if (myData.data) {
                 runInAction(() => {
                     this.user = myData.data;
+                    this.isAuthorized = true;
                 });
             }
             runInAction(() => {
@@ -34,6 +37,7 @@ export class AuthStore {
         } catch (error) {
             console.log("error", error);
             runInAction(() => {
+                this.isAuthorized = false;
                 this.isGetMeLoading = false;
             });
         }

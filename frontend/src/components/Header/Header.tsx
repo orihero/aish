@@ -16,7 +16,7 @@ import { observer } from "mobx-react-lite";
 
 const Header = () => {
     const { t } = useTranslation();
-    const { visibleStore, localStore } = useRootStore();
+    const { visibleStore, authStore } = useRootStore();
 
     const navigation = useNavigate();
     const handleMenu = () => {
@@ -63,7 +63,7 @@ const Header = () => {
                         textSize="fourteen"
                         color={Colors.textColor}
                     />
-                    {localStore.session.accessToken && (
+                    {authStore.isAuthorized && (
                         <Text
                             text={t("applications")}
                             textSize="fourteen"
@@ -76,7 +76,7 @@ const Header = () => {
             </div>
             <div className="headerRight">
                 <LanguageSelect />
-                {!localStore.session.accessToken && <ButtonComp title={t("hire")} />}
+                {!authStore.isAuthorized && <ButtonComp title={t("hire")} />}
                 <img src={Images.divider} alt="Divider" height={30} />
                 <ButtonComp
                     title={t("createResume")}

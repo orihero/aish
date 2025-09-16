@@ -77,6 +77,9 @@ export class ResumeStore {
             this.rootStore.localStore.setToken({
                 accessToken: register.data?.token,
             } as never);
+            runInAction(() => {
+                this.rootStore.authStore.isAuthorized = true;
+            });
             callback && callback();
         } catch (error) {
             console.log("error", error);
