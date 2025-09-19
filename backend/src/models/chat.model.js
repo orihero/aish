@@ -10,6 +10,15 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  messageType: {
+    type: String,
+    enum: ['normal', 'apply', 'vacancy_ready', 'vacancy_creation_start', 'vacancy_creation_progress', 'vacancy_creation_complete'],
+    default: 'normal'
+  },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
   timestamp: {
     type: Date,
     default: Date.now
@@ -29,9 +38,14 @@ const chatSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
+  chatType: {
+    type: String,
+    enum: ['application_screening', 'vacancy_creation'],
+    default: 'application_screening'
+  },
   status: {
     type: String,
-    enum: ['screening', 'completed', 'rejected'],
+    enum: ['screening', 'completed', 'rejected', 'vacancy_creation_in_progress', 'vacancy_creation_completed'],
     default: 'screening'
   },
   score: {
@@ -40,6 +54,10 @@ const chatSchema = new mongoose.Schema({
     max: 100
   },
   feedback: String,
+  vacancyData: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
   messages: [messageSchema]
 }, {
   timestamps: true

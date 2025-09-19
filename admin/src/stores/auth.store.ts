@@ -23,6 +23,38 @@ interface RegisterData {
   };
 }
 
+interface BusinessRegistrationData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  company: {
+    name: string;
+    description: string;
+    industry: string;
+    size: '1-50' | '51-200' | '201-1000' | '1000-5000' | '5000+';
+    founded?: number;
+    website?: string;
+    location: {
+      country: string;
+      city: string;
+      address?: string;
+    };
+    contact: {
+      email: string;
+      phone?: string;
+    };
+    social?: {
+      linkedin?: string;
+      twitter?: string;
+      facebook?: string;
+      instagram?: string;
+    };
+    benefits: string[];
+  };
+}
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -30,6 +62,7 @@ interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  registerBusiness: (data: BusinessRegistrationData) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   validateToken: () => Promise<void>;
@@ -75,6 +108,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await api.post('/auth/register', data);
+      localStorage.setItem('token', response.data.token);
+      set({ user: response.data.user, token: response.data.token, isLoading: false });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'An error occurred',
+        isLoading: false
+      });
+    }
+  },
+
+  registerBusiness: async (data: BusinessRegistrationData) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.post('/auth/register-business', data);
       localStorage.setItem('token', response.data.token);
       set({ user: response.data.user, token: response.data.token, isLoading: false });
     } catch (error) {

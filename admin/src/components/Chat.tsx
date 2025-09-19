@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chat.store';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Badge } from './ui/badge';
+import { User, Bot, FileText, Briefcase } from 'lucide-react';
 
 interface ChatProps {
   chatId: string;
@@ -30,6 +32,54 @@ export const Chat = ({ chatId }: ChatProps) => {
     } catch (error) {
       console.error('Error sending message:', error);
     }
+  };
+
+  const getMessageIcon = (role: string) => {
+    return role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />;
+  };
+
+  const getMessageTypeBadge = (messageType?: string) => {
+    if (!messageType || messageType === 'normal') return null;
+    
+    const badgeConfig = {
+      apply: { label: 'Application', variant: 'outline' as const, icon: <FileText className="w-3 h-3 mr-1" /> },
+      vacancy_ready: { label: 'Ready', variant: 'success' as const, icon: <Briefcase className="w-3 h-3 mr-1" /> },
+      vacancy_creation_start: { label: 'Start', variant: 'default' as const, icon: <Briefcase className="w-3 h-3 mr-1" /> },
+      vacancy_creation_progress: { label: 'Progress', variant: 'secondary' as const, icon: <Briefcase className="w-3 h-3 mr-1" /> },
+      vacancy_creation_complete: { label: 'Complete', variant: 'success' as const, icon: <Briefcase className="w-3 h-3 mr-1" /> }
+    };
+
+    const config = badgeConfig[messageType as keyof typeof badgeConfig];
+    if (!config) return null;
+
+    return (
+      <Badge variant={config.variant} className="ml-2 text-xs">
+        {config.icon}
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const renderMessageContent = (message: any) => {
+    // Special handling for apply message type
+    if (message.messageType === 'apply') {
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-blue-500" />
+            <span className="font-medium text-sm">Application Submitted</span>
+          </div>
+          <div className="text-xs text-gray-600">
+            Applied to: {message.metadata?.vacancyTitle || 'Position'}
+          </div>
+          <div className="text-xs text-gray-600">
+            Resume: {message.metadata?.resumeName || 'Resume'}
+          </div>
+        </div>
+      );
+    }
+
+    return <p className="text-sm">{message.content}</p>;
   };
 
   if (isLoading) {
@@ -65,10 +115,20 @@ export const Chat = ({ chatId }: ChatProps) => {
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
-              <p className="text-sm">{message.content}</p>
-              <p className="text-xs mt-1 opacity-70">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </p>
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 mt-0.5">
+                  {getMessageIcon(message.role)}
+                </div>
+                <div className="flex-1">
+                  {renderMessageContent(message)}
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs opacity-70">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </p>
+                    {getMessageTypeBadge(message.messageType)}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ))}

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { User } from '../models/user.model.js';
 import { sendResetPasswordEmail } from '../utils/email.js';
 import { Resume } from '../models/resume.model.js';
+import { Company } from '../models/company.model.js';
 import { Logger } from '../utils/logger.js';
 
 // Generate JWT token
@@ -368,6 +369,130 @@ export const registerWithResume = async (req, res) => {
     res.status(201).json(responseData);
   } catch (error) {
     Logger.error('❌ Registration with resume error', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const registerBusiness = async (req, res) => {
+  try {
+    Logger.info('🏢 Starting business registration', { 
+      email: req.body.email, 
+      phone: req.body.phone, 
+      firstName: req.body.firstName, 
+      lastName: req.body.lastName,
+      companyName: req.body.company?.name
+    });
+
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password, 
+      phone, 
+      company 
+    } = req.body;
+
+    // Check if user already exists with email or phone
+    Logger.debug('🔍 Checking for existing user', { email, phone });
+    const existingUser = await User.findOne({
+      $or: [
+        ...(email ? [{ email }] : []),
+        ...(phone ? [{ phone }] : [])
+      ]
+    });
+
+    if (existingUser) {
+      Logger.warning('⚠️ User already exists', { 
+        existingEmail: existingUser.email, 
+        existingPhone: existingUser.phone 
+      });
+      return res.status(400).json({ 
+        message: `A user with the email ${existingUser.email} already exists. Please try logging in instead.`
+      });
+    }
+
+    // Create new employer user
+    Logger.info('👤 Creating new employer user', { email, firstName, lastName });
+    const user = new User({
+      email,
+      phone,
+      password,
+      firstName,
+      lastName,
+      role: 'employer'
+    });
+
+    Logger.debug('💾 Saving user to database');
+    await user.save();
+
+    // Create company
+    Logger.info('🏢 Creating company', { 
+      userId: user._id, 
+      companyName: company.name,
+      industry: company.industry
+    });
+    
+    const companyData = new Company({
+      name: company.name,
+      description: company.description || '',
+      industry: company.industry,
+      size: company.size || '1-50',
+      founded: company.founded,
+      website: company.website,
+      location: {
+        country: company.location?.country || '',
+        city: company.location?.city || '',
+        address: company.location?.address
+      },
+      contact: {
+        email: company.contact?.email || user.email,
+        phone: company.contact?.phone
+      },
+      social: company.social ? {
+        linkedin: company.social.linkedin,
+        twitter: company.social.twitter,
+        facebook: company.social.facebook,
+        instagram: company.social.instagram
+      } : undefined,
+      benefits: company.benefits || [],
+      creator: user._id,
+      status: 'pending' // New companies start as pending
+    });
+
+    Logger.debug('💾 Saving company to database');
+    await companyData.save();
+
+    // Generate token
+    Logger.debug('🔑 Generating JWT token', { userId: user._id });
+    const token = generateToken(user._id);
+
+    const responseData = {
+      user: {
+        id: user._id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role
+      },
+      company: {
+        id: companyData._id,
+        name: companyData.name,
+        status: companyData.status
+      },
+      token
+    };
+
+    Logger.success('🎉 Business registration completed successfully', { 
+      userId: user._id, 
+      email: user.email,
+      companyId: companyData._id,
+      companyName: companyData.name
+    });
+
+    res.status(201).json(responseData);
+  } catch (error) {
+    Logger.error('❌ Business registration error', error);
     res.status(400).json({ message: error.message });
   }
 };

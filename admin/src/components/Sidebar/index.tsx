@@ -8,8 +8,12 @@ export const Sidebar = () => {
   const isEmployee = role === 'employee';
 
   const navItems = [
-    { path: '/', label: 'Dashboard' },
+    { path: '/dashboard', label: 'Dashboard' },
     { path: '/jobs', label: isEmployee ? 'Find Jobs' : 'Manage Jobs' },
+    ...(isEmployee ? [] : [
+      { path: '/my-vacancies', label: 'My Vacancies' },
+      { path: '/vacancies/create', label: 'Create Vacancy' },
+    ]),
     { path: '/companies', label: 'Companies' },
     { path: '/resumes', label: 'Resumes' },
     { path: '/settings', label: 'Settings' },

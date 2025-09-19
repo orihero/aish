@@ -10,7 +10,7 @@ const companySchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    default: ''
   },
   industry: {
     type: String,
@@ -19,7 +19,7 @@ const companySchema = new mongoose.Schema({
   size: {
     type: String,
     enum: ['1-50', '51-200', '201-1000', '1000-5000', '5000+'],
-    required: true
+    default: '1-50'
   },
   founded: {
     type: Number
@@ -30,18 +30,18 @@ const companySchema = new mongoose.Schema({
   location: {
     country: {
       type: String,
-      required: true
+      default: ''
     },
     city: {
       type: String,
-      required: true
+      default: ''
     },
     address: String
   },
   contact: {
     email: {
       type: String,
-      required: true
+      default: ''
     },
     phone: String
   },

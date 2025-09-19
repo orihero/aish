@@ -17,6 +17,9 @@ import { PrivateRoute } from './components/PrivateRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './hooks/useAuth';
 import { Profile } from './pages/Profile';
+import { MyVacancies } from './pages/MyVacancies';
+import { CreateJob } from './pages/Jobs/pages/CreateJob';
+import { CreateVacancy } from './pages/CreateVacancy';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +74,11 @@ function App() {
                   {isEmployee ? <EmployeeJobs /> : <EmployerJobs />}
                 </PrivateRoute>
               } />
+              <Route path="my-vacancies" element={
+                <PrivateRoute>
+                  {isEmployee ? <Navigate to="/jobs" replace /> : <MyVacancies />}
+                </PrivateRoute>
+              } />
               <Route path="jobs/my-applications" element={
                 <PrivateRoute>
                   {isEmployee ? <JobApplications /> : <Navigate to="/jobs" replace />}
@@ -79,6 +87,21 @@ function App() {
               <Route path="jobs/:id/applications" element={
                 <PrivateRoute>
                   <JobApplications />
+                </PrivateRoute>
+              } />
+              <Route path="jobs/create" element={
+                <PrivateRoute>
+                  {isEmployee ? <Navigate to="/jobs" replace /> : <CreateJob />}
+                </PrivateRoute>
+              } />
+              <Route path="vacancies/create" element={
+                <PrivateRoute>
+                  {isEmployee ? <Navigate to="/jobs" replace /> : <CreateVacancy />}
+                </PrivateRoute>
+              } />
+              <Route path="jobs/:id/edit" element={
+                <PrivateRoute>
+                  {isEmployee ? <Navigate to="/jobs" replace /> : <CreateJob />}
                 </PrivateRoute>
               } />
               <Route path="chats/:chatId" element={

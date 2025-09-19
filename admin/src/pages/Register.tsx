@@ -7,8 +7,9 @@ import { useAuthStore } from '../stores/auth.store'
 import { ResumeUpload } from './Profile/components/ResumeUpload'
 import { ManualResumeForm } from './Register/components/ManualResumeForm'
 import { ResumePreview } from './Register/components/ResumePreview'
+import { BusinessRegistrationForm, BusinessRegistrationData } from './Register/components/BusinessRegistrationForm'
 
-type Step = 'role' | 'upload' | 'manual' | 'preview' | 'account' | 'details' | 'resume'
+type Step = 'role' | 'upload' | 'manual' | 'preview' | 'account' | 'details' | 'resume' | 'business'
 
 interface FormData {
   firstName: string;
@@ -202,7 +203,7 @@ export function Register() {
     password: '',
     role: 'employee'
   })
-  const { register, isLoading, error, clearError } = useAuthStore()
+  const { register, registerBusiness, isLoading, error, clearError } = useAuthStore()
   const { t } = useTranslation()
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [resumeFile, setResumeFile] = useState<{ url: string; filename: string } | undefined>(undefined);
@@ -332,6 +333,15 @@ export function Register() {
     setCurrentStep('details');
   };
 
+  const handleBusinessRegistration = async (data: BusinessRegistrationData) => {
+    try {
+      await registerBusiness(data);
+      navigate('/dashboard');
+    } catch (error) {
+      // Error is handled by the store
+    }
+  };
+
   const renderContent = () => {
     if (isAnalyzing) {
       return (
@@ -393,7 +403,7 @@ export function Register() {
 
             <button
               onClick={() => {
-                setCurrentStep('details')
+                setCurrentStep('business')
               }}
               className="w-full p-6 text-left border border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
             >
@@ -520,6 +530,17 @@ export function Register() {
           </div>
         </>
       )
+    }
+
+    if (currentStep === 'business') {
+      return (
+        <BusinessRegistrationForm
+          onSubmit={handleBusinessRegistration}
+          isLoading={isLoading}
+          error={error}
+          onClearError={clearError}
+        />
+      );
     }
 
     // Details step

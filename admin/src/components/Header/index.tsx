@@ -45,17 +45,19 @@ export function Header() {
               Home
             </Link>
             <Link
-              to="/jobs"
+              to={userRole === 'employer' ? '/my-vacancies' : '/jobs'}
               className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
             >
-              Jobs
+              {userRole === 'employer' ? 'My Vacancies' : 'Jobs'}
             </Link>
-            <Link
-              to="/jobs/my-applications"
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            >
-              My Applications
-            </Link>
+            {userRole !== 'employer' && (
+              <Link
+                to="/jobs/my-applications"
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              >
+                My Applications
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-4">

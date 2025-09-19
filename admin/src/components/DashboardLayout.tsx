@@ -18,7 +18,7 @@ const adminNavItems = [
 
 const employerNavItems = [
   { to: '/dashboard', label: 'Home', icon: <Icons.Briefcase className="h-5 w-5" /> },
-  { to: '/jobs', label: 'My Vacancies', icon: <Icons.Briefcase className="h-5 w-5" /> },
+  { to: '/my-vacancies', label: 'My Vacancies', icon: <Icons.Briefcase className="h-5 w-5" /> },
   { to: '/company', label: 'Company', icon: <Icons.Building2 className="h-5 w-5" /> }
 ];
 
