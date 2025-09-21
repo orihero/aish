@@ -5,11 +5,12 @@ type Props = {
     icon: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
+    className?: string;
 };
 
-const IconComp: FC<Props> = ({ icon, onClick, disabled }) => {
+const IconComp: FC<Props> = ({ icon, onClick, disabled, className }) => {
     return (
-        <IconContainer onClick={onClick} disabled={disabled}>
+        <IconContainer onClick={onClick} disabled={disabled} className={className}>
             {icon}
         </IconContainer>
     );

@@ -16,7 +16,7 @@ import { observer } from "mobx-react-lite";
 
 const Header = () => {
     const { t } = useTranslation();
-    const { visibleStore, authStore } = useRootStore();
+    const { visibleStore, authStore, localStore } = useRootStore();
 
     const navigation = useNavigate();
     const handleMenu = () => {
@@ -44,11 +44,12 @@ const Header = () => {
         }
     };
 
+
     return (
         <HeaderContainer>
             <div className="headerLeft">
                 <a href="/">
-                    <img className="logo" src={Images.logo} alt="Logo" />
+                    <img className="logo" width={200} height={150} src={Images.aish_logo} alt="Logo" />
                 </a>
                 <div className="nav">
                     <a href="/vacancies">
@@ -58,11 +59,6 @@ const Header = () => {
                             color={Colors.textColor}
                         />
                     </a>
-                    <Text
-                        text={t("browseCompanies")}
-                        textSize="fourteen"
-                        color={Colors.textColor}
-                    />
                     {authStore.isAuthorized && (
                         <Text
                             text={t("applications")}
@@ -75,14 +71,16 @@ const Header = () => {
                 </div>
             </div>
             <div className="headerRight">
-                <LanguageSelect />
                 {!authStore.isAuthorized && <ButtonComp title={t("hire")} />}
+                <LanguageSelect />
                 <img src={Images.divider} alt="Divider" height={30} />
-                <ButtonComp
-                    title={t("createResume")}
-                    primary
-                    onPress={() => visibleStore.show("createResumeModal")}
-                />
+                {!authStore.isAuthorized && (
+                    <ButtonComp
+                        title={t("createResume")}
+                        primary
+                        onPress={() => visibleStore.show("createResumeModal")}
+                    />
+                )}
                 <div className="profile">
                     <IconComp
                         icon={
@@ -109,15 +107,15 @@ const Header = () => {
                     onClick={handleUserIconClick}
                 />
             </div>
-            <button className="menuIcon" onClick={handleMenu}>
-                <HiMenuAlt2 size={24} color={Colors.textBlack} />
-            </button>
+            <div className="menuIcon">
+            <IconComp icon={<HiMenuAlt2 size={24} color={Colors.textBlack} />} onClick={handleMenu} />
+            </div>
             <div className="menu">
                 <div className="menuTop">
                     <button className="menuIcon" onClick={handleMenu}>
                         <IoClose size={24} color={Colors.textBlack} />
                     </button>
-                    <img src={Images.logo} alt="logo" />
+                    <img className="logo" src={Images.aish_logo} alt="logo" />
                 </div>
                 <div className="menuNav">
                     <a href="/vacancies">
@@ -127,11 +125,6 @@ const Header = () => {
                             color={Colors.textColor}
                         />
                     </a>
-                    <Text
-                        text={t("browseCompanies")}
-                        textSize="fourteen"
-                        color={Colors.textColor}
-                    />
                     {localStore.session.accessToken && (
                         <Text
                             text={t("applications")}
@@ -143,11 +136,13 @@ const Header = () => {
                     )}
                     <LanguageSelect />
                     {!localStore.session.accessToken && <ButtonComp title={t("hire")} />}
-                    <ButtonComp 
-                        title={t("createResume")} 
-                        primary 
-                        onPress={() => visibleStore.show("createResumeModal")}
-                    />
+                    {authStore.isAuthorized ? null :(
+                        <ButtonComp 
+                            title={t("createResume")} 
+                            primary 
+                            onPress={() => visibleStore.show("createResumeModal")}
+                        />
+                    )}
                 </div>
             </div>
         </HeaderContainer>
@@ -182,8 +177,9 @@ const HeaderContainer = styled.div`
     }
 
     .logo {
-        height: 100%;
-        object-fit: contain;
+        height: 10vh;
+        width: 200px;
+        object-fit: cover;
     }
 
     .headerLeft {
@@ -215,6 +211,7 @@ const HeaderContainer = styled.div`
         cursor: pointer;
         align-items: center;
         justify-content: center;
+        // padding: 10px;
     }
 
     .menu {

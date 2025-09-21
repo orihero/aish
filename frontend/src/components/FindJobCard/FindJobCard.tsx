@@ -100,8 +100,8 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
                         paddingTop="3px"
                     />
                     <div className="tags">
-                        <Tag text={getTranslatedWorkType(vacancy.workType, visibleStore.currentLang)} />
-                        <Tag text={getTranslatedEmploymentType(vacancy.employmentType, visibleStore.currentLang)} />
+                        <Tag text={getTranslatedWorkType(vacancy.workType, visibleStore.currentLang)} tagType="workFormat" />
+                        <Tag text={getTranslatedEmploymentType(vacancy.employmentType, visibleStore.currentLang)} tagType="employment" />
                     </div>
                 </div>
                 <Text

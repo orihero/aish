@@ -93,7 +93,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                             <div className="detail-content">
                                 <span className="detail-label">{t("workExperience")}</span>
                                 <div>
-                                    <Tag text={t("notRequired")} />
+                                    <Tag text={t("notRequired")} tagType="experience" />
                                 </div>
                             </div>
                         </div>
@@ -105,7 +105,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                             <div className="detail-content">
                                 <span className="detail-label">{t("employment")}</span>
                                 <div>
-                                <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} />
+                                <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} tagType="employment" />
                                 </div>
                             </div>
                         </div>
@@ -117,7 +117,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                             <div className="detail-content">
                                 <span className="detail-label">{t("workFormat")}</span>
                                 <div>
-                                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
+                                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} tagType="workFormat" />
                                 </div>
                             </div>
                         </div>
@@ -134,6 +134,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                                             vacancy?.category?.title,
                                             visibleStore.currentLang
                                         )}
+                                        tagType="category"
                                     />
                                 </div>
                             </div>

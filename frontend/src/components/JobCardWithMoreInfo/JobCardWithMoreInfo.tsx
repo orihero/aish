@@ -63,7 +63,8 @@ const JobCard: FC<Props> = ({ vacancy, onPress }) => {
                 />
             </Content>
             <Tags>
-                <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
+                <Tag text={getTranslatedValue(vacancy?.category?.title, visibleStore.currentLang)} tagType="category" />
+                <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} tagType="workFormat" />
             </Tags>
         </JobCardContainer>
     );

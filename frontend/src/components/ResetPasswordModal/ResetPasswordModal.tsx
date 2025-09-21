@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import styled from "styled-components";
 import { Colors } from "../../shared/utils/color";
 import { observer } from "mobx-react-lite";
@@ -6,58 +6,108 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import ButtonComp from "../Button/Button";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import Text from "../Text/Text";
-import { useTranslation } from "react-i18next";
-import IconComp from "../../shared/constants/iconBtn";
 import { Spin } from "antd";
+import IconComp from "../../shared/constants/iconBtn";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import APIs from "../../shared/api/api";
 
 type Props = {
     isShow?: boolean;
 };
 
-const LoginModal: FC<Props> = ({ isShow }) => {
-    const { authStore, visibleStore, localStore } = useRootStore();
+const ResetPasswordModal: FC<Props> = ({ isShow }) => {
+    const { visibleStore } = useRootStore();
     const { t } = useTranslation();
-    const [email, setEmail] = useState("");
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [token, setToken] = useState("");
 
-    const handleLogin = async () => {
-        if (!email || !password) {
+    useEffect(() => {
+        // Get token from URL params
+        const tokenFromUrl = searchParams.get('token');
+        if (tokenFromUrl) {
+            setToken(tokenFromUrl);
+        }
+    }, [searchParams]);
+
+    const handleResetPassword = async () => {
+        if (!password || !confirmPassword) {
             setError(t("pleaseFillAllFields"));
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError(t("passwordsDoNotMatch"));
+            return;
+        }
+
+        if (password.length < 6) {
+            setError(t("passwordTooShort"));
+            return;
+        }
+
+        if (!token) {
+            setError(t("invalidResetToken"));
             return;
         }
 
         setIsLoading(true);
         setError("");
+        setSuccess("");
 
         try {
-            const response = await authStore.login(email, password);
-            if (response) {
-                // Login successful, close modal and refresh user data
-                visibleStore.hide("loginModal");
-                await authStore.getMe();
-                setEmail("");
+            const response = await APIs.auth.resetPassword({
+                token,
+                password
+            });
+
+            if (response.data) {
+                setSuccess(t("passwordResetSuccessful"));
                 setPassword("");
-                authStore.clearLoginMessage();
+                setConfirmPassword("");
+                
+                // Redirect to login after 2 seconds
+                setTimeout(() => {
+                    handleClose();
+                    visibleStore.show("loginModal");
+                }, 2000);
             }
         } catch (error: any) {
-            setError(error.message || "Login failed. Please try again.");
+            // Handle specific error messages from the backend
+            if (error.response?.data?.message) {
+                setError(error.response.data.message);
+            } else if (error.message) {
+                setError(error.message);
+            } else {
+                setError("Failed to reset password. Please try again.");
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleClose = () => {
-        visibleStore.hide("loginModal");
-        setEmail("");
+        visibleStore.hide("resetPasswordModal");
         setPassword("");
+        setConfirmPassword("");
         setError("");
-        authStore.clearLoginMessage();
+        setSuccess("");
+        navigate("/"); // Navigate back to home
+    };
+
+    const handleBackToLogin = () => {
+        handleClose();
+        visibleStore.show("loginModal");
     };
 
     return (
-        <LoginModalContainer style={{ display: isShow ? "block" : "none" }}>
+        <ResetPasswordModalContainer style={{ display: isShow ? "block" : "none" }}>
             <div className="modalBox">
                 <div className="close">
                     <IconComp
@@ -69,20 +119,19 @@ const LoginModal: FC<Props> = ({ isShow }) => {
                 <div className="header">
                     <div className="icon-wrapper">
                         <DynamicIcon 
-                            name="user" 
+                            name="shield-check" 
                             size={32} 
                             color={Colors.mainBlue}
                         />
                     </div>
                     <Text
-                        text={t("login")}
+                        text={t("resetPassword")}
                         textSize="twentyTwo"
                         color={Colors.textBlack}
-                        fontWeight="600"
                         lineHeight={28}
                     />
                     <Text
-                        text={t("loginSubtitle")}
+                        text={t("resetPasswordSubtitle")}
                         textSize="fourteen"
                         color={Colors.textGray}
                         lineHeight={20}
@@ -93,23 +142,22 @@ const LoginModal: FC<Props> = ({ isShow }) => {
                     <div className="inputGroup">
                         <label className="label">
                             <DynamicIcon 
-                                name="mail" 
+                                name="lock" 
                                 size={16} 
                                 color={Colors.textGray}
                             />
                             <Text
-                                text={t("email")}
+                                text={t("newPassword")}
                                 textSize="fourteen"
                                 color={Colors.textGray}
-                                fontWeight="500"
                             />
                         </label>
                         <input
-                            type="email"
+                            type="password"
                             className="input"
-                            placeholder={t("enterEmail")}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder={t("enterNewPassword")}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
@@ -122,50 +170,33 @@ const LoginModal: FC<Props> = ({ isShow }) => {
                                 color={Colors.textGray}
                             />
                             <Text
-                                text={t("password")}
+                                text={t("confirmNewPassword")}
                                 textSize="fourteen"
                                 color={Colors.textGray}
-                                fontWeight="500"
                             />
                         </label>
                         <input
                             type="password"
                             className="input"
-                            placeholder={t("enterPassword")}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder={t("confirmNewPassword")}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             disabled={isLoading}
-                            onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                            onKeyPress={(e) => e.key === 'Enter' && handleResetPassword()}
                         />
                     </div>
 
-                    <div className="forgotPasswordLink">
-                        <button 
-                            className="forgotLink"
-                            onClick={() => {
-                                handleClose();
-                                visibleStore.show("forgotPasswordModal");
-                            }}
-                        >
-                            <Text
-                                text={t("forgotPassword")}
-                                textSize="fourteen"
-                                color={Colors.mainBlue}
-                            />
-                        </button>
-                    </div>
-
-                    {authStore.loginMessage && (
-                        <div className="infoMessage">
+                    {success && (
+                        <div className="successMessage">
                             <DynamicIcon 
-                                name="info" 
+                                name="check-circle" 
                                 size={16} 
-                                color={Colors.mainBlue}
+                                color={Colors.green}
                             />
                             <Text
-                                text={authStore.loginMessage}
+                                text={success}
                                 textSize="fourteen"
-                                color={Colors.mainBlue}
+                                color={Colors.green}
                             />
                         </div>
                     )}
@@ -186,43 +217,39 @@ const LoginModal: FC<Props> = ({ isShow }) => {
                     )}
 
                     <ButtonComp
-                        title={isLoading ? "" : t("login")}
+                        title={isLoading ? "" : t("resetPassword")}
                         primary
-                        onPress={handleLogin}
-                        disabled={isLoading}
+                        onPress={handleResetPassword}
+                        disabled={isLoading || !password || !confirmPassword}
                         icon={isLoading ? <Spin size="small" /> : undefined}
                     />
                 </div>
 
-                {/* <div className="footer">
+                <div className="footer">
                     <Text
-                        text={t("dontHaveAccount")}
+                        text={t("rememberPassword")}
                         textSize="fourteen"
                         color={Colors.textGray}
                     />
                     <button 
-                        className="registerLink"
-                        onClick={() => {
-                            handleClose();
-                            visibleStore.show("registerModal");
-                        }}
+                        className="backToLoginLink"
+                        onClick={handleBackToLogin}
                     >
                         <Text
-                            text={t("register")}
+                            text={t("backToLogin")}
                             textSize="fourteen"
                             color={Colors.mainBlue}
-                            fontWeight="600"
                         />
                     </button>
-                </div> */}
+                </div>
             </div>
-        </LoginModalContainer>
+        </ResetPasswordModalContainer>
     );
 };
 
-export default observer(LoginModal);
+export default observer(ResetPasswordModal);
 
-const LoginModalContainer = styled.div`
+const ResetPasswordModalContainer = styled.div`
     position: fixed;
     top: 0;
     left: 0;
@@ -357,13 +384,13 @@ const LoginModalContainer = styled.div`
         }
     }
 
-    .infoMessage {
+    .successMessage {
         display: flex;
         align-items: center;
         gap: 8px;
         padding: 12px 16px;
-        background-color: ${Colors.mainBlue}10;
-        border: 1px solid ${Colors.mainBlue}30;
+        background-color: ${Colors.lightGreen};
+        border: 1px solid ${Colors.green}30;
         border-radius: 8px;
     }
 
@@ -372,7 +399,7 @@ const LoginModalContainer = styled.div`
         align-items: center;
         gap: 8px;
         padding: 12px 16px;
-        background-color: ${Colors.tomato}10;
+        background-color: ${Colors.lightTomato};
         border: 1px solid ${Colors.tomato}30;
         border-radius: 8px;
     }
@@ -386,26 +413,7 @@ const LoginModalContainer = styled.div`
         border-top: 1px solid ${Colors.lineColor};
     }
 
-    .forgotPasswordLink {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: -8px;
-        margin-bottom: 8px;
-    }
-
-    .forgotLink {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        text-decoration: underline;
-        
-        &:hover {
-            opacity: 0.8;
-        }
-    }
-
-    .registerLink {
+    .backToLoginLink {
         background: none;
         border: none;
         cursor: pointer;

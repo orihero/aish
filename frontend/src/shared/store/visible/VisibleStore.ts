@@ -19,6 +19,9 @@ export class VisibleStore {
         applyModal: false,
         resumeSelect: false,
         loginModal: false,
+        forgotPasswordModal: false,
+        resetPasswordModal: false,
+        editPersonalInfoModal: false,
     };
 
     setLang(lang: string) {

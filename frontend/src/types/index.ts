@@ -18,6 +18,12 @@ export type User = {
     resumeFile: { url: string; filename: string };
 };
 
+export type UpdateProfileType = {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+};
+
 export interface UserFullType {
     id: string;
     user: string;

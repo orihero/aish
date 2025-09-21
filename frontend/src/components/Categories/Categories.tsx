@@ -9,39 +9,60 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getTranslatedValue } from "../../shared/utils/translationHelpers";
 
 const Categories = () => {
-    const { categoriesStore } = useRootStore();
+    const { categoriesStore, visibleStore, vacanciesStore } = useRootStore();
     const navigation = useNavigate();
+    const { t } = useTranslation();
+
+    const handleCategoryClick = useCallback((categoryId: string, title: string) => {
+        // Set the category filter in vacancies store
+        vacanciesStore.setFilter("category", categoryId);
+        
+        // Navigate to vacancies page
+        navigation("/vacancies");
+        
+        // Trigger vacancy search with the selected category
+        vacanciesStore.getVacanciesByQuery(true);
+    }, [navigation, vacanciesStore]);
 
     const renderCategories = useCallback(() => {
         if (!categoriesStore.enrichedCategories?.length) return null;
         return categoriesStore.enrichedCategories
             .slice(0, 8)
             .map((category, index) => {
+                const translatedTitle = getTranslatedValue(
+                    category.title,
+                    visibleStore.currentLang,
+                    'en'
+                );
                 return (
                     <CategoryCard
                         key={index}
-                        title={category.title[0].value as never}
+                        title={translatedTitle}
                         icon={category.icon}
                         vacancies={`${category.jobCount} jobs available`}
+                        categoryId={category._id}
+                        onCategoryClick={handleCategoryClick}
                     />
                 );
             });
-    }, [categoriesStore.enrichedCategories]);
+    }, [categoriesStore.enrichedCategories, visibleStore.currentLang, handleCategoryClick]);
 
     return (
-        <CategoriesContainer>
+        <CategoriesContainer id="categories">
             <div className="top">
                 <div className="title">
                     <Text
-                        text="Explore by"
+                        text={t("exploreBy")}
                         textSize="thirtySix"
                         color={Colors.textBlack}
                         family="ClashDisplay-Semibold"
                     />
                     <Text
-                        text="category"
+                        text={t("exploreByCategory")}
                         textSize="thirtySix"
                         color={Colors.secondBlue}
                         family="ClashDisplay-Semibold"
@@ -49,7 +70,7 @@ const Categories = () => {
                 </div>
                 <ButtonComp
                     className="seeAll"
-                    title="See all jobs"
+                    title={t("seeAllJobs")}
                     icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                     onPress={() => navigation("/vacancies")}
                 />
@@ -57,7 +78,7 @@ const Categories = () => {
             <div className="cards">{renderCategories()}</div>
             <ButtonComp
                 className="seeAllMobile"
-                title="See all jobs"
+                title={t("seeAllJobs")}
                 icon={<FiArrowRight size={18} color={Colors.mainBlue} />}
                 onPress={() => navigation("/vacancies")}
             />

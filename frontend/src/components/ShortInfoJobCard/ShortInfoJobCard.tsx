@@ -55,9 +55,11 @@ const ShortJobCard: FC<Props> = ({ vacancy, onPress, isborder }) => {
                     />
                 </JobTitle>
                 <Tags>
-                    <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} />
+                    <Tag text={getTranslatedValue(vacancy?.category?.title, visibleStore.currentLang)} tagType="category" />
                     <img src={Images.divider} height={20} alt="" />
-                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} />
+                    <Tag text={getTranslatedEmploymentType(vacancy?.employmentType, visibleStore.currentLang)} tagType="employment" />
+                    <img src={Images.divider} height={20} alt="" />
+                    <Tag text={getTranslatedWorkType(vacancy?.workType, visibleStore.currentLang)} tagType="workFormat" />
                 </Tags>
             </Content>
         </JobCardContainer>

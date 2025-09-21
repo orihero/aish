@@ -10,11 +10,19 @@ type Props = {
     icon?: string;
     title: string;
     vacancies: string;
+    categoryId?: string;
+    onCategoryClick?: (categoryId: string, title: string) => void;
 };
 
-const CategoryCard: FC<Props> = ({ icon, title, vacancies }) => {
+const CategoryCard: FC<Props> = ({ icon, title, vacancies, categoryId, onCategoryClick }) => {
+    const handleClick = () => {
+        if (categoryId && onCategoryClick) {
+            onCategoryClick(categoryId, title);
+        }
+    };
+
     return (
-        <CategoryCardContainer>
+        <CategoryCardContainer onClick={handleClick}>
             <div className="white icon">
                 <DynamicIcon
                     name={toKebabCase(icon || "") as never}

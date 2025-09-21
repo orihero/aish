@@ -14,6 +14,8 @@ import intel from "./icons/intel-3.png";
 import amd from "./icons/amd-logo-1.png";
 import talkit from "./icons/talkit 1.png";
 import canva from "./icons/Company Logo.png";
+import aish from "./images/aish.png";
+import aish_logo from "./images/aish-logo.png";
 
 export const Images = {
     logo,
@@ -24,6 +26,7 @@ export const Images = {
     line,
     adminBanner,
     jobsBack,
+    aish_logo
 };
 
 export const Logos = {
@@ -33,4 +36,5 @@ export const Logos = {
     amd,
     talkit,
     canva,
+    aish
 };

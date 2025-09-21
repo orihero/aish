@@ -1,5 +1,5 @@
-import { makeAutoObservable, runInAction, toJS } from "mobx";
-import { User, UserFullType } from "../../../types";
+import { makeAutoObservable, runInAction } from "mobx";
+import { UserFullType, UpdateProfileType } from "../../../types";
 import { AppRootStore } from "../store";
 import APIs from "../../api/api";
 
@@ -8,6 +8,7 @@ export class AuthStore {
     user: UserFullType = {} as UserFullType;
     isLoginLoading = false;
     loginError: string | null = null;
+    loginMessage: string | null = null; // For informational messages
 
     constructor(root: AppRootStore) {
         makeAutoObservable(this);
@@ -55,15 +56,16 @@ export class AuthStore {
             if (response.data) {
                 // Store tokens and user data
                 await this.rootStore.localStore.setToken({
-                    accessToken: response.data.token || "",
-                    refreshToken: response.data.refreshToken || "",
+                    accessToken: (response.data as any).accessToken || (response.data as any).token || "",
+                    refreshToken: (response.data as any).refreshToken || "",
                 });
                 
-                await this.rootStore.localStore.setUser(response.data.user);
+                await this.rootStore.localStore.setUser((response.data as any).user || response.data);
                 
                 runInAction(() => {
-                    this.user = response.data.user;
+                    this.user = (response.data as any).user || response.data as UserFullType;
                     this.isLoginLoading = false;
+                    this.isAuthorized = true;
                 });
                 
                 return response.data;
@@ -77,12 +79,35 @@ export class AuthStore {
         }
     };
 
+    updateProfile = async (data: UpdateProfileType) => {
+        try {
+            // Filter out empty phone values
+            const cleanData = {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                ...(data.phone && data.phone.trim() && { phone: data.phone.trim() })
+            };
+            
+            const response = await APIs.auth.updateProfile(cleanData);
+            if (response.data) {
+                runInAction(() => {
+                    this.user = { ...this.user, ...response.data };
+                });
+                return response.data;
+            }
+        } catch (error: any) {
+            console.error("Profile update error:", error);
+            throw error;
+        }
+    };
+
     logout = async () => {
         try {
             await this.rootStore.localStore.removeToken();
             await this.rootStore.localStore.removeUser();
             runInAction(() => {
                 this.user = {} as UserFullType;
+                this.isAuthorized = false;
             });
         } catch (error) {
             console.log("Logout error", error);
@@ -98,6 +123,18 @@ export class AuthStore {
     clearLoginError = () => {
         runInAction(() => {
             this.loginError = null;
+        });
+    };
+
+    setLoginMessage = (message: string | null) => {
+        runInAction(() => {
+            this.loginMessage = message;
+        });
+    };
+
+    clearLoginMessage = () => {
+        runInAction(() => {
+            this.loginMessage = null;
         });
     };
 }

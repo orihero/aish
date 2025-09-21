@@ -1,29 +1,38 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import ExperienceCard from "../../components/ExperienceCard/ExperienceCard";
 import UserInfoCard from "../../components/UserInfoCard/UserInfoCard";
-import Avatar from "../../components/Avatar/Avatar";
 import Text from "../../components/Text/Text";
 import { Colors } from "../../shared/utils/color";
-import Header from "../../components/Header/Header";
 import IconComp from "../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import { observer } from "mobx-react-lite";
 import ButtonComp from "../../components/Button/Button";
 import { getDateDifference } from "../../shared/helper/date";
-import { WorkType } from "../../types";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import domtoimage from "dom-to-image";
-import { toJS } from "mobx";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LoginModal from "@/components/LoginModal/LoginModal";
 
 const ResumePreview = () => {
     const { resumeStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
     const printRef = useRef<null>(null);
     const navigate = useNavigate();
+
+    // Check if resume data exists on component mount
+    // If not, redirect to home screen (handles page reloads)
+    useEffect(() => {
+        // Check if we have resume data
+        if (!resumeStore.myResume || !resumeStore.myResume.basics || !resumeStore.myResume.basics.name) {
+            // No resume data available, redirect to home
+            navigate("/", { replace: true });
+        }
+    }, [navigate, resumeStore.myResume]);
 
     const handleDownloadPdf = () => {
         const element = printRef.current;
@@ -46,15 +55,28 @@ const ResumePreview = () => {
             });
     };
 
+    const handleGoBack = () => {
+        navigate(-1); // Go back to previous page
+    };
+
     return (
         <MyResumeContainer>
             <div className="header">
-                <div className="iconBtn">
-                    <IconComp
-                        icon={<DynamicIcon name="download" size={24} />}
-                        onClick={handleDownloadPdf}
-                    />
+                <div className="headerLeft">
+                    <div className="iconBtn" title={t("back")}>
+                        <IconComp
+                            icon={<DynamicIcon name="arrow-left" size={24} />}
+                            onClick={handleGoBack}
+                        />
+                    </div>
                 </div>
+                <div className="headerRight">
+                    <div className="iconBtn" title="Download PDF">
+                        <IconComp
+                            icon={<DynamicIcon name="download" size={24} />}
+                            onClick={handleDownloadPdf}
+                        />
+                    </div>
                 {/* <div className="iconBtn">
                     <IconComp
                         icon={
@@ -72,18 +94,19 @@ const ResumePreview = () => {
                         }
                     />
                 </div> */}
-                <ButtonComp
-                    title={visibleStore.visible.isResumeEditable ? "Save" : "Continue"}
-                    primary
-                    onPress={() => 
-                        visibleStore.visible.isResumeEditable 
-                            ? resumeStore.saveResume(() => {
-                                // Navigate back to profile after saving
-                                navigate("/myProfile");
-                            })
-                            : visibleStore.show("registerModal")
-                    }
-                />
+                    <ButtonComp
+                        title={visibleStore.visible.isResumeEditable ? t("save") : t("continue")}
+                        primary
+                        onPress={() => 
+                            visibleStore.visible.isResumeEditable 
+                                ? resumeStore.saveResume(() => {
+                                    // Navigate back to profile after saving
+                                    navigate("/myProfile");
+                                })
+                                : visibleStore.show("registerModal")
+                        }
+                    />
+                </div>
             </div>
             <div className="box" ref={printRef}>
                 <div className="resumeLeft">
@@ -99,7 +122,7 @@ const ResumePreview = () => {
                             onChange={(e) =>
                                 resumeStore.setBasicsField("label", e)
                             }
-                            placeholder="Profession"
+                            placeholder={t("profession")}
                         />
                         <Text
                             text={resumeStore.myResume?.basics?.summary || ""}
@@ -111,12 +134,12 @@ const ResumePreview = () => {
                             onChange={(e) =>
                                 resumeStore.setBasicsField("summary", e)
                             }
-                            placeholder="Description"
+                            placeholder={t("description")}
                         />
                     </div>
                     <div className="jobExperience">
                         <Text
-                            text="Professional experience"
+                            text={t("professionalExperience")}
                             textSize="sixteen"
                             color={Colors.textGray}
                             family="Epilogue-SemiBold"
@@ -163,14 +186,14 @@ const ResumePreview = () => {
                         })}
                         {visibleStore.visible.isResumeEditable && (
                             <ButtonComp
-                                title="Add experience"
+                                title={t("addExperience")}
                                 onPress={() => resumeStore.addWork()}
                             />
                         )}
                     </div>
                     <div className="education">
                         <Text
-                            text="Education"
+                            text={t("education")}
                             textSize="sixteen"
                             color={Colors.textGray}
                             family="Epilogue-SemiBold"
@@ -194,7 +217,7 @@ const ResumePreview = () => {
                                                     e
                                                 )
                                             }
-                                            placeholder="Institution"
+                                            placeholder={t("institution")}
                                         />
                                         <Text
                                             text={`${item.area}`}
@@ -212,7 +235,7 @@ const ResumePreview = () => {
                                                     e
                                                 )
                                             }
-                                            placeholder="Direction"
+                                            placeholder={t("direction")}
                                         />
                                         {visibleStore.visible
                                             .isResumeEditable ? (
@@ -224,7 +247,7 @@ const ResumePreview = () => {
                                                 }}
                                             >
                                                 <Text
-                                                    text={"Start date"}
+                                                    text={t("startDate")}
                                                     textSize="fourteen"
                                                     color={Colors.textBlack}
                                                 />
@@ -250,7 +273,7 @@ const ResumePreview = () => {
                                                     }
                                                 />
                                                 <Text
-                                                    text={"End date"}
+                                                    text={t("endDate")}
                                                     textSize="fourteen"
                                                     color={Colors.textBlack}
                                                 />
@@ -306,7 +329,7 @@ const ResumePreview = () => {
                                                     e
                                                 )
                                             }
-                                            placeholder="Academic dagree"
+                                            placeholder={t("academicDegree")}
                                         />
                                         <div className="row">
                                             <Text
@@ -359,7 +382,7 @@ const ResumePreview = () => {
                                                                     e
                                                                 )
                                                             }
-                                                            placeholder="Subject"
+                                                            placeholder={t("subject")}
                                                         />
                                                         {visibleStore.visible
                                                             .isResumeEditable && (
@@ -434,13 +457,13 @@ const ResumePreview = () => {
                     </div>
                     {visibleStore.visible.isResumeEditable && (
                         <ButtonComp
-                            title="Add education"
+                            title={t("addEducation")}
                             onPress={() => resumeStore.addEducation()}
                         />
                     )}
                     <div className="education">
                         <Text
-                            text="Certification"
+                            text={t("certification")}
                             textSize="sixteen"
                             color={Colors.textGray}
                             family="Epilogue-SemiBold"
@@ -469,7 +492,7 @@ const ResumePreview = () => {
                                                             e
                                                         )
                                                     }
-                                                    placeholder="Certificate title"
+                                                    placeholder={t("certificateTitle")}
                                                 />
                                                 <Text
                                                     text={`${item.issuer}`}
@@ -487,7 +510,7 @@ const ResumePreview = () => {
                                                             e
                                                         )
                                                     }
-                                                    placeholder="Issuer"
+                                                    placeholder={t("issuer")}
                                                 />
 
                                                 <Text
@@ -543,13 +566,13 @@ const ResumePreview = () => {
                     </div>
                     {visibleStore.visible.isResumeEditable && (
                         <ButtonComp
-                            title="Add certificate"
+                            title={t("addCertificate")}
                             onPress={() => resumeStore.addCertification()}
                         />
                     )}
                     <div className="education">
                         <Text
-                            text="Awards"
+                            text={t("awards")}
                             textSize="sixteen"
                             color={Colors.textGray}
                             family="Epilogue-SemiBold"
@@ -578,7 +601,7 @@ const ResumePreview = () => {
                                                             e
                                                         )
                                                     }
-                                                    placeholder="Award title"
+                                                    placeholder={t("awardTitle")}
                                                 />
                                                 <Text
                                                     text={`${item.awarder}`}
@@ -596,7 +619,7 @@ const ResumePreview = () => {
                                                             e
                                                         )
                                                     }
-                                                    placeholder="Awarder name"
+                                                    placeholder={t("awarderName")}
                                                 />
                                                 <Text
                                                     text={item.summary || ""}
@@ -614,7 +637,7 @@ const ResumePreview = () => {
                                                             e
                                                         )
                                                     }
-                                                    placeholder="Award description"
+                                                    placeholder={t("awardDescription")}
                                                 />
                                             </div>
                                             {visibleStore.visible
@@ -651,13 +674,13 @@ const ResumePreview = () => {
                     </div>
                     {visibleStore.visible.isResumeEditable && (
                         <ButtonComp
-                            title="Add award"
+                            title={t("addAward")}
                             onPress={() => resumeStore.addAward()}
                         />
                     )}
                     <div className="aboutMe">
                         <Text
-                            text="About me"
+                            text={t("aboutMe")}
                             textSize="sixteen"
                             color={Colors.textGray}
                             family="Epilogue-SemiBold"
@@ -672,7 +695,7 @@ const ResumePreview = () => {
                                     visibleStore.visible.isResumeEditable
                                 }
                                 rows={6}
-                                placeholder="About yourself"
+                                placeholder={t("aboutYourself")}
                                 // onChange={(e) =>
                                 //     resumeStore.setBasicsField("", e)
                                 // }
@@ -682,6 +705,8 @@ const ResumePreview = () => {
                 </div>
             </div>
             <RegisterModal isShow={visibleStore.visible.registerModal} />
+            <LoginModal isShow={visibleStore.visible.loginModal} />
+            <ForgotPasswordModal isShow={visibleStore.visible.forgotPasswordModal} />
         </MyResumeContainer>
     );
 };
@@ -701,13 +726,23 @@ const MyResumeContainer = styled.div`
 
     .header {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         width: 100%;
         height: 10vh;
-        gap: 10px;
         padding: 0 5%;
         background-color: ${Colors.light};
+    }
+
+    .headerLeft {
+        display: flex;
+        align-items: center;
+    }
+
+    .headerRight {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .iconBtn {
@@ -718,6 +753,17 @@ const MyResumeContainer = styled.div`
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+            background-color: ${Colors.mainBlue};
+            transform: scale(1.05);
+            
+            svg {
+                color: ${Colors.white};
+            }
+        }
     }
 
     .resumeLeft {

@@ -10,6 +10,7 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { toJS } from "mobx";
 import { useNavigate } from "react-router-dom";
 import useRootStore from "../../shared/hooks/UseRootStore";
+import { useTranslation } from "react-i18next";
 
 type Props = {
     resume: FullResumeType;
@@ -20,6 +21,7 @@ const ResumeCard: FC<Props> = ({ resume, onPress }) => {
     console.log("resume", toJS(resume));
     const navigation = useNavigate();
     const { resumeStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
 
     const ToEditResume = () => {
         resumeStore.setResumeForEditing(resume);
@@ -31,7 +33,7 @@ const ResumeCard: FC<Props> = ({ resume, onPress }) => {
         try {
             const result = await resumeStore.downloadResumePDF(resume._id, resume.parsedData.basics.name);
             if (result.success) {
-                console.log("Resume downloaded successfully");
+                console.log(t("resumeDownloadedSuccessfully"));
             } else {
                 console.error("Failed to download resume:", result.error);
                 alert("Failed to download resume. Please try again.");
@@ -74,13 +76,13 @@ const ResumeCard: FC<Props> = ({ resume, onPress }) => {
             </div>
             <div className="rightBox">
                 <IconComp 
+                    icon={<DynamicIcon name="edit" />} 
+                    onClick={ToEditResume}
+                />
+                <IconComp 
                     icon={<DynamicIcon name="download-cloud" />} 
                     onClick={handleDownloadResume}
                     disabled={resumeStore.loadings.isDownloadingResume}
-                />
-                <IconComp 
-                    icon={<DynamicIcon name="edit" />} 
-                    onClick={ToEditResume}
                 />
             </div>
         </ResumeCardContainer>
@@ -106,7 +108,7 @@ const ResumeCardContainer = styled.div`
 
     .rightBox {
         display: flex;
-        gap: 20px;
+        gap: 15px;
     }
 
     .username {
