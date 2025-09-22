@@ -257,7 +257,7 @@ describe('Category API Tests', () => {
     });
 
     it('should create multiple vacancies for each subcategory', async () => {
-      const workTypes = ['remote', 'hybrid', 'onsite'];
+      const workTypes = ['remote', 'hybrid', 'on-site'];
       const employmentTypes = ['full-time', 'part-time', 'contract'];
 
       for (const category of createdCategories) {

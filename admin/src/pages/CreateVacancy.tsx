@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { VacancyCreationChat } from '../components/VacancyCreationChat';
+import { VacancyForm } from '../components/VacancyForm';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Plus, MessageSquare, FileText } from 'lucide-react';
+import { MessageSquare, FileText } from 'lucide-react';
 
 export const CreateVacancy = () => {
   const [creationMode, setCreationMode] = useState<'chat' | 'form'>('chat');
@@ -44,7 +45,7 @@ export const CreateVacancy = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button
-                variant={creationMode === 'chat' ? 'default' : 'outline'}
+                variant={creationMode === 'chat' ? 'primary' : 'outline'}
                 className="w-full justify-start"
                 onClick={() => setCreationMode('chat')}
               >
@@ -52,7 +53,7 @@ export const CreateVacancy = () => {
                 AI Assistant Chat
               </Button>
               <Button
-                variant={creationMode === 'form' ? 'default' : 'outline'}
+                variant={creationMode === 'form' ? 'primary' : 'outline'}
                 className="w-full justify-start"
                 onClick={() => setCreationMode('form')}
               >
@@ -92,26 +93,7 @@ export const CreateVacancy = () => {
           {creationMode === 'chat' ? (
             <VacancyCreationChat onVacancyCreated={handleVacancyCreated} />
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Traditional Form</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Traditional Form Coming Soon
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    We're working on a traditional form interface. For now, please use our AI assistant.
-                  </p>
-                  <Button onClick={() => setCreationMode('chat')}>
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Use AI Assistant Instead
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <VacancyForm onVacancyCreated={handleVacancyCreated} />
           )}
         </div>
       </div>

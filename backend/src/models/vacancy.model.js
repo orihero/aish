@@ -94,9 +94,11 @@ const vacancySchema = new mongoose.Schema({
       required: true
     },
     address: String,
-    type: String,
-    required: true,
-    index: true
+    type: {
+      type: String,
+      required: true,
+      index: true
+    }
   },
   status: {
     type: String,
@@ -158,6 +160,6 @@ vacancySchema.index({
 // Add compound indexes for common query patterns
 vacancySchema.index({ status: 1, createdAt: -1 });
 vacancySchema.index({ title: 1, description: 1 });
-vacancySchema.index({ location: 1, employmentType: 1, workType: 1 });
+vacancySchema.index({ 'location.country': 1, 'location.city': 1, employmentType: 1, workType: 1 });
 
 export const Vacancy = mongoose.model('Vacancy', vacancySchema);

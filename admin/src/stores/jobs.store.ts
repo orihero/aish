@@ -16,6 +16,7 @@ export interface Job {
   title: string;
   description: string;
   requirements: string[];
+  responsibilities: string[];
   salary: {
     min: number;
     max: number;
@@ -25,8 +26,14 @@ export interface Job {
     _id: string;
     title: string;
   };
-  employmentType: 'full-time' | 'part-time' | 'contract';
-  workType: 'remote' | 'hybrid' | 'onsite';
+  employmentType: 'full-time' | 'part-time' | 'contract' | 'internship';
+  workType: 'remote' | 'hybrid' | 'on-site';
+  location: {
+    country: string;
+    city: string;
+    address?: string;
+    type: string;
+  };
   company: {
     _id: string;
     name: string;

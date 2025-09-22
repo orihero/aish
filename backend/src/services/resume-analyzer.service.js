@@ -1,4 +1,9 @@
 import axios from 'axios';
+import {
+  RESUME_ANALYSIS_SYSTEM_PROMPT,
+  RESUME_ANALYSIS_USER_PROMPT,
+  RESUME_TEMPLATE
+} from '../prompts/index.js';
 
 // Fetch devicon skills for normalization
 async function getDeviconSkills() {
@@ -49,36 +54,7 @@ export async function analyzeResume(text) {
   // Fetch devicon skills for normalization
   const deviconSkills = await getDeviconSkills();
 
-  const template = {
-    basics: {
-      name: '',
-      label: '',
-      image: '',
-      email: '',
-      phone: '',
-      url: '',
-      summary: '',
-      location: {
-        address: '',
-        postalCode: '',
-        city: '',
-        region: '',
-        countryCode: ''
-      },
-      profiles: []
-    },
-    work: [],
-    volunteer: [],
-    education: [],
-    certifications: [],
-    awards: [],
-    publications: [],
-    skills: [],
-    languages: [],
-    interests: [],
-    projects: [],
-    references: []
-  };
+  const template = RESUME_TEMPLATE;
 
   try {
     const response = await axios.post(process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
@@ -86,36 +62,11 @@ export async function analyzeResume(text) {
       messages: [
         {
           role: 'system',
-          content: `You are a professional resume parser. Your task is to extract information from resumes into a specific JSON format.
-
-Important formatting rules:
-1. Skills must be objects with "name", "level", and "keywords" properties
-2. Languages must be objects with "language" and "fluency" properties
-3. Work experience must include "name", "position", "startDate", "endDate", and "summary"
-4. Education must include "institution", "area", "studyType", "startDate", and "endDate"
-5. Skill names must match exactly with the devicon library names (e.g., "JavaScript", "React", "Node.js", "Python")
-6. Use standard skill names from devicon library for consistency
-
-Example skill format:
-{
-  "name": "JavaScript",
-  "level": "Advanced",
-  "keywords": ["ES6", "React", "Node.js"]
-}
-
-Always return valid JSON that matches the template structure exactly. Do not include any explanatory text or markdown.`
+          content: RESUME_ANALYSIS_SYSTEM_PROMPT
         },
         {
           role: 'user',
-          content: `Extract information from this resume text and return it in the following JSON structure. 
-Follow the formatting rules exactly, especially for skills and languages. Include all fields, leaving them empty if not found:
-
-${JSON.stringify(template, null, 2)}
-
-Resume text:
-${text}
-
-Return ONLY the JSON object, no other text.`
+          content: RESUME_ANALYSIS_USER_PROMPT(text, template)
         }
       ],
       temperature: parseFloat(process.env.OPENROUTER_TEMPERATURE || '0.1')

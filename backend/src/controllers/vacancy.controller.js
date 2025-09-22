@@ -19,20 +19,40 @@ export const createVacancy = async (req, res) => {
       category,
       subcategory,
       description,
+      requirements,
+      responsibilities,
       salary,
       employmentType,
       workType,
+      location,
+      company,
     } = req.body;
+
+    // If no company provided, try to find user's company
+    let companyId = company;
+    if (!companyId) {
+      const userCompany = await Company.findOne({ creator: req.user._id });
+      if (!userCompany) {
+        return res.status(400).json({ 
+          message: 'Company is required. Please create a company profile first.' 
+        });
+      }
+      companyId = userCompany._id;
+    }
 
     const vacancy = new Vacancy({
       title,
       creator: req.user._id,
+      company: companyId,
       category,
-      subcategory,
+      subcategory: subcategory || undefined, // Only set if provided
       description,
+      requirements: requirements || [],
+      responsibilities: responsibilities || [],
       salary,
       employmentType,
       workType,
+      location,
     });
 
     Logger.debug('💾 Saving vacancy to database', { 
@@ -242,19 +262,25 @@ export const updateVacancy = async (req, res) => {
       category,
       subcategory,
       description,
+      requirements,
+      responsibilities,
       salary,
       employmentType,
       workType,
+      location,
     } = req.body;
 
     Object.assign(vacancy, {
       title: title || vacancy.title,
       category: category || vacancy.category,
-      subcategory: subcategory || vacancy.subcategory,
+      subcategory: subcategory !== undefined ? subcategory : vacancy.subcategory,
       description: description || vacancy.description,
+      requirements: requirements || vacancy.requirements,
+      responsibilities: responsibilities || vacancy.responsibilities,
       salary: salary || vacancy.salary,
       employmentType: employmentType || vacancy.employmentType,
       workType: workType || vacancy.workType,
+      location: location || vacancy.location,
     });
 
     await vacancy.save();

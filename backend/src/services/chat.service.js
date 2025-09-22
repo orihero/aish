@@ -1,6 +1,16 @@
 import axios from "axios";
 import { Chat } from "../models/chat.model.js";
 import { Logger } from "../utils/logger.js";
+import {
+  SCREENING_SYSTEM_PROMPT,
+  SCREENING_INITIAL_PROMPT,
+  SCREENING_FALLBACK_MESSAGE,
+  SCREENING_COMPLETION_MESSAGE,
+  SCREENING_PARTIAL_RESPONSE_PROMPT,
+  EVALUATION_SYSTEM_PROMPT,
+  EVALUATION_USER_PROMPT,
+  EVALUATION_ERROR_FALLBACK
+} from "../prompts/index.js";
 
 export async function startScreeningChat(application, vacancy, resume) {
   try {
@@ -19,19 +29,11 @@ export async function startScreeningChat(application, vacancy, resume) {
       messages: [
         {
           role: "system",
-          content: `You are an AI recruiter conducting an initial screening interview. 
-          Your task is to assess the candidate's fit for the position based on their resume and the job requirements.
-          Ask one question at a time and wait for the candidate's response.
-          Focus on technical skills, experience, and behavioral questions relevant to the role.`,
+          content: SCREENING_SYSTEM_PROMPT,
         },
         {
           role: "user",
-          content: `Please start the screening interview for this position:
-          Job Title: ${vacancy.title}
-          Job Description: ${vacancy.description}
-          
-          Candidate Resume:
-          ${JSON.stringify(resume.parsedData, null, 2)}`,
+          content: SCREENING_INITIAL_PROMPT(vacancy, resume),
         },
       ],
     });
@@ -95,8 +97,7 @@ export async function startScreeningChat(application, vacancy, resume) {
       // Add a fallback message if AI response is empty
       chat.messages.push({
         role: "assistant",
-        content:
-          "Hello! I'm ready to start your screening interview. Please tell me a bit about yourself and your experience.",
+        content: SCREENING_FALLBACK_MESSAGE,
       });
     }
 
@@ -204,15 +205,8 @@ export async function continueChat(chatId, message) {
       chat.messages.push(aiMessage);
     }
 
-    // Check if screening should end
-    if (chat.messages.length >= 10) {
-      // After 5 exchanges
-      Logger.info("🏁 Chat reached maximum messages, starting evaluation", {
-        chatId,
-        totalMessages: chat.messages.length,
-      });
-      await evaluateCandidate(chat);
-    }
+    // Check if screening should end based on new logic
+    await checkScreeningCompletion(chat);
 
     Logger.debug("💾 Saving updated chat to database", { chatId });
     await chat.save();
@@ -226,6 +220,114 @@ export async function continueChat(chatId, message) {
   } catch (error) {
     Logger.error("❌ Error continuing chat", error);
     throw error;
+  }
+}
+
+// Helper function to check if screening is complete and handle next steps
+async function checkScreeningCompletion(chat) {
+  try {
+    const userMessages = chat.messages.filter(msg => msg.role === 'user');
+    const assistantMessages = chat.messages.filter(msg => msg.role === 'assistant');
+    
+    // Skip if this is the first message (AI asking questions)
+    if (userMessages.length === 0) {
+      return;
+    }
+    
+    Logger.info("🔍 Checking screening completion", {
+      chatId: chat._id,
+      userMessages: userMessages.length,
+      assistantMessages: assistantMessages.length
+    });
+
+    // If we have 2+ user responses, it's time to evaluate completion
+    if (userMessages.length >= 2) {
+      Logger.info("🏁 Maximum exchanges reached, completing screening", {
+        chatId: chat._id,
+        totalMessages: chat.messages.length,
+      });
+      
+      // Add completion message and evaluate
+      chat.messages.push({
+        role: "assistant",
+        content: SCREENING_COMPLETION_MESSAGE
+      });
+      
+      await evaluateCandidate(chat);
+      return;
+    }
+
+    // If this is the first user response, check if it's complete
+    if (userMessages.length === 1) {
+      const lastUserMessage = userMessages[userMessages.length - 1].content;
+      
+      // Simple heuristic: if the response is very short (< 200 chars) or doesn't contain numbers (question indicators)
+      // it's likely incomplete
+      const isLikelyIncomplete = lastUserMessage.length < 200 || 
+                                 !lastUserMessage.match(/\d+[.)]/g) || // No numbered responses
+                                 lastUserMessage.split('\n').length < 3; // Too few lines
+      
+      if (isLikelyIncomplete) {
+        Logger.info("📝 Response appears incomplete, asking for missing information", {
+          chatId: chat._id,
+          responseLength: lastUserMessage.length
+        });
+        
+        // Ask for missing information
+        chat.messages.push({
+          role: "assistant",
+          content: "Thank you for your response! It looks like you may have missed some of the screening questions. Please make sure to answer all the numbered questions I asked earlier so we can complete your screening process."
+        });
+      } else {
+        Logger.info("✅ Response appears complete, finishing screening", {
+          chatId: chat._id,
+          responseLength: lastUserMessage.length
+        });
+        
+        // Response seems complete, finish screening
+        chat.messages.push({
+          role: "assistant",
+          content: SCREENING_COMPLETION_MESSAGE
+        });
+        
+        await evaluateCandidate(chat);
+      }
+    }
+  } catch (error) {
+    Logger.error("❌ Error checking screening completion", error);
+  }
+}
+
+// Helper function to extract evaluation data from text/markdown response
+function extractEvaluationFromText(text) {
+  try {
+    // Look for score patterns like "Score: 15/100", "15/100", "Score: 15"
+    const scoreMatch = text.match(/(?:score|evaluation)?\s*:?\s*(\d+)(?:\/100)?/i);
+    let score = 0;
+    
+    if (scoreMatch) {
+      score = parseInt(scoreMatch[1]);
+      // Ensure score is within valid range
+      score = Math.max(0, Math.min(100, score));
+    }
+    
+    // Use the entire text as feedback, but clean it up a bit
+    let feedback = text;
+    
+    // Remove excessive formatting and clean up
+    feedback = feedback
+      .replace(/#{1,6}\s*/g, '') // Remove markdown headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
+      .trim();
+    
+    return {
+      score: score,
+      feedback: feedback
+    };
+  } catch (error) {
+    Logger.error("❌ Error extracting evaluation from text", error);
+    return EVALUATION_ERROR_FALLBACK;
   }
 }
 
@@ -248,13 +350,11 @@ async function evaluateCandidate(chat) {
         messages: [
           {
             role: "system",
-            content:
-              "You are an AI recruiter evaluating a candidate based on their interview responses. Provide a score from 0-100 and detailed feedback.",
+            content: EVALUATION_SYSTEM_PROMPT,
           },
           {
             role: "user",
-            content: `Please evaluate this interview transcript and provide a score and feedback:
-          ${JSON.stringify(chat.messages, null, 2)}`,
+            content: EVALUATION_USER_PROMPT(chat.messages),
           },
         ],
         temperature: parseFloat(
@@ -270,7 +370,10 @@ async function evaluateCandidate(chat) {
       }
     );
 
-    console.log(JSON.stringify(response.data, null, 2));
+    Logger.debug("🔍 Full AI response received", {
+      chatId: chat._id,
+      response: JSON.stringify(response.data, null, 2)
+    });
 
     const evaluationResponse = response.data.choices[0].message.content;
 
@@ -285,7 +388,28 @@ async function evaluateCandidate(chat) {
       throw new Error("AI evaluation returned empty response");
     }
 
-    const evaluation = JSON.parse(evaluationResponse);
+    let evaluation;
+    try {
+      // Try to parse as JSON first
+      evaluation = JSON.parse(evaluationResponse);
+    } catch (jsonError) {
+      Logger.warn("⚠️ Response is not valid JSON, attempting to extract data", {
+        chatId: chat._id,
+        responsePreview: evaluationResponse.substring(0, 200)
+      });
+      
+      // Fallback: try to extract score and feedback from markdown/text response
+      evaluation = extractEvaluationFromText(evaluationResponse);
+    }
+
+    // Validate the evaluation object
+    if (!evaluation || typeof evaluation.score !== 'number' || typeof evaluation.feedback !== 'string') {
+      Logger.error("❌ Invalid evaluation format", { 
+        chatId: chat._id, 
+        evaluation: evaluation 
+      });
+      throw new Error("AI evaluation returned invalid format");
+    }
 
     Logger.info("📊 Updating chat with evaluation results", {
       chatId: chat._id,

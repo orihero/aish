@@ -670,7 +670,7 @@ What We Offer:
   }
 };
 
-const workTypes = ['remote', 'hybrid', 'onsite'];
+const workTypes = ['remote', 'hybrid', 'on-site'];
 const employmentTypes = ['full-time', 'part-time', 'contract'];
 const currencies = ['USD', 'EUR', 'GBP', 'UZS', 'RUB', 'UAH'];
 const levels = ['junior', 'middle', 'senior'];

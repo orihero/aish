@@ -63,6 +63,8 @@ interface ChatState {
   startVacancyCreationChat: () => Promise<Chat>;
   continueVacancyCreationChat: (chatId: string, message: string, messageType?: string) => Promise<Chat>;
   finishVacancyCreation: (chatId: string) => Promise<{ chat: Chat; vacancy: any; message: string }>;
+  // AI Content Generation Methods
+  generateContentFromDescription: (description: string, contentType: 'requirements' | 'responsibilities' | 'salary' | 'title', currency?: string) => Promise<string[] | string>;
   clearError: () => void;
 }
 
@@ -138,6 +140,23 @@ export const useChatStore = create<ChatState>((set) => ({
       return data;
     } catch (error) {
       set({ error: 'Failed to finish vacancy creation', isLoading: false });
+      throw error;
+    }
+  },
+
+  // AI Content Generation Methods
+  generateContentFromDescription: async (description: string, contentType: 'requirements' | 'responsibilities' | 'salary' | 'title', currency?: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data } = await api.post('/ai/generate-content', {
+        description,
+        contentType,
+        currency
+      });
+      set({ isLoading: false });
+      return data.content;
+    } catch (error) {
+      set({ error: `Failed to generate ${contentType}`, isLoading: false });
       throw error;
     }
   },

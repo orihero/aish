@@ -1,7 +1,17 @@
 import { Chat } from '../models/chat.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
+import { Category } from '../models/category.model.js';
+import { Company } from '../models/company.model.js';
+import { User } from '../models/user.model.js';
 import { continueChat } from '../services/chat.service.js';
 import { Logger } from '../utils/logger.js';
+import {
+  VACANCY_CREATION_INITIAL_PROMPT,
+  VACANCY_CREATION_RESPONSES,
+  VACANCY_CREATION_STEPS,
+  VACANCY_CREATION_MESSAGE_TYPES,
+  VACANCY_COMPLETION_MESSAGE
+} from '../prompts/index.js';
 
 export const getChat = async (req, res) => {
   try {
@@ -145,10 +155,10 @@ export const startVacancyCreationChat = async (req, res) => {
       status: 'vacancy_creation_in_progress',
       messages: [{
         role: 'assistant',
-        content: 'Hello! I\'m here to help you create a vacancy. Please tell me about the position you want to create - what role are you hiring for, what are the main responsibilities, and any specific requirements you have in mind?',
-        messageType: 'vacancy_creation_start',
+        content: VACANCY_CREATION_INITIAL_PROMPT,
+        messageType: VACANCY_CREATION_MESSAGE_TYPES.VACANCY_CREATION_START,
         metadata: {
-          step: 'initial_greeting'
+          step: VACANCY_CREATION_STEPS.INITIAL_GREETING
         }
       }]
     });
@@ -239,7 +249,7 @@ export const finishVacancyCreation = async (req, res) => {
     }
 
     // Extract vacancy data from chat messages and metadata
-    const vacancyData = extractVacancyDataFromChat(chat);
+    const vacancyData = await extractVacancyDataFromChat(chat);
     
     if (!vacancyData.title || !vacancyData.description) {
       return res.status(400).json({ 
@@ -263,8 +273,8 @@ export const finishVacancyCreation = async (req, res) => {
     
     chat.messages.push({
       role: 'assistant',
-      content: `Great! I've created your vacancy "${vacancy.title}". You can now review and publish it when you're ready.`,
-      messageType: 'vacancy_creation_complete',
+      content: VACANCY_COMPLETION_MESSAGE(vacancy.title),
+      messageType: VACANCY_CREATION_MESSAGE_TYPES.VACANCY_CREATION_COMPLETE,
       metadata: {
         vacancyId: vacancy._id,
         vacancyTitle: vacancy.title
@@ -342,9 +352,42 @@ async function generateVacancyCreationResponse(chat, userMessage) {
 }
 
 // Helper function to extract vacancy data from chat
-function extractVacancyDataFromChat(chat) {
+async function extractVacancyDataFromChat(chat) {
   const messages = chat.messages;
   const conversationText = messages.map(m => m.content).join(' ');
+  
+  // Get a default category (first available category)
+  const defaultCategory = await Category.findOne();
+  if (!defaultCategory) {
+    throw new Error('No categories found. Please create categories first.');
+  }
+
+  // Get user's company if they have one
+  const user = await User.findById(chat.candidate).populate('company');
+  let userCompany = null;
+  
+  if (user && user.company) {
+    userCompany = user.company;
+  } else {
+    // Find or create a default company for this user
+    userCompany = await Company.findOne({ creator: chat.candidate });
+    if (!userCompany) {
+      userCompany = await Company.create({
+        name: `${user.firstName} ${user.lastName}'s Company`,
+        description: 'Default company',
+        location: {
+          country: 'Unknown',
+          city: 'Unknown',
+          address: 'Unknown'
+        },
+        creator: chat.candidate,
+        employees: '1-10',
+        industry: 'Technology',
+        website: '',
+        logo: ''
+      });
+    }
+  }
   
   // Simple extraction logic - in a real implementation, you'd use NLP
   const vacancyData = {
@@ -354,14 +397,17 @@ function extractVacancyDataFromChat(chat) {
     responsibilities: extractResponsibilities(conversationText),
     salary: extractSalary(conversationText),
     employmentType: 'full-time', // Default
-    workType: 'remote', // Default
+    workType: 'remote', // Default (matches enum: 'remote', 'hybrid', 'on-site')
     location: {
-      country: 'Unknown',
-      city: 'Unknown',
-      type: 'remote'
+      country: userCompany.location.country || 'Unknown',
+      city: userCompany.location.city || 'Unknown',
+      address: userCompany.location.address || 'Unknown',
+      type: 'remote' // Required field for location
     },
-    category: null, // Will need to be set by user
+    category: defaultCategory._id, // Use default category ObjectId
+    company: userCompany._id, // Use user's company ObjectId
     skills: []
+    // Note: subcategory is optional, so we don't set it
   };
 
   return vacancyData;

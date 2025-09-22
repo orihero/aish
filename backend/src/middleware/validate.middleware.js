@@ -21,8 +21,8 @@ export const vacancyValidation = [
   body('description').trim().notEmpty().withMessage('Description is required'),
   body('salary.min').isNumeric().withMessage('Minimum salary must be a number'),
   body('salary.max').isNumeric().withMessage('Maximum salary must be a number'),
-  body('employmentType').isIn(['full-time', 'part-time', 'contract']).withMessage('Invalid employment type'),
-  body('workType').isIn(['remote', 'hybrid', 'onsite']).withMessage('Invalid work type')
+  body('employmentType').isIn(['full-time', 'part-time', 'contract', 'internship']).withMessage('Invalid employment type'),
+  body('workType').isIn(['remote', 'hybrid', 'on-site']).withMessage('Invalid work type')
 ];
 
 export const resumeValidation = [

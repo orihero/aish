@@ -16,7 +16,7 @@ import { observer } from "mobx-react-lite";
 
 const Header = () => {
     const { t } = useTranslation();
-    const { visibleStore, authStore } = useRootStore();
+    const { visibleStore, authStore, localStore } = useRootStore();
 
     const navigation = useNavigate();
     const handleMenu = () => {
@@ -143,9 +143,9 @@ const Header = () => {
                     )}
                     <LanguageSelect />
                     {!localStore.session.accessToken && <ButtonComp title={t("hire")} />}
-                    <ButtonComp 
-                        title={t("createResume")} 
-                        primary 
+                    <ButtonComp
+                        title={t("createResume")}
+                        primary
                         onPress={() => visibleStore.show("createResumeModal")}
                     />
                 </div>

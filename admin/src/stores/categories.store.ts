@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { api } from '../lib/axios';
 
 export interface Category {
-  id: string;
+  _id: string;
   parentId?: string | null;
   title: {
     language: string;
@@ -10,7 +10,7 @@ export interface Category {
   }[];
   icon: string;
   subcategories: {
-    id?: string;
+    _id?: string;
     title: {
       language: string;
       value: string;
@@ -54,7 +54,7 @@ export const useCategoriesStore = create<CategoriesState>((set, get) => ({
       
       // If this is a subcategory
       if (categoryData.parentId) {
-        const parentCategory = get().categories.find(c => c.id === categoryData.parentId);
+        const parentCategory = get().categories.find(c => c._id === categoryData.parentId);
         if (!parentCategory) {
           throw new Error('Parent category not found');
         }

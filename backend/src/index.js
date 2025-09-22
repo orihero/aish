@@ -14,6 +14,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import resumeRoutes from "./routes/resume.routes.js";
 import skillsRoutes from "./routes/skills.routes.js";
 import vacancyRoutes from "./routes/vacancy.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Connect to MongoDB
 mongoose
