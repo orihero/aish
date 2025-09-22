@@ -38,25 +38,21 @@ export const getTranslatedEmploymentType = (employmentType: string, currentLang:
             en: 'Full Time',
             ru: 'Полная занятость',
             uz: 'To\'liq ish',
-            uk: 'Повна зайнятість'
         },
         'part-time': {
             en: 'Part Time',
             ru: 'Частичная занятость',
             uz: 'Qisman ish',
-            uk: 'Часткова зайнятість'
         },
         'contract': {
             en: 'Contract',
             ru: 'Контракт',
             uz: 'Shartnoma',
-            uk: 'Контракт'
         },
         'internship': {
             en: 'Internship',
             ru: 'Стажировка',
             uz: 'Stajirovka',
-            uk: 'Стажування'
         }
     };
     
@@ -77,25 +73,21 @@ export const getTranslatedWorkType = (workType: string, currentLang: string): st
             en: 'Remote',
             ru: 'Удаленно',
             uz: 'Masofaviy',
-            uk: 'Віддалено'
         },
         'hybrid': {
             en: 'Hybrid',
             ru: 'Гибридный',
             uz: 'Aralash',
-            uk: 'Гібридний'
         },
         'on-site': {
             en: 'Onsite',
             ru: 'В офисе',
             uz: 'Ofisda',
-            uk: 'В офісі'
         },
         'onsite': { // Handle both 'on-site' and 'onsite' variations
             en: 'Onsite',
             ru: 'В офисе',
             uz: 'Ofisda',
-            uk: 'В офісі'
         }
     };
     
@@ -116,25 +108,21 @@ export const getTranslatedExperienceLevel = (level: string, currentLang: string)
             en: 'Basic',
             ru: 'Базовый',
             uz: 'Asosiy',
-            uk: 'Базовий'
         },
         'intermediate': {
             en: 'Intermediate',
             ru: 'Средний',
             uz: 'O\'rta',
-            uk: 'Середній'
         },
         'fluent': {
             en: 'Fluent',
             ru: 'Свободно',
             uz: 'Erkin',
-            uk: 'Вільно'
         },
         'native': {
             en: 'Native',
             ru: 'Родной',
             uz: 'Ona tili',
-            uk: 'Рідна'
         }
     };
     

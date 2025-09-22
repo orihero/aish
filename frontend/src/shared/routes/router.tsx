@@ -9,6 +9,7 @@ import ResumePreview from "../../screens/resumePreview/ResumePreview";
 import MyProfile from "../../screens/myProfile/MyProfile";
 import ApplicationsView from "../../screens/applications/ApplicationsView";
 import ChatsView from "../../screens/chats/ChatsView";
+import ResetPasswordView from "../../screens/resetPassword/ResetPasswordView";
 
 const AppNavigation = () => {
     const { session } = useRootStore().localStore;
@@ -34,6 +35,7 @@ const AppNavigation = () => {
             <Route path="/applications" element={<ApplicationsView />} />
             <Route path="/chats" element={<ChatsView />} />
             <Route path="/chat/:id" element={<ChatsView />} />
+            <Route path="/reset-password" element={<ResetPasswordView />} />
             <Route path="/*" element={<NotfoundView />} />
         </Routes>
     );

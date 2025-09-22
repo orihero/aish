@@ -154,7 +154,7 @@ const UserInfoCard = () => {
                 <div className="skillRate">
                     <div className="comunitySkill">
                         <Text
-                            text="Technical skill"
+                            text={t("technicalSkill")}
                             textSize="fourteen"
                             color={Colors.textBlack}
                         />
@@ -176,7 +176,7 @@ const UserInfoCard = () => {
                 </div>
             </div>
             <Text
-                text="Skills"
+                text={t("skills")}
                 textSize="sixteen"
                 color={Colors.textGray}
                 family="Epilogue-SemiBold"
@@ -195,7 +195,7 @@ const UserInfoCard = () => {
                                             visibleStore.visible
                                                 .isResumeEditable
                                         }
-                                        placeholder="Direction"
+                                        placeholder={t("direction")}
                                         onChange={(e) =>
                                             resumeStore.updateSkill(
                                                 index,
@@ -212,7 +212,7 @@ const UserInfoCard = () => {
                                             visibleStore.visible
                                                 .isResumeEditable
                                         }
-                                        placeholder="Level"
+                                        placeholder={t("level")}
                                         textAlign={"end"}
                                         onChange={(e) =>
                                             resumeStore.updateSkill(
@@ -319,7 +319,7 @@ const UserInfoCard = () => {
                 />
             )}
             <Text
-                text="Languages"
+                text={t("languages")}
                 textSize="sixteen"
                 color={Colors.textGray}
                 family="Epilogue-SemiBold"
@@ -335,7 +335,7 @@ const UserInfoCard = () => {
                                 isEditable={
                                     visibleStore.visible.isResumeEditable
                                 }
-                                placeholder="Language"
+                                placeholder={t("language")}
                                 onChange={(e) =>
                                     resumeStore.updateLanguage(
                                         index,
@@ -351,7 +351,7 @@ const UserInfoCard = () => {
                                 isEditable={
                                     visibleStore.visible.isResumeEditable
                                 }
-                                placeholder="Fluency"
+                                placeholder={t("fluency")}
                                 onChange={(e) =>
                                     resumeStore.updateLanguage(
                                         index,
@@ -386,7 +386,7 @@ const UserInfoCard = () => {
                 />
             )}
             <Text
-                text="Interests"
+                text={t("interests")}
                 textSize="sixteen"
                 color={Colors.textGray}
                 family="Epilogue-SemiBold"

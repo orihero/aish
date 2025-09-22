@@ -7,6 +7,7 @@ import { observer } from "mobx-react-lite";
 import useRootStore from "../../shared/hooks/UseRootStore";
 import ApplyModal from "../../components/ApplyModal/ApplyModal";
 import LoginModal from "../../components/LoginModal/LoginModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
 
 const VacancyPreview = () => {
     const { vacanciesStore, visibleStore, applicationStore } = useRootStore();
@@ -24,6 +25,7 @@ const VacancyPreview = () => {
             </div>
             <ApplyModal isShow={visibleStore.visible.applyModal} />
             <LoginModal isShow={visibleStore.visible.loginModal} />
+            <ForgotPasswordModal isShow={visibleStore.visible.forgotPasswordModal} />
             <Footer />
         </Container>
     );

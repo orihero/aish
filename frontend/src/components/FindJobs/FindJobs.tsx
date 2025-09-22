@@ -43,17 +43,20 @@ const FindJobs = () => {
     );
 
     const renderJobs = useCallback(() => {
-        // Show loading only if we're actually loading and have no cached data
-        const isLoading = vacanciesStore.loadings.getVacanciesByQuery && 
-            (!vacanciesStore.vacancies?.vacancies || vacanciesStore.vacancies.vacancies.length === 0);
-        
-        if (isLoading) {
+        // Show loading if we're fetching data
+        if (vacanciesStore.loadings.getVacanciesByQuery) {
             return <SpinLoading size="large" />;
         }
         
-        // Show empty state only if we have no data and are not loading
+        // Show empty state only if we have no data and we're not loading
+        // Also check if we have actually tried to load data (vacancies object exists)
         if (!vacanciesStore.vacancies?.vacancies || vacanciesStore.vacancies.vacancies.length === 0) {
-            return <MessageBox title={t("noVacanciesYet")} />;
+            // Only show empty state if we have a vacancies object (meaning we've made at least one request)
+            if (vacanciesStore.vacancies && Object.keys(vacanciesStore.vacancies).length > 0) {
+                return <MessageBox title={t("noVacanciesYet")} />;
+            }
+            // If we don't have vacancies object yet, show loading (initial state)
+            return <SpinLoading size="large" />;
         }
         
         // Render jobs
@@ -67,7 +70,7 @@ const FindJobs = () => {
                 />
             );
         });
-    }, [handleGetVacancy, onApplyHandle, t, vacanciesStore.loadings.getVacanciesByQuery, vacanciesStore.vacancies.vacancies]);
+    }, [handleGetVacancy, onApplyHandle, t, vacanciesStore.loadings.getVacanciesByQuery, vacanciesStore.vacancies]);
 
     const handlePageChange = (newPage: number) => {
         if (newPage > 0 && newPage <= vacanciesStore.vacancies.totalPages) {

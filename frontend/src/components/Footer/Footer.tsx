@@ -10,20 +10,22 @@ import { Images } from "../../shared/assets";
 import Text from "../Text/Text";
 import ButtonComp from "../Button/Button";
 import { Colors } from "../../shared/utils/color";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+    const { t } = useTranslation();
     return (
         <FooterContainer>
             <FooterContent>
                 <LogoSection>
                     <Logo>
-                        <img src={Images.logo2} alt="JobHuntly" />
+                        <img className="logo" src={Images.aish_logo} alt="JobHuntly" />
                     </Logo>
                     <Text
                         textSize="fourteen"
                         color={Colors.lineColor}
                         family="Epilogue-Regular"
-                        text="Great platform for the job seeker that passionate about startups. Find your dream job easier."
+                        text={t("footerDescription")}
                         lineHeight={20}
                     ></Text>
                 </LogoSection>
@@ -31,37 +33,19 @@ const Footer = () => {
                     <Text
                         textSize="eighteen"
                         color={Colors.white}
-                        text="About"
+                        text={t("about")}
                     ></Text>
                     <Text
                         textSize="fourteen"
                         color={Colors.lineColor}
                         family="Epilogue-Regular"
-                        text="Companies"
+                        text={t("terms")}
                     ></Text>
                     <Text
                         textSize="fourteen"
                         color={Colors.lineColor}
                         family="Epilogue-Regular"
-                        text="Pricing"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Terms"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Advice"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Privacy Policy"
+                        text={t("privacyPolicy")}
                     ></Text>
                 </LinkSection>
 
@@ -69,50 +53,42 @@ const Footer = () => {
                     <Text
                         textSize="eighteen"
                         color={Colors.white}
-                        text="Resources"
+                        text={t("resources")}
                     ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Help Docs"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Guide"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Updates"
-                    ></Text>
-                    <Text
-                        textSize="fourteen"
-                        color={Colors.lineColor}
-                        family="Epilogue-Regular"
-                        text="Contact Us"
-                    ></Text>
+                    <a href="/vacancies">
+                        <Text
+                            textSize="fourteen"
+                            color={Colors.lineColor}
+                            family="Epilogue-Regular"
+                            text={t("findJobs")}
+                        ></Text>
+                    </a>
+                    <a href="/#categories">
+                        <Text
+                            textSize="fourteen"
+                            color={Colors.lineColor}
+                            family="Epilogue-Regular"
+                            text={t("categories")}
+                        ></Text>
+                    </a>
                 </LinkSection>
 
                 <SubscribeSection>
                     <Text
                         textSize="eighteen"
                         color={Colors.white}
-                        text="Get job notifications"
+                        text={t("getJobNotifications")}
                     ></Text>
                     <Text
                         textSize="fourteen"
                         color={Colors.lineColor}
                         family="Epilogue-Regular"
-                        text="The latest job news, articles, sent to your inbox weekly."
+                        text={t("theLatestJobNews")}
                         lineHeight={20}
                     ></Text>
                     <div className="inputBtn">
-                        <Input type="email" placeholder="Email Address" />
-                        <ButtonComp title="Subscribe" primary />
+                        <Input type="email" placeholder={t("emailAddress")} />
+                        <ButtonComp title={t("subscribe")} primary />
                     </div>
                 </SubscribeSection>
             </FooterContent>
@@ -121,7 +97,7 @@ const Footer = () => {
                     textSize="fourteen"
                     color={Colors.lineColor}
                     family="Epilogue-Regular"
-                    text="2025 @Aish. All rights reserved."
+                    text={t("copyrightText")}
                 ></Text>
                 <SocialIcons>
                     <IconLink href="#">
@@ -173,6 +149,7 @@ const LogoSection = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
+    
 `;
 
 const Logo = styled.div`
@@ -181,6 +158,11 @@ const Logo = styled.div`
     gap: 30px;
     font-size: 1.5rem;
     font-weight: bold;
+    .logo {
+        height: 6vh;
+        width: 200px;
+        object-fit: cover;
+    }
 `;
 
 const LinkSection = styled.div`

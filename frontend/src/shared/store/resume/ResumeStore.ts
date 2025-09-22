@@ -9,9 +9,11 @@ import {
     ResumeType,
     SkillType,
     User,
+    UserFullType,
 } from "../../../types";
 import _ from "lodash";
 import { AppRootStore } from "../store";
+import { message } from "antd";
 
 export class ResumeStore {
     private readonly rootStore: AppRootStore;
@@ -74,16 +76,50 @@ export class ResumeStore {
                 this.registerData
             );
             if (!register) return;
+            
+            // Handle successful registration
             this.rootStore.localStore.setToken({
                 accessToken: register.data?.token,
             } as never);
+            
             runInAction(() => {
+                this.rootStore.authStore.user = (register.data?.user as unknown as UserFullType) || {} as UserFullType;
                 this.rootStore.authStore.isAuthorized = true;
             });
+            
             callback && callback();
-        } catch (error) {
-            console.log("error", error);
+        } catch (error: any) {
+            console.log("Registration error", error);
+            
+            // Check if error is due to existing email
+            if (error.response?.status === "User already exists with this email") {
+                message.warning(error.response?.data?.message);
+                this.showExistingUserLoginModal();
+            } else {
+                // Handle other registration errors
+                throw error;
+            }
         }
+    };
+
+
+    showExistingUserLoginModal = () => {
+        runInAction(() => {
+            // Hide registration modal and show login modal
+            this.rootStore.visibleStore.hide('registerModal');
+            this.rootStore.visibleStore.show('loginModal');
+            
+            // Set a message about existing email
+            this.rootStore.authStore.setLoginMessage(
+                'This email is already registered. Please login to continue with your resume upload.'
+            );
+        });
+    };
+
+    // Enhanced method to register with resume
+    checkEmailAndRegister = async (callback?: () => void) => {
+        // Proceed directly with registration - the backend will handle duplicate email errors
+        await this.registerWithResume(callback);
     };
 
     getResumeMy = async (forceRefresh: boolean = false) => {
@@ -146,15 +182,27 @@ export class ResumeStore {
         }
     };
     setResume = (file?: File) => {
-        if (file) {
-            const newFormData = new FormData();
-            newFormData.append("cvFile", file);
-
-            runInAction(() => {
+        runInAction(() => {
+            if (file) {
+                const newFormData = new FormData();
+                newFormData.append("cvFile", file);
                 this.fileName = file.name;
                 this.resumeFormData = newFormData;
-            });
-        }
+            } else {
+                // Clear resume data when file is undefined (deletion)
+                this.clearResumeUpload();
+            }
+        });
+    };
+
+    // Method to properly clear all resume upload state
+    clearResumeUpload = () => {
+        runInAction(() => {
+            this.fileName = "";
+            this.resumeFormData = new FormData();
+            // Reset any loading states related to resume creation
+            this.loadings.isCreateResumeLoading = false;
+        });
     };
 
     onCreateResume = async (callback?: () => void) => {

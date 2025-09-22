@@ -11,9 +11,12 @@ import MessageBox from "../../components/MessageBox/MessageBox";
 import SpinLoading from "../../components/SpinLoading/SpinLoading";
 import { ApplicationType } from "../../types";
 import LoginModal from "../../components/LoginModal/LoginModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
+import { useTranslation } from "react-i18next";
 
 const ApplicationsView = () => {
     const { applicationStore, chatStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
     const navigation = useNavigate();
 
     useEffect(() => {
@@ -32,7 +35,7 @@ const ApplicationsView = () => {
         return applicationStore.loadings.isGettingMyApplicationsLoading ? (
             <SpinLoading size="large" />
         ) : applicationStore.myApplications?.length === 0 ? (
-            <MessageBox title="No applications yet" />
+            <MessageBox title={t("noApplicationsYet")} />
         ) : (
             applicationStore.myApplications?.map(
                 (item: ApplicationType, index) => {
@@ -58,7 +61,7 @@ const ApplicationsView = () => {
             <div className="box">
                 <div className="bItem">
                     <Text
-                        text="Applications and invitations"
+                        text={t("applicationsAndInvitations")}
                         textSize="twentyEight"
                         color={Colors.textBlack}
                     />
@@ -66,6 +69,7 @@ const ApplicationsView = () => {
                 <div className="apps">{renderApplicationCard()}</div>
             </div>
             <LoginModal isShow={visibleStore.visible.loginModal} />
+            <ForgotPasswordModal isShow={visibleStore.visible.forgotPasswordModal} />
         </ApplicationsViewContainer>
     );
 };

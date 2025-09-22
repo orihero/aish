@@ -1,13 +1,11 @@
-import { Session } from "react-router-dom";
-import Companies from "../../components/Companies/Companies";
 import {
     ApplicationType,
     CategoriesType,
     ChatType,
     CompanyType,
     FullResumeType,
-    Message,
     ResumeType,
+    UpdateProfileType,
     User,
     UserFullType,
     VacanciesType,
@@ -19,6 +17,17 @@ const apiService = new ApiService();
 
 const APIs = {
     auth: {
+        register: (data: {
+            email: string;
+            password: string;
+            firstName: string;
+            lastName: string;
+        }) =>
+            apiService.methods.post<{ user: User; token: string }>(
+                `api/auth/register`,
+                data
+            ),
+
         registerWithResume: (data: User) =>
             apiService.methods.post<{ user: User; token: string }>(
                 `api/auth/register-with-resume`,
@@ -31,6 +40,30 @@ const APIs = {
         login: (data:{email:string,password:string}) =>
             apiService.methods.post<UserFullType>(
                 `api/auth/login`,
+                data
+            ),
+
+        updateProfile: (data: {
+            firstName: string;
+            lastName: string;
+            phone?: string;
+        }) =>
+            apiService.methods.put<UpdateProfileType>(
+                `api/auth/profile`,
+                data
+            ),
+
+        // Forgot password
+        forgotPassword: (email: string) =>
+            apiService.methods.post<{ message: string }>(
+                `api/auth/forgot-password`,
+                { email }
+            ),
+
+        // Reset password
+        resetPassword: (data: { token: string; password: string }) =>
+            apiService.methods.post<{ message: string }>(
+                `api/auth/reset-password`,
                 data
             ),
     },
@@ -136,7 +169,7 @@ const APIs = {
 
     applications: {
         applyToVacancy: (resumeId: string, vacancyId: string) =>
-            apiService.methods.post<VacanciesType>(
+            apiService.methods.post<ApplicationType>(
                 `api/applications/apply/${resumeId}/${vacancyId}`
             ),
 

@@ -7,6 +7,9 @@ import { observer } from "mobx-react-lite";
 import styled from "styled-components";
 import IconComp from "../../shared/constants/iconBtn";
 import { DynamicIcon } from "lucide-react/dynamic";
+import { useTranslation } from "react-i18next";
+import useRootStore from "../../shared/hooks/UseRootStore";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
     user: UserFullType;
@@ -14,12 +17,25 @@ type Props = {
 };
 
 const PersonalInfoCard: FC<Props> = ({ user, onPress }) => {
+    const { t } = useTranslation();
+    const { authStore, visibleStore } = useRootStore();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await authStore.logout();
+        navigate("/"); // Redirect to home page after logout
+    };
+
+    const handleEditClick = () => {
+        visibleStore.show("editPersonalInfoModal");
+    };
+
     return (
         <PersonalInfoCardContainer onClick={onPress}>
             <div className="info">
                 <div className="item">
                     <Text
-                        text={"First name"}
+                        text={t("firstName")}
                         textSize="sixteen"
                         color={Colors.textGray}
                     />
@@ -31,7 +47,7 @@ const PersonalInfoCard: FC<Props> = ({ user, onPress }) => {
                 </div>
                 <div className="item">
                     <Text
-                        text={"Last name"}
+                        text={t("lastName")}
                         textSize="sixteen"
                         color={Colors.textGray}
                     />
@@ -43,7 +59,7 @@ const PersonalInfoCard: FC<Props> = ({ user, onPress }) => {
                 </div>
                 <div className="item">
                     <Text
-                        text={"Email"}
+                        text={t("email")}
                         textSize="sixteen"
                         color={Colors.textGray}
                     />
@@ -55,19 +71,29 @@ const PersonalInfoCard: FC<Props> = ({ user, onPress }) => {
                 </div>
                 <div className="item">
                     <Text
-                        text={"Phone"}
+                        text={t("phoneNumber")}
                         textSize="sixteen"
                         color={Colors.textGray}
                     />
                     <Text
-                        text={user.phone ? user.phone : "Not provided"}
+                        text={user.phone ? user.phone : t("notProvided")}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
                 </div>
             </div>
             <div className="rightBox">
-                <IconComp icon={<DynamicIcon name="edit" />} />
+                {/* <IconComp 
+                    icon={<DynamicIcon name="edit" />} 
+                    onClick={handleEditClick}
+                    className="editIcon"
+                    
+                /> */}
+                <IconComp 
+                    icon={<DynamicIcon name="log-out" color={Colors.tomato} />} 
+                    onClick={handleLogout}
+                    className="logoutIcon"
+                />
             </div>
         </PersonalInfoCardContainer>
     );
@@ -103,7 +129,28 @@ const PersonalInfoCardContainer = styled.div`
 
     .rightBox {
         display: flex;
-        gap: 20px;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .editIcon {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    .logoutIcon {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
     }
 
     .username {

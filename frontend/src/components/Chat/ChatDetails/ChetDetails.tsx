@@ -18,6 +18,7 @@ import Avatar from "../../Avatar/Avatar";
 import { formatDateSmart, formatTime } from "../../../shared/helper/date";
 import { Skeleton } from "antd";
 import SpinLoading from "../../SpinLoading/SpinLoading";
+import { useTranslation } from "react-i18next";
 
 interface ChatDetailProps {
     chatId: string;
@@ -37,6 +38,7 @@ interface MessageStyleProps {
 const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
     const { chatStore } = useRootStore();
     const navigation = useNavigate();
+    const { t } = useTranslation();
     const [newMessage, setNewMessage] = useState<string>("");
     console.log("currentChat", toJS(chatStore.currentChat));
 
@@ -74,7 +76,7 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
                     <SpinLoading size="large" />
                 ) : chatMessages?.messages?.length === 0 ? (
                     <Text
-                        text="No messages yet."
+                        text={t("noMessagesYet")}
                         textSize="fourteen"
                         color={Colors.textGray}
                         family="Epilogue-Regular"
@@ -132,7 +134,7 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
                 <Text
                     text={
                         chatMessages?.application?.job?.company?.name ||
-                        "Assistant"
+                        t("assistant")
                     }
                     textSize="eighteen"
                     color={Colors.textBlack}
@@ -150,7 +152,7 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
                 <Input
                     value={newMessage}
                     onChange={(e) => onSetNewMessage(e)}
-                    placeholder="Type a message..."
+                    placeholder={t("typeMessage")}
                 />
 
                 <IconComp

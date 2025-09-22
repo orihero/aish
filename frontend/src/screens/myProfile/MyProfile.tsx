@@ -9,9 +9,12 @@ import ResumeCard from "../../components/ResumeCard/ResumeCard";
 import PersonalInfoCard from "../../components/PersonalInfoCard/PersonalInfoCard";
 import SpinLoading from "../../components/SpinLoading/SpinLoading";
 import MessageBox from "../../components/MessageBox/MessageBox";
+import EditPersonalInfoModal from "../../components/EditPersonalInfoModal/EditPersonalInfoModal";
+import { useTranslation } from "react-i18next";
 
 const MyProfile = () => {
-    const { resumeStore, authStore } = useRootStore();
+    const { resumeStore, authStore, visibleStore } = useRootStore();
+    const { t } = useTranslation();
 
     useEffect(() => {
         resumeStore.getResumeMy();
@@ -21,13 +24,13 @@ const MyProfile = () => {
         return resumeStore.loadings.isGettingMyResumesLoading ? (
             <SpinLoading size="large" />
         ) : resumeStore.myResumesState?.length === 0 ? (
-            <MessageBox title="No resumes yet" />
+            <MessageBox title={t("noResumesYet")} />
         ) : (
             resumeStore.myResumesState?.map((item, index) => {
                 return <ResumeCard resume={item} key={index} />;
             })
         );
-    }, [resumeStore]);
+    }, [resumeStore.loadings.isGettingMyResumesLoading, resumeStore.myResumesState, t]);
 
     return (
         <MyProfileContainer>
@@ -35,19 +38,19 @@ const MyProfile = () => {
             <div className="box">
                 <div className="bItem">
                     <Text
-                        text="Profile"
+                        text={t("profile")}
                         textSize="twentyEight"
                         color={Colors.textBlack}
                     />
                     <Text
-                        text="Manage your personal information and preferences"
+                        text={t("managePersonalInfo")}
                         textSize="sixteen"
                         color={Colors.textBlack}
                     />
                 </div>
                 <div className="bItem">
                     <Text
-                        text="Personal information"
+                        text={t("personalInformation")}
                         textSize="twenty"
                         color={Colors.textGray}
                     />
@@ -55,13 +58,16 @@ const MyProfile = () => {
                 </div>
                 <div className="bItem">
                     <Text
-                        text="Resumes"
+                        text={t("resumes")}
                         textSize="twenty"
                         color={Colors.textGray}
                     />
                     {renderResumeCards()}
                 </div>
             </div>
+            <EditPersonalInfoModal 
+                isShow={visibleStore.visible.editPersonalInfoModal} 
+            />
         </MyProfileContainer>
     );
 };

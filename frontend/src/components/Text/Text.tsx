@@ -38,6 +38,7 @@ interface Props {
     placeholder?: string;
     isTag?: boolean;
     paddingTop?: string;
+    fontWeight?: string;
 }
 
 const Text: React.FC<Props> = ({
@@ -64,6 +65,7 @@ const Text: React.FC<Props> = ({
     placeholder,
     isTag,
     paddingTop,
+    fontWeight,
 }) => {
     return isEditable ? (
         <textarea
@@ -117,6 +119,7 @@ const Text: React.FC<Props> = ({
                 lineHeight: `${lineHeight}px`,
                 WebkitTextStroke: WebkitTextStroke,
                 paddingTop: paddingTop,
+                fontWeight: fontWeight,
             }}
         ></p>
     );

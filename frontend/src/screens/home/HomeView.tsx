@@ -13,6 +13,8 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
 import ApplyModal from "../../components/ApplyModal/ApplyModal";
 import LoginModal from "../../components/LoginModal/LoginModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
+import ResetPasswordModal from "../../components/ResetPasswordModal/ResetPasswordModal";
 
 const HomeView = () => {
     const { visibleStore } = useRootStore();
@@ -32,6 +34,8 @@ const HomeView = () => {
             <RegisterModal isShow={visibleStore.visible.registerModal} />
             <ApplyModal isShow={visibleStore.visible.applyModal} />
             <LoginModal isShow={visibleStore.visible.loginModal} />
+            <ForgotPasswordModal isShow={visibleStore.visible.forgotPasswordModal} />
+            <ResetPasswordModal isShow={visibleStore.visible.resetPasswordModal} />
         </div>
     );
 };

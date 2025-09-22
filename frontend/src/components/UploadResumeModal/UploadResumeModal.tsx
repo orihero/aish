@@ -83,7 +83,15 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
             <div className="modalBox">
                 <div className="close">
                     <IconComp
-                        onClick={() => visibleStore.hide("createResumeModal")}
+                        onClick={() => {
+                            visibleStore.hide("createResumeModal");
+                            // Clear upload state when modal is closed
+                            resumeStore.clearResumeUpload();
+                            setUploadProgress(0);
+                            if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                            }
+                        }}
                         icon={<DynamicIcon name="x" size={20} />}
                     />
                 </div>
@@ -150,6 +158,10 @@ const UploadResumeModal: FC<Props> = ({ isShow }) => {
                                         e.stopPropagation();
                                         resumeStore.setResume(undefined);
                                         setUploadProgress(0);
+                                        // Clear the file input value to allow re-uploading the same file
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = '';
+                                        }
                                     }}>
                                         <DynamicIcon name="x" size={16} color={Colors.textGray} />
                                     </div>

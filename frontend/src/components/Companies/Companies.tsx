@@ -3,12 +3,15 @@ import { Logos } from "../../shared/assets";
 import styled from "styled-components";
 import Text from "../Text/Text";
 import { Colors } from "../../shared/utils/color";
+import { useTranslation } from "react-i18next";
 
 const Companies = () => {
+    const { t } = useTranslation();
+    
     return (
         <CompaniesContainer>
             <Text
-                text="Companies we helped grow"
+                text={t("companiesText")}
                 textSize="sixteen"
                 color={Colors.textGray}
             />

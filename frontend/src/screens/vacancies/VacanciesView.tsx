@@ -11,6 +11,7 @@ import ApplyModal from "../../components/ApplyModal/ApplyModal";
 import UploadResumeModal from "../../components/UploadResumeModal/UploadResumeModal";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
 import LoginModal from "../../components/LoginModal/LoginModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
 
 const VacanciesView = () => {
     const { vacanciesStore, visibleStore } = useRootStore();
@@ -36,6 +37,7 @@ const VacanciesView = () => {
             />
             <RegisterModal isShow={visibleStore.visible.registerModal} />
             <LoginModal isShow={visibleStore.visible.loginModal} />
+            <ForgotPasswordModal isShow={visibleStore.visible.forgotPasswordModal} />
         </Container>
     );
 };

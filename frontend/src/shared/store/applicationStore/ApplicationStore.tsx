@@ -63,7 +63,7 @@ export class ApplicationStore {
             // Refresh applications list to update UI
             this.getMyApplications();
             // Pass chat ID to callback for navigation
-            callback && callback(response.data.chat as string);
+            callback && callback(response.data.chat._id as string);
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || "Failed to submit application";
             message.error(errorMessage);

@@ -25,9 +25,6 @@ i18n.use(LanguageDetector)
             uz: {
                 translation: uz,
             },
-            uk: {
-                translation: en,
-            },
         },
     });
 
