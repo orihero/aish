@@ -2,18 +2,18 @@ module.exports = {
   apps: [
     {
       name: 'frontend-react',
-      script: 'npm',
-      args: 'start',
+      script: 'npx',
+      args: 'vite --host 0.0.0.0',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'development',
-        PORT: 3000,
+        PORT: 8200,
         BROWSER: 'none'
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 8200
       },
       watch: ['src', 'public'],
       ignore_watch: ['node_modules', 'build', 'logs'],

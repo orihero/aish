@@ -2,17 +2,17 @@ module.exports = {
   apps: [
     {
       name: 'admin-vite',
-      script: 'npm',
-      args: 'run dev',
+      script: 'npx',
+      args: 'vite --host 0.0.0.0',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'development',
-        PORT: 5173
+        PORT: 8300
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 5173
+        PORT: 8300
       },
       watch: ['src'],
       ignore_watch: ['node_modules', 'dist', 'logs'],

@@ -75,7 +75,7 @@ export function JobApplications() {
         queryKey: isJobSpecific ? ["jobApplications", actualJobId] : ["myApplications"]
       });
     } catch (error) {
-      console.error('Failed to invite candidate:', error);
+      console.error('Failed to invite candidate :', error);
     } finally {
       setLoadingActions(prev => {
         const newSet = new Set(prev);
