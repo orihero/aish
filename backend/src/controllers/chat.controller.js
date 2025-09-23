@@ -5,6 +5,7 @@ import { Company } from '../models/company.model.js';
 import { User } from '../models/user.model.js';
 import { continueChat } from '../services/chat.service.js';
 import { Logger } from '../utils/logger.js';
+import { detectLanguage, getLanguageInstruction, getLanguageName } from '../utils/languageDetection.js';
 import {
   VACANCY_CREATION_INITIAL_PROMPT,
   VACANCY_CREATION_RESPONSES,
@@ -12,6 +13,7 @@ import {
   VACANCY_CREATION_MESSAGE_TYPES,
   VACANCY_COMPLETION_MESSAGE
 } from '../prompts/index.js';
+import { getVacancyCreationPrompt } from '../prompts/vacancy-creation-multilingual.js';
 
 export const getChat = async (req, res) => {
   try {
@@ -24,7 +26,7 @@ export const getChat = async (req, res) => {
           path: 'job',
           populate: {
             path: 'company',
-            select: 'name logo'
+            select: 'name logo creator'
           }
         }
       });
@@ -38,11 +40,14 @@ export const getChat = async (req, res) => {
     console.log('User making request:', req.user._id);
     console.log('====================================');
 
-    // Check authorization - allow if user is the candidate or an admin
+    // Check authorization - allow if user is the candidate, employer, or an admin
     const isAuthorized = (
       // Check if user is the candidate (either directly or through application)
       (chat.candidate && chat.candidate._id.toString() === req.user._id.toString()) ||
       (chat.application && chat.application.user.toString() === req.user._id.toString()) ||
+      // Check if user is the employer (job creator)
+      (chat.application && chat.application.job && chat.application.job.company && 
+       chat.application.job.company.creator.toString() === req.user._id.toString()) ||
       // Or if user is an admin
       req.user.role === 'admin'
     );
@@ -67,15 +72,32 @@ export const getChat = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const chat = await Chat.findById(req.params.chatId)
-      .populate('candidate', '_id firstName lastName email');
+      .populate('candidate', '_id firstName lastName email')
+      .populate({
+        path: 'application',
+        populate: {
+          path: 'job',
+          populate: {
+            path: 'company',
+            select: 'creator'
+          }
+        }
+      });
       
     if (!chat) {
       return res.status(404).json({ message: 'Chat not found' });
     }
 
-    // Check authorization - allow if user is the candidate
-    const isAuthorized = chat.candidate && 
-      chat.candidate._id.toString() === req.user._id.toString();
+    // Check authorization - allow if user is the candidate, employer, or admin
+    const isAuthorized = (
+      // Check if user is the candidate
+      (chat.candidate && chat.candidate._id.toString() === req.user._id.toString()) ||
+      // Check if user is the employer (job creator)
+      (chat.application && chat.application.job && chat.application.job.company && 
+       chat.application.job.company.creator.toString() === req.user._id.toString()) ||
+      // Or if user is an admin
+      req.user.role === 'admin'
+    );
 
     if (!isAuthorized) {
       return res.status(403).json({ message: 'Not authorized to send messages in this chat' });
@@ -92,11 +114,12 @@ export const sendMessage = async (req, res) => {
 
 export const getMyChats = async (req, res) => {
   try {
-    // Find all chats where the user is either the candidate directly or through an application
+    // Find all chats where the user is either the candidate directly, through an application, or the employer
     const chats = await Chat.find({
       $or: [
         { candidate: req.user._id },
-        { 'application.user': req.user._id }
+        { 'application.user': req.user._id },
+        { 'application.job.company.creator': req.user._id }
       ]
     })
     .populate('candidate', '_id firstName lastName email')
@@ -107,7 +130,7 @@ export const getMyChats = async (req, res) => {
           path: 'job',
           populate: {
             path: 'company',
-            select: 'name logo description'
+            select: 'name logo description creator'
           },
           select: 'title description requirements company'
         }
@@ -149,6 +172,7 @@ export const startVacancyCreationChat = async (req, res) => {
     }
 
     // Create new vacancy creation chat
+    // For initial chat, we'll use English as default, but will detect language from user's first message
     const chat = new Chat({
       candidate: req.user._id,
       chatType: 'vacancy_creation',
@@ -158,7 +182,8 @@ export const startVacancyCreationChat = async (req, res) => {
         content: VACANCY_CREATION_INITIAL_PROMPT,
         messageType: VACANCY_CREATION_MESSAGE_TYPES.VACANCY_CREATION_START,
         metadata: {
-          step: VACANCY_CREATION_STEPS.INITIAL_GREETING
+          step: VACANCY_CREATION_STEPS.INITIAL_GREETING,
+          detectedLanguage: 'en' // Default to English for initial greeting
         }
       }]
     });
@@ -266,6 +291,10 @@ export const finishVacancyCreation = async (req, res) => {
 
     await vacancy.save();
 
+    // Detect language from the conversation for the completion message
+    const conversationText = chat.messages.map(m => m.content).join(' ');
+    const detectedLanguage = detectLanguage(conversationText);
+    
     // Update chat with vacancy reference and completion status
     chat.vacancy = vacancy._id;
     chat.status = 'vacancy_creation_completed';
@@ -273,11 +302,12 @@ export const finishVacancyCreation = async (req, res) => {
     
     chat.messages.push({
       role: 'assistant',
-      content: VACANCY_COMPLETION_MESSAGE(vacancy.title),
+      content: getVacancyCreationPrompt(detectedLanguage, 'completion', vacancy.title),
       messageType: VACANCY_CREATION_MESSAGE_TYPES.VACANCY_CREATION_COMPLETE,
       metadata: {
         vacancyId: vacancy._id,
-        vacancyTitle: vacancy.title
+        vacancyTitle: vacancy.title,
+        detectedLanguage
       }
     });
 
@@ -305,10 +335,15 @@ async function generateVacancyCreationResponse(chat, userMessage) {
   const messages = chat.messages;
   const lastMessages = messages.slice(-6); // Get last 6 messages for context
   
+  // Detect the language of the user's message
+  const detectedLanguage = detectLanguage(userMessage);
+  console.log(`Vacancy Creation Chat - Detected language: ${detectedLanguage} for user message`);
+  
   // Simple AI logic - in a real implementation, you'd use OpenAI or similar
   let response = '';
   let messageType = 'vacancy_creation_progress';
   let metadata = {};
+  let step = '';
 
   // Analyze the conversation to determine what information we have
   const conversationText = messages.map(m => m.content).join(' ');
@@ -319,29 +354,28 @@ async function generateVacancyCreationResponse(chat, userMessage) {
     
     if (!conversationText.toLowerCase().includes('description') || 
         !conversationText.toLowerCase().includes('responsibilities')) {
-      response = 'Great! Now can you tell me more about the job description and main responsibilities for this position?';
-      metadata.step = 'collecting_description';
+      step = 'collecting_description';
     } else if (!conversationText.toLowerCase().includes('requirements') || 
                !conversationText.toLowerCase().includes('skills')) {
-      response = 'Perfect! What are the key requirements and skills needed for this role?';
-      metadata.step = 'collecting_requirements';
+      step = 'collecting_requirements';
     } else if (!conversationText.toLowerCase().includes('salary') || 
                !conversationText.toLowerCase().includes('compensation')) {
-      response = 'Excellent! What salary range are you offering for this position?';
-      metadata.step = 'collecting_salary';
+      step = 'collecting_salary';
     } else if (!conversationText.toLowerCase().includes('location') || 
                !conversationText.toLowerCase().includes('remote')) {
-      response = 'Almost done! What\'s the work location? Is this remote, hybrid, or on-site?';
-      metadata.step = 'collecting_location';
+      step = 'collecting_location';
     } else {
-      response = 'Perfect! I have all the information I need. Would you like me to create the vacancy now?';
+      step = 'ready_to_create';
       messageType = 'vacancy_ready';
-      metadata.step = 'ready_to_create';
     }
   } else {
-    response = 'I\'d love to help you create a vacancy! Could you start by telling me what position you\'re hiring for?';
-    metadata.step = 'collecting_title';
+    step = 'collecting_title';
   }
+
+  // Get the appropriate response in the detected language
+  response = getVacancyCreationPrompt(detectedLanguage, step);
+  metadata.step = step;
+  metadata.detectedLanguage = detectedLanguage;
 
   return {
     role: 'assistant',

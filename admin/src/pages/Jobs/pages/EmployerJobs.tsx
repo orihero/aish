@@ -27,7 +27,10 @@ export function EmployerJobs() {
   });
 
   const getApplicationCount = (jobId: string) => {
-    return applications.filter(app => app.jobId === jobId).length;
+    if (!Array.isArray(applications)) {
+      return 0;
+    }
+    return applications.filter(app => app.job._id === jobId).length;
   };
 
   if (isLoading) {

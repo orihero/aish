@@ -55,7 +55,7 @@ export const useApplicationsStore = create<ApplicationsState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.get("/applications/me");
-      set({ applications: data, isLoading: false });
+      set({ applications: data.data || data || [], isLoading: false });
     } catch (error) {
       set({ error: "Failed to fetch applications", isLoading: false });
     }
@@ -66,7 +66,9 @@ export const useApplicationsStore = create<ApplicationsState>((set) => ({
     try {
       const { data } = await api.post(`/applications/apply/${resumeId}/${jobId}`);
       set((state) => ({
-        applications: [...state.applications, data],
+        applications: Array.isArray(state.applications) 
+          ? [...state.applications, data]
+          : [data],
         isLoading: false,
       }));
     } catch (error) {
@@ -80,9 +82,9 @@ export const useApplicationsStore = create<ApplicationsState>((set) => ({
     try {
       const { data } = await api.patch(`/applications/${id}`, { status });
       set((state) => ({
-        applications: state.applications.map((app) =>
-          app._id === id ? data : app
-        ),
+        applications: Array.isArray(state.applications) 
+          ? state.applications.map((app) => app._id === id ? data : app)
+          : [],
         isLoading: false,
       }));
     } catch (error) {

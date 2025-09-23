@@ -45,7 +45,7 @@ const chatSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['screening', 'completed', 'rejected', 'vacancy_creation_in_progress', 'vacancy_creation_completed'],
+    enum: ['screening', 'completed', 'rejected', 'ai-rejected', 'ai-reviewed', 'vacancy_creation_in_progress', 'vacancy_creation_completed'],
     default: 'screening'
   },
   score: {

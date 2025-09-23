@@ -11,6 +11,7 @@ import { ApplicationChat } from './pages/Jobs/pages/ApplicationChat';
 import { Companies } from './pages/Companies';
 import { EmployerCompany } from './pages/Companies/pages/EmployerCompany';
 import { Resumes } from './pages/Resumes';
+import { ResumePreview } from './pages/Resumes/ResumePreview';
 import { Settings } from './pages/Settings';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PrivateRoute } from './components/PrivateRoute';
@@ -122,6 +123,11 @@ function App() {
               <Route path="resumes" element={
                 <PrivateRoute>
                   <Resumes />
+                </PrivateRoute>
+              } />
+              <Route path="resumes/:id" element={
+                <PrivateRoute>
+                  <ResumePreview />
                 </PrivateRoute>
               } />
               <Route path="settings" element={

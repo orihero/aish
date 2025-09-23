@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { detectLanguage, getLanguageInstruction, getLanguageName } from '../utils/languageDetection.js';
 
 // AI Content Generation Controller
 export const generateContent = async (req, res) => {
@@ -19,27 +20,33 @@ export const generateContent = async (req, res) => {
       });
     }
 
+    // Detect the language of the input description
+    const detectedLanguage = detectLanguage(description);
+    const languageInstruction = getLanguageInstruction(detectedLanguage);
+    
+    console.log(`AI Content Generation - Detected language: ${detectedLanguage} for content type: ${contentType}`);
+
     let systemPrompt = '';
     let userPrompt = '';
 
     switch (contentType) {
       case 'title':
-        systemPrompt = 'You are an expert job title generator. Generate a professional, concise job title based on the job description provided. Return only the job title, nothing else.';
+        systemPrompt = `You are an expert job title generator. Generate a professional, concise job title based on the job description provided. ${languageInstruction} Return only the job title, nothing else.`;
         userPrompt = `Based on this job description, generate a professional job title:\n\n${description}`;
         break;
       
       case 'requirements':
-        systemPrompt = 'You are an expert HR professional. Generate a list of job requirements based on the job description provided. Return a JSON array of strings, each representing a requirement.';
+        systemPrompt = `You are an expert HR professional. Generate a list of job requirements based on the job description provided. ${languageInstruction} Return a JSON array of strings, each representing a requirement.`;
         userPrompt = `Based on this job description, generate 5-8 specific job requirements:\n\n${description}`;
         break;
       
       case 'responsibilities':
-        systemPrompt = 'You are an expert HR professional. Generate a list of job responsibilities based on the job description provided. Return a JSON array of strings, each representing a responsibility.';
+        systemPrompt = `You are an expert HR professional. Generate a list of job responsibilities based on the job description provided. ${languageInstruction} Return a JSON array of strings, each representing a responsibility.`;
         userPrompt = `Based on this job description, generate 5-8 specific job responsibilities:\n\n${description}`;
         break;
       
       case 'salary':
-        systemPrompt = `You are an expert salary analyst. Based on the job description, provide a realistic salary range in ${currency || 'USD'}. Return only the range in format "min-max" (e.g., "50000-70000"), nothing else.`;
+        systemPrompt = `You are an expert salary analyst. Based on the job description, provide a realistic salary range in ${currency || 'USD'}. ${languageInstruction} Return only the range in format "min-max" (e.g., "50000-70000"), nothing else.`;
         userPrompt = `Based on this job description, suggest a realistic salary range in ${currency || 'USD'}:\n\n${description}`;
         break;
       
@@ -106,7 +113,9 @@ export const generateContent = async (req, res) => {
 
     res.json({
       success: true,
-      content
+      content,
+      detectedLanguage,
+      languageName: getLanguageName(detectedLanguage)
     });
 
   } catch (error) {

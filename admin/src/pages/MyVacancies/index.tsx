@@ -32,7 +32,10 @@ export function MyVacancies() {
   });
 
   const getApplicationCount = (jobId: string) => {
-    return applications.filter(app => app.jobId === jobId).length;
+    if (!Array.isArray(applications)) {
+      return 0;
+    }
+    return applications.filter(app => app.job._id === jobId).length;
   };
 
   const getStatusColor = (status: string) => {

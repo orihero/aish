@@ -6,6 +6,7 @@ import { Message, Chat } from '@/stores/chat.store';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import CompanyAvatar from '@/components/CompanyAvatar';
+import { useAuthStore } from '@/stores/auth.store';
 
 export const ApplicationChat = () => {
   const navigate = useNavigate();
@@ -13,6 +14,48 @@ export const ApplicationChat = () => {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuthStore();
+  
+  // Determine if current user is an employer
+  const isEmployer = user?.role === 'employer' || user?.role === 'admin';
+
+  // Helper function to render HTML content safely
+  const renderHTMLContent = (content: string) => {
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  };
+
+  // Helper function to get sender name
+  const getSenderName = (msg: Message) => {
+    if (msg.role === 'assistant') {
+      return 'AI Recruiter';
+    }
+    if (isEmployer) {
+      // For employers, show candidate name instead of "You"
+      return chat?.candidate 
+        ? `${chat.candidate.firstName} ${chat.candidate.lastName}`.trim()
+        : 'Candidate';
+    }
+    return 'You';
+  };
+
+  // Helper function to determine message alignment and styling
+  const getMessageStyles = (msg: Message) => {
+    if (isEmployer) {
+      // For employer view: reverse the layout
+      return {
+        alignment: msg.role === 'assistant' ? 'right' : 'left',
+        bgColor: msg.role === 'assistant' ? 'bg-blue-500' : 'bg-gray-100',
+        textColor: msg.role === 'assistant' ? 'text-white' : 'text-gray-900'
+      };
+    } else {
+      // For employee view: normal layout
+      return {
+        alignment: msg.role === 'user' ? 'right' : 'left',
+        bgColor: msg.role === 'user' ? 'bg-blue-500' : 'bg-gray-100',
+        textColor: msg.role === 'user' ? 'text-white' : 'text-gray-900'
+      };
+    }
+  };
 
   const { data: chats, isLoading: isChatsLoading, error: chatsError } = useQuery<Chat[]>({
     queryKey: ['chats'],
@@ -57,7 +100,7 @@ export const ApplicationChat = () => {
             ...previousChat.messages,
             {
               _id: Date.now().toString(),
-              role: 'candidate',
+              role: isEmployer ? 'assistant' : 'user',
               content: newMessage,
               timestamp: new Date().toISOString()
             }
@@ -200,25 +243,35 @@ export const ApplicationChat = () => {
                   <div className="text-center text-red-500 py-4">Failed to load chat messages</div>
                 ) : (
                   <>
-                    {chat?.messages.map((msg: Message) => (
-                      <div
-                        key={msg._id}
-                        className={`p-4 ${msg.role === 'assistant' ? 'bg-gray-100' : 'bg-white'
-                          } rounded-lg`}
-                      >
-                        <p className="text-sm text-gray-600">
-                          {msg.role === 'assistant' ? 'AI Recruiter' : 'You'}
-                        </p>
-                        <p className="mt-1">{msg.content}</p>
-                      </div>
-                    ))}
+                    {chat?.messages.map((msg: Message) => {
+                      const styles = getMessageStyles(msg);
+                      return (
+                        <div
+                          key={msg._id}
+                          className={`flex ${styles.alignment === 'right' ? 'justify-end' : 'justify-start'} mb-4`}
+                        >
+                          <div
+                            className={`max-w-[70%] p-4 rounded-lg ${styles.bgColor} ${styles.textColor}`}
+                          >
+                            <p className={`text-sm ${styles.textColor === 'text-white' ? 'text-blue-100' : 'text-gray-600'}`}>
+                              {getSenderName(msg)}
+                            </p>
+                            <div className="mt-1">
+                              {renderHTMLContent(msg.content)}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                     {sendMessageMutation.isPending && (
-                      <div className="p-4 bg-gray-100 rounded-lg">
-                        <p className="text-sm text-gray-600">AI Recruiter</p>
-                        <div className="flex items-center gap-1 mt-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      <div className={`flex ${isEmployer ? 'justify-end' : 'justify-start'} mb-4`}>
+                        <div className="max-w-[70%] p-4 bg-blue-500 rounded-lg">
+                          <p className="text-sm text-blue-100">AI Recruiter</p>
+                          <div className="flex items-center gap-1 mt-2">
+                            <div className="w-2 h-2 bg-blue-200 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-blue-200 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-blue-200 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
                         </div>
                       </div>
                     )}

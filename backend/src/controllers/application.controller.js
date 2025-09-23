@@ -69,7 +69,7 @@ export const getMyApplications = async (req, res) => {
           }
         }
       })
-      .populate('resume', 'name')
+      .populate('resume', 'name title')
       .populate('chat', 'messages')
       .sort({ appliedAt: -1 });
 
@@ -77,7 +77,7 @@ export const getMyApplications = async (req, res) => {
     const formattedApplications = applications.map(app => ({
       _id: app._id,
       status: app.status,
-      createdAt: app.appliedAt,
+      createdAt: app.appliedAt || app.createdAt,
       updatedAt: app.updatedAt,
       chat: {
         _id: app.chat?._id
@@ -102,13 +102,77 @@ export const getMyApplications = async (req, res) => {
       },
       resume: {
         id: app.resume._id,
-        title: app.resume.name
+        title: app.resume.title || app.resume.name
       }
     }));
 
     res.json(formattedApplications);
   } catch (error) {
     console.error('Error fetching applications:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getJobApplications = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    // First, verify the job exists and get the company info
+    const vacancy = await Vacancy.findById(jobId)
+      .populate('company', 'creator');
+
+    if (!vacancy) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Check if user is the job creator or admin
+    if (vacancy.company.creator.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to view applications for this job' });
+    }
+
+    // Get all applications for this job
+    const applications = await Application.find({ job: jobId })
+      .populate({
+        path: 'resume',
+        select: 'name title email phone',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      })
+      .populate('chat', '_id')
+      .sort({ appliedAt: -1 });
+
+    // Format applications to match the expected structure
+    const formattedApplications = applications.map(app => ({
+      _id: app._id,
+      status: app.status,
+      createdAt: app.appliedAt || app.createdAt,
+      updatedAt: app.updatedAt,
+      chat: {
+        _id: app.chat?._id
+      },
+      job: {
+        _id: vacancy._id,
+        title: vacancy.title,
+        company: {
+          name: vacancy.company.name,
+          logo: vacancy.company.logo
+        },
+        location: vacancy.location,
+        type: vacancy.employmentType
+      },
+      resume: {
+        _id: app.resume._id,
+        name: app.resume.user ? `${app.resume.user.firstName} ${app.resume.user.lastName}` : app.resume.name,
+        email: app.resume.user?.email || app.resume.email,
+        phone: app.resume.phone
+      }
+    }));
+
+    res.json(formattedApplications);
+  } catch (error) {
+    console.error('Error fetching job applications:', error);
     res.status(500).json({ message: error.message });
   }
 };

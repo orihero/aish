@@ -154,7 +154,11 @@ export const useChatStore = create<ChatState>((set) => ({
         currency
       });
       set({ isLoading: false });
-      return data.content;
+      return {
+        content: data.content,
+        detectedLanguage: data.detectedLanguage,
+        languageName: data.languageName
+      };
     } catch (error) {
       set({ error: `Failed to generate ${contentType}`, isLoading: false });
       throw error;

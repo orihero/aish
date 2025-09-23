@@ -30,5 +30,5 @@ export const resumeValidation = [
 ];
 
 export const applicationStatusValidation = [
-  body('status').isIn(['pending', 'reviewed', 'accepted', 'rejected']).withMessage('Invalid status')
+  body('status').isIn(['pending', 'reviewed', 'accepted', 'rejected', 'ai-rejected', 'ai-reviewed']).withMessage('Invalid status')
 ];

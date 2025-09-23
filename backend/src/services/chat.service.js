@@ -1,16 +1,99 @@
 import axios from "axios";
 import { Chat } from "../models/chat.model.js";
+import { Application } from "../models/application.model.js";
 import { Logger } from "../utils/logger.js";
 import {
   SCREENING_SYSTEM_PROMPT,
   SCREENING_INITIAL_PROMPT,
   SCREENING_FALLBACK_MESSAGE,
+  SCREENING_MISMATCH_MESSAGE,
   SCREENING_COMPLETION_MESSAGE,
   SCREENING_PARTIAL_RESPONSE_PROMPT,
   EVALUATION_SYSTEM_PROMPT,
   EVALUATION_USER_PROMPT,
   EVALUATION_ERROR_FALLBACK
 } from "../prompts/index.js";
+
+// Helper function to check if candidate background matches the position
+function checkCandidateMatch(vacancy, resume) {
+  try {
+    const vacancyTitle = vacancy.title.toLowerCase();
+    const vacancyDescription = vacancy.description.toLowerCase();
+    const resumeSkills = resume.parsedData?.skills?.map(s => s.name.toLowerCase()) || [];
+    const resumeExperience = resume.parsedData?.work || [];
+    const currentRole = resume.parsedData?.basics?.label?.toLowerCase() || '';
+    
+    // Define position categories and their typical skills
+    const positionCategories = {
+      'backend': ['javascript', 'node.js', 'python', 'java', 'c#', 'php', 'ruby', 'go', 'rust', 'database', 'api', 'server'],
+      'frontend': ['javascript', 'react', 'vue', 'angular', 'html', 'css', 'typescript', 'ui', 'ux', 'design'],
+      'fullstack': ['javascript', 'react', 'node.js', 'python', 'full stack', 'fullstack', 'mern', 'mean'],
+      'mobile': ['react native', 'flutter', 'ios', 'android', 'swift', 'kotlin', 'mobile'],
+      'devops': ['docker', 'kubernetes', 'aws', 'azure', 'ci/cd', 'jenkins', 'terraform', 'linux'],
+      'data': ['python', 'sql', 'machine learning', 'ai', 'data science', 'analytics', 'pandas', 'numpy'],
+      'design': ['photoshop', 'illustrator', 'figma', 'sketch', 'ui', 'ux', 'graphic design', 'web design'],
+      'marketing': ['seo', 'sem', 'social media', 'content', 'analytics', 'google ads', 'facebook ads'],
+      'project': ['project management', 'agile', 'scrum', 'jira', 'trello', 'pm', 'product management'],
+      'video': ['video editing', 'premiere', 'after effects', 'final cut', 'video production', 'motion graphics']
+    };
+    
+    // Check if vacancy title/description contains position category keywords
+    let vacancyCategory = null;
+    for (const [category, keywords] of Object.entries(positionCategories)) {
+      if (keywords.some(keyword => vacancyTitle.includes(keyword) || vacancyDescription.includes(keyword))) {
+        vacancyCategory = category;
+        break;
+      }
+    }
+    
+    // If we can't determine vacancy category, assume it's a match (let AI decide)
+    if (!vacancyCategory) {
+      return { isMatch: true, reason: 'Unable to determine position category' };
+    }
+    
+    // Check if candidate has relevant skills for the position
+    const hasRelevantSkills = positionCategories[vacancyCategory].some(skill => 
+      resumeSkills.some(resumeSkill => resumeSkill.includes(skill)) ||
+      currentRole.includes(skill)
+    );
+    
+    // Check for obvious mismatches
+    const obviousMismatches = {
+      'backend': ['video editing', 'graphic design', 'marketing', 'social media'],
+      'frontend': ['video editing', 'machine learning', 'data science', 'devops'],
+      'mobile': ['backend', 'database', 'server', 'api development'],
+      'devops': ['video editing', 'graphic design', 'ui design', 'frontend'],
+      'data': ['video editing', 'graphic design', 'ui design', 'frontend'],
+      'design': ['backend', 'database', 'server', 'api', 'programming'],
+      'marketing': ['backend', 'database', 'server', 'api', 'programming'],
+      'project': ['video editing', 'graphic design', 'programming', 'development'],
+      'video': ['backend', 'database', 'server', 'api', 'programming', 'development']
+    };
+    
+    const hasObviousMismatch = obviousMismatches[vacancyCategory]?.some(mismatchSkill =>
+      resumeSkills.some(resumeSkill => resumeSkill.includes(mismatchSkill)) ||
+      currentRole.includes(mismatchSkill)
+    );
+    
+    if (hasObviousMismatch) {
+      return { 
+        isMatch: false, 
+        reason: `Candidate has ${vacancyCategory} skills but applying for ${vacancyCategory} position` 
+      };
+    }
+    
+    // If no obvious mismatch and has some relevant skills, consider it a match
+    return { 
+      isMatch: hasRelevantSkills, 
+      reason: hasRelevantSkills ? 'Candidate has relevant skills' : 'Candidate lacks relevant skills' 
+    };
+    
+  } catch (error) {
+    Logger.error("❌ Error checking candidate match", error);
+    // If there's an error, assume it's a match and let AI decide
+    return { isMatch: true, reason: 'Error in match checking, defaulting to match' };
+  }
+}
 
 export async function startScreeningChat(application, vacancy, resume) {
   try {
@@ -21,7 +104,18 @@ export async function startScreeningChat(application, vacancy, resume) {
       vacancyTitle: vacancy.title,
     });
 
-    // Create initial chat with just the system message
+    // Check if candidate matches the position
+    const matchResult = checkCandidateMatch(vacancy, resume);
+    
+    Logger.info("🔍 Candidate match check", {
+      applicationId: application._id,
+      isMatch: matchResult.isMatch,
+      reason: matchResult.reason,
+      vacancyTitle: vacancy.title,
+      candidateSkills: resume.parsedData?.skills?.map(s => s.name) || []
+    });
+
+    // Create initial chat
     const chat = new Chat({
       application: application._id,
       vacancy: vacancy._id,
@@ -37,6 +131,40 @@ export async function startScreeningChat(application, vacancy, resume) {
         },
       ],
     });
+
+    // If there's a mismatch, handle AI rejection
+    if (!matchResult.isMatch) {
+      Logger.info("❌ Candidate mismatch detected, setting AI rejection", {
+        applicationId: application._id,
+        reason: matchResult.reason
+      });
+
+      // Add mismatch message to chat
+      chat.messages.push({
+        role: "assistant",
+        content: SCREENING_MISMATCH_MESSAGE,
+      });
+
+      // Set chat status to ai-rejected
+      chat.status = "ai-rejected";
+      
+      // Update application status to ai-rejected
+      await Application.findByIdAndUpdate(application._id, {
+        status: "ai-rejected",
+        updatedAt: new Date()
+      });
+
+      // Save chat
+      await chat.save();
+
+      Logger.success("🎯 AI rejection completed", {
+        chatId: chat._id,
+        applicationId: application._id,
+        status: "ai-rejected"
+      });
+
+      return chat;
+    }
 
     Logger.debug("📝 Created initial chat messages", {
       messageCount: chat.messages.length,
@@ -127,6 +255,23 @@ export async function continueChat(chatId, message) {
     if (!chat) {
       Logger.error("❌ Chat not found", { chatId });
       throw new Error("Chat not found");
+    }
+
+    // Check if chat is already ai-rejected or ai-reviewed - don't allow further responses
+    if (chat.status === "ai-rejected" || chat.status === "ai-reviewed") {
+      Logger.info("🚫 Chat is completed (ai-rejected/ai-reviewed), not processing further messages", {
+        chatId,
+        status: chat.status
+      });
+      
+      // Just add the user message but don't generate AI response
+      chat.messages.push({
+        role: "user",
+        content: message,
+      });
+      
+      await chat.save();
+      return chat;
     }
 
     Logger.debug("📝 Adding user message to chat", {
@@ -417,9 +562,17 @@ async function evaluateCandidate(chat) {
       hasFeedback: !!evaluation.feedback,
     });
 
-    chat.status = "completed";
+    chat.status = "ai-reviewed";
     chat.score = evaluation.score;
     chat.feedback = evaluation.feedback;
+
+    // Update application status to ai-reviewed
+    if (chat.application) {
+      await Application.findByIdAndUpdate(chat.application, {
+        status: "ai-reviewed",
+        updatedAt: new Date()
+      });
+    }
 
     Logger.debug("💾 Saving evaluation results to database", {
       chatId: chat._id,
@@ -429,7 +582,7 @@ async function evaluateCandidate(chat) {
     Logger.success("🎉 Candidate evaluation completed", {
       chatId: chat._id,
       finalScore: evaluation.score,
-      status: "completed",
+      status: "ai-reviewed",
     });
   } catch (error) {
     Logger.error("❌ Error evaluating candidate", error);

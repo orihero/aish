@@ -114,8 +114,13 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
 
     try {
       setGeneratingContent('title');
-      const title = await generateContentFromDescription(formData.description, 'title');
-      setFormData(prev => ({ ...prev, title: title as string }));
+      const result = await generateContentFromDescription(formData.description, 'title');
+      setFormData(prev => ({ ...prev, title: result.content as string }));
+      
+      // Log language detection for debugging
+      if (result.detectedLanguage && result.languageName) {
+        console.log(`Generated title in ${result.languageName} (${result.detectedLanguage})`);
+      }
     } catch (error) {
       console.error('Error generating title:', error);
     } finally {
@@ -131,8 +136,13 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
 
     try {
       setGeneratingContent('requirements');
-      const requirements = await generateContentFromDescription(formData.description, 'requirements');
-      setFormData(prev => ({ ...prev, requirements: requirements as string[] }));
+      const result = await generateContentFromDescription(formData.description, 'requirements');
+      setFormData(prev => ({ ...prev, requirements: result.content as string[] }));
+      
+      // Log language detection for debugging
+      if (result.detectedLanguage && result.languageName) {
+        console.log(`Generated requirements in ${result.languageName} (${result.detectedLanguage})`);
+      }
     } catch (error) {
       console.error('Error generating requirements:', error);
     } finally {
@@ -148,8 +158,13 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
 
     try {
       setGeneratingContent('responsibilities');
-      const responsibilities = await generateContentFromDescription(formData.description, 'responsibilities');
-      setFormData(prev => ({ ...prev, responsibilities: responsibilities as string[] }));
+      const result = await generateContentFromDescription(formData.description, 'responsibilities');
+      setFormData(prev => ({ ...prev, responsibilities: result.content as string[] }));
+      
+      // Log language detection for debugging
+      if (result.detectedLanguage && result.languageName) {
+        console.log(`Generated responsibilities in ${result.languageName} (${result.detectedLanguage})`);
+      }
     } catch (error) {
       console.error('Error generating responsibilities:', error);
     } finally {
@@ -165,8 +180,8 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
 
     try {
       setGeneratingContent('salary');
-      const salaryRange = await generateContentFromDescription(formData.description, 'salary', formData.salary.currency);
-      const [min, max] = (salaryRange as string).split('-').map(s => s.trim());
+      const result = await generateContentFromDescription(formData.description, 'salary', formData.salary.currency);
+      const [min, max] = (result.content as string).split('-').map(s => s.trim());
       setFormData(prev => ({ 
         ...prev, 
         salary: { 
@@ -175,6 +190,11 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
           max: max || '' 
         } 
       }));
+      
+      // Log language detection for debugging
+      if (result.detectedLanguage && result.languageName) {
+        console.log(`Generated salary in ${result.languageName} (${result.detectedLanguage})`);
+      }
     } catch (error) {
       console.error('Error generating salary:', error);
     } finally {

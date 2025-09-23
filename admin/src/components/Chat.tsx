@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chat.store';
+import { useAuthStore } from '../stores/auth.store';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -12,7 +13,49 @@ interface ChatProps {
 export const Chat = ({ chatId }: ChatProps) => {
   const [newMessage, setNewMessage] = useState('');
   const { currentChat, isLoading, getChat, sendMessage } = useChatStore();
+  const { user } = useAuthStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Determine if current user is an employer
+  const isEmployer = user?.role === 'employer' || user?.role === 'admin';
+
+  // Helper function to render HTML content safely
+  const renderHTMLContent = (content: string) => {
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  };
+
+  // Helper function to get sender name
+  const getSenderName = (message: any) => {
+    if (message.role === 'assistant') {
+      return 'AI Recruiter';
+    }
+    if (isEmployer) {
+      // For employers, show candidate name instead of "You"
+      return currentChat?.candidate 
+        ? `${currentChat.candidate.firstName} ${currentChat.candidate.lastName}`.trim()
+        : 'Candidate';
+    }
+    return 'You';
+  };
+
+  // Helper function to determine message alignment and styling
+  const getMessageStyles = (message: any) => {
+    if (isEmployer) {
+      // For employer view: reverse the layout
+      return {
+        alignment: message.role === 'assistant' ? 'right' : 'left',
+        bgColor: message.role === 'assistant' ? 'bg-blue-500' : 'bg-gray-100',
+        textColor: message.role === 'assistant' ? 'text-white' : 'text-gray-900'
+      };
+    } else {
+      // For employee view: normal layout
+      return {
+        alignment: message.role === 'user' ? 'right' : 'left',
+        bgColor: message.role === 'user' ? 'bg-blue-500' : 'bg-gray-100',
+        textColor: message.role === 'user' ? 'text-white' : 'text-gray-900'
+      };
+    }
+  };
 
   useEffect(() => {
     getChat(chatId);
@@ -79,7 +122,8 @@ export const Chat = ({ chatId }: ChatProps) => {
       );
     }
 
-    return <p className="text-sm">{message.content}</p>;
+    // Render HTML content for normal messages
+    return renderHTMLContent(message.content);
   };
 
   if (isLoading) {
@@ -101,37 +145,37 @@ export const Chat = ({ chatId }: ChatProps) => {
   return (
     <div className="flex flex-col h-[600px]">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {currentChat.messages.map((message) => (
-          <div
-            key={message._id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
+        {currentChat.messages.map((message) => {
+          const styles = getMessageStyles(message);
+          return (
             <div
-              className={`max-w-[70%] rounded-lg p-3 ${
-                message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
+              key={message._id}
+              className={`flex ${styles.alignment === 'right' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="flex items-start gap-2">
-                <div className="flex-shrink-0 mt-0.5">
-                  {getMessageIcon(message.role)}
-                </div>
-                <div className="flex-1">
-                  {renderMessageContent(message)}
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs opacity-70">
-                      {new Date(message.timestamp).toLocaleTimeString()}
+              <div
+                className={`max-w-[70%] rounded-lg p-3 ${styles.bgColor} ${styles.textColor}`}
+              >
+                <div className="flex items-start gap-2">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getMessageIcon(message.role)}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-xs mb-1 ${styles.textColor === 'text-white' ? 'text-blue-100' : 'text-gray-600'}`}>
+                      {getSenderName(message)}
                     </p>
-                    {getMessageTypeBadge(message.messageType)}
+                    {renderMessageContent(message)}
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs opacity-70">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </p>
+                      {getMessageTypeBadge(message.messageType)}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSendMessage} className="border-t p-4">
