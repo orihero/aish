@@ -31,10 +31,12 @@ const ApplyModal: FC<Props> = ({ isShow }) => {
 
     const onApply = () => {
         applicationStore.applyToVacancy((chatId) => {
-            visibleStore.hide("applyModal");
             if (chatId) {
-                // Navigate to the chat immediately after successful application
+                console.log("Navigating to chat:", chatId);
+                // Navigate to the chat after successful application
                 navigation(`/chat/${chatId}`);
+            } else {
+                console.error("No chat ID provided for navigation");
             }
         });
     };
@@ -74,6 +76,7 @@ const ApplyModal: FC<Props> = ({ isShow }) => {
                                         lastName={applicationStore.selectedResume?.parsedData?.basics?.name || t("user")}
                                         backgroundColor={Colors.mainBlue}
                                         size={48}
+                                        textSize="sixteen"
                                     />
                                     <div className="resumeDetails">
                                         <span className="resumeName">
@@ -110,6 +113,7 @@ const ApplyModal: FC<Props> = ({ isShow }) => {
                                                     lastName={item?.parsedData?.basics?.name}
                                                     backgroundColor={Colors.mainBlue}
                                                     size={40}
+                                                    textSize="sixteen"
                                                 />
                                                 <div className="optionDetails">
                                                     <span className="optionName">
