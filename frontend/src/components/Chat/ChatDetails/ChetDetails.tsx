@@ -43,6 +43,7 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
     console.log("currentChat", toJS(chatStore.currentChat));
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const chatMessages = useMemo(() => {
         return chatStore.currentChat || [];
@@ -53,20 +54,45 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
     }, [chatId, chatMessages]);
 
     useEffect(() => {
-        if (!chatId) return;
-        chatStore.getChatById(chatId);
+        if (!chatId) {
+            console.log("No chatId provided to ChatDetails");
+            return;
+        }
+        console.log("ChatDetails: Loading chat with ID:", chatId);
+        // Force refresh the chat data when chatId changes to ensure we get the latest data
+        chatStore.getChatById(chatId, true);
     }, [chatId, chatStore]);
 
-    const onSetNewMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
+        textarea.style.height = 'auto';
+        const scrollHeight = textarea.scrollHeight;
+        const maxHeight = 150; // Match the max-height from styled component
+        textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    };
+
+    const onSetNewMessage = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewMessage(e.target.value);
         chatStore.setNewMessage(e.target.value);
+        autoResizeTextarea(e.target);
     };
 
     const sendMessage = () => {
         if (newMessage.trim()) {
             chatStore.sendMessage(chatMessages?.application.chat as never);
             setNewMessage("");
+            // Reset textarea height after sending message
+            if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto';
+            }
         }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+        // Shift+Enter will naturally create a new line due to default textarea behavior
     };
 
     const renderMessages = useCallback(() => {
@@ -150,9 +176,12 @@ const ChatDetail: React.FC<ChatDetailProps> = ({ chatId }) => {
                     onClick={sendMessage}
                 />
                 <Input
+                    ref={textareaRef}
                     value={newMessage}
                     onChange={(e) => onSetNewMessage(e)}
+                    onKeyDown={handleKeyDown}
                     placeholder={t("typeMessage")}
+                    rows={1}
                 />
 
                 <IconComp
@@ -218,9 +247,16 @@ const InputWrapper = styled.div`
     padding: 0 20px;
 `;
 
-const Input = styled.input`
+const Input = styled.textarea`
     flex: 1;
     padding: 20px 10px;
     border: none;
     outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.4;
+    min-height: 20px;
+    max-height: 150px;
+    overflow-y: auto;
 `;

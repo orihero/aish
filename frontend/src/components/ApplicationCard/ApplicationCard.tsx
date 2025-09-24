@@ -29,6 +29,12 @@ const ApplicationCard: FC<Props> = ({ application, onPress, goToChat }) => {
                                 : application.status === "rejection"
                                 ? Colors.lightTomato
                                 : application.status === "invitation"
+                                ? Colors.lightGreen 
+                                : application.status === "ai-rejected"
+                                ? Colors.lightTomato
+                                : application.status === "ai-accepted"
+                                ? Colors.lightGreen
+                                : application.status === "ai-reviewed"
                                 ? Colors.lightGreen
                                 : Colors.lineColor
                         }
@@ -38,6 +44,12 @@ const ApplicationCard: FC<Props> = ({ application, onPress, goToChat }) => {
                                 : application.status === "rejection"
                                 ? Colors.tomato
                                 : application.status === "invitation"
+                                ? Colors.green
+                                : application.status === "ai-rejected"
+                                ? Colors.tomato
+                                : application.status === "ai-accepted"
+                                ? Colors.green
+                                : application.status === "ai-reviewed"
                                 ? Colors.green
                                 : Colors.lineColor
                         }

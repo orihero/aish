@@ -6,6 +6,8 @@ import ChatDetail from "../../components/Chat/ChatDetails/ChetDetails";
 
 const ChatsView = () => {
     const { id } = useParams();
+    
+    console.log("ChatsView: Route parameter id =", id);
 
     return (
         <ChatsViewContainer>
