@@ -9,6 +9,7 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import ButtonComp from "../Button/Button";
 import { useTranslation } from "react-i18next";
 import { getTranslatedEmploymentType, getTranslatedWorkType } from "../../shared/utils/translationHelpers";
+import { formatSalary } from "../../shared/utils/salaryFormatter";
 
 const FilterBar = () => {
     const { vacanciesStore, visibleStore } = useRootStore();
@@ -31,12 +32,8 @@ const FilterBar = () => {
         setIsShowFilter(!isShowFilter);
     };
 
-    const formatSalary = (value: number) => {
-        if (currency === "so'm") {
-            return `${value?.toLocaleString("ru-RU").replace(/,/g, " ")}`;
-        } else {
-            return value?.toLocaleString("en-US");
-        }
+    const formatSalaryValue = (value: number) => {
+        return formatSalary(value);
     };
 
     const handleEmploymentTypeChange = (type: string) => {
@@ -192,7 +189,7 @@ const FilterBar = () => {
                             className="range"
                             min={0}
                             max={currency === "so'm" ? 200000000 : 200000}
-                            step={10}
+                            step={currency === "so'm" ? 100000 : 50}
                             value={`${vacanciesStore.filters.salaryMax}`}
                             onChange={(e) =>
                                 vacanciesStore.setFilter(
@@ -211,7 +208,7 @@ const FilterBar = () => {
                                 family="Epilogue-Regular"
                             />
                             <Text
-                                text={`${currency} ${formatSalary(
+                                text={`${currency} ${formatSalaryValue(
                                     vacanciesStore.filters.salaryMax as never
                                 )}`}
                                 textSize="sixteen"

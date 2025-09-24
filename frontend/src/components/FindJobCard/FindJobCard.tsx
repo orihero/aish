@@ -13,6 +13,7 @@ import useRootStore from "../../shared/hooks/UseRootStore";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getTranslatedEmploymentType, getTranslatedWorkType } from "../../shared/utils/translationHelpers";
+import { formatSalaryRange } from "../../shared/utils/salaryFormatter";
 
 type Props = {
     vacancy: VacancyType;
@@ -114,7 +115,7 @@ const FindJobCard: FC<Props> = ({ vacancy, onPress, respondPress }) => {
             </div>
             <div className="companyAndApply">
                 <Text
-                    text={`${t("salary")}: ${vacancy.salary.min}-${vacancy.salary.max} ${vacancy.salary.currency}`}
+                    text={`${t("salary")}: ${formatSalaryRange(vacancy.salary.min, vacancy.salary.max, vacancy.salary.currency)}`}
                     color={Colors.textBlack}
                     textSize="eighteen"
                     family="Epilogue-Regular"

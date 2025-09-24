@@ -59,18 +59,37 @@ export class ApplicationStore {
                 this.selectedResume._id,
                 this.respondVacancy._id
             );
+            
+            console.log("Application response:", response.data);
             message.success("Application submitted successfully!");
+            
             // Refresh applications list to update UI
             this.getMyApplications();
+            
+            // Invalidate and refresh chat store cache to include new chat
+            this.rootStore.chatStore.invalidateChatsCache();
+            await this.rootStore.chatStore.refreshChats();
+            
+            // Hide modal before navigation to prevent interference
+            this.rootStore.visibleStore.hide("applyModal");
+            
             // Pass chat ID to callback for navigation
-            callback && callback(response.data.chat._id as string);
+            const chatId = response.data.chat?._id;
+            console.log("Chat ID for navigation:", chatId);
+            
+            if (callback && chatId) {
+                callback(chatId);
+            } else {
+                console.error("No chat ID found in response or no callback provided");
+            }
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || "Failed to submit application";
             message.error(errorMessage);
             console.error("Apply error:", error);
+            // Hide modal on error too
+            this.rootStore.visibleStore.hide("applyModal");
         } finally {
             this.setLoading("isApplyingLoading");
-            this.rootStore.visibleStore.hide("applyModal");
         }
     };
 

@@ -29,9 +29,9 @@ const IconContainer = styled.button`
     justify-content: center;
     gap: 5px;
     transition: 0.3s;
-    &:hover {
-        transform: scale(1.1);
-    }
+    // &:hover {
+    //     transform: scale(1.1);
+    // }
     &:disabled {
         opacity: 0.6;
     }

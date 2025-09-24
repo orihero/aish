@@ -10,6 +10,7 @@ import { observer } from "mobx-react-lite";
 import IconComp from "../../shared/constants/iconBtn";
 import { toJS } from "mobx";
 import { useTranslation } from "react-i18next";
+import Avatar from "../Avatar/Avatar";
 
 const UserInfoCard = () => {
     const { resumeStore, visibleStore } = useRootStore();
@@ -18,11 +19,12 @@ const UserInfoCard = () => {
     return (
         <UserInfoCardContainer>
             <div>
-                <img
-                    src="https://career.comarch.com/files-com/file_45/good_programmer_comarch.jpg"
-                    alt="useAvatar"
-                    className="useAvatar"
-                    // crossOrigin="anonymous"
+                <Avatar
+                    firstName={resumeStore.myResume?.basics?.name}
+                    lastName={resumeStore.myResume?.basics?.name?.split(" ")[1]}
+                    backgroundColor={Colors.mainBlue}
+                    size={150}
+                    textSize="twentyEight"
                 />
             </div>
             <div className="name">

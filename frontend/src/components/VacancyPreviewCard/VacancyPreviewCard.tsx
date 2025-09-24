@@ -15,6 +15,7 @@ import { Tag } from "../Tag/Tag";
 import Avatar from "../Avatar/Avatar";
 import { useTranslation } from "react-i18next";
 import { getTranslatedEmploymentType, getTranslatedWorkType, getTranslatedValue } from "../../shared/utils/translationHelpers";
+import { formatSalaryRange } from "../../shared/utils/salaryFormatter";
 
 type Props = {
     vacancy: VacancyType;
@@ -80,7 +81,7 @@ const FrontendInternCard: FC<Props> = ({ vacancy }) => {
                             <div className="meta-item">
                                 <DynamicIcon name="dollar-sign" size={18} color={Colors.mainBlue} />
                                 <span className="meta-label">{t("theSalary")}</span>
-                                <span className="meta-value">{vacancy?.salary?.min}-{vacancy?.salary?.max} {vacancy?.salary?.currency}</span>
+                                <span className="meta-value">{formatSalaryRange(vacancy?.salary?.min, vacancy?.salary?.max, vacancy?.salary?.currency)}</span>
                             </div>
                         </div>
                     </div>

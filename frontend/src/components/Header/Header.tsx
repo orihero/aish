@@ -71,7 +71,9 @@ const Header = () => {
                 </div>
             </div>
             <div className="headerRight">
-                {!authStore.isAuthorized && <ButtonComp title={t("hire")} />}
+                <a href="https://business.aish.uz" target="_blank">
+                    <ButtonComp title={t("hire")} />
+                </a> 
                 <LanguageSelect />
                 <img src={Images.divider} alt="Divider" height={30} />
                 {!authStore.isAuthorized && (
@@ -135,7 +137,12 @@ const Header = () => {
                         />
                     )}
                     <LanguageSelect />
-                    {!localStore.session.accessToken && <ButtonComp title={t("hire")} />}
+                    {!localStore.session.accessToken && (
+                        <a href="https://business.aish.uz" target="_blank">
+                            <ButtonComp title={t("hire")} />
+                        </a> 
+                    )
+                    }
                     {authStore.isAuthorized ? null :(
                         <ButtonComp 
                             title={t("createResume")} 

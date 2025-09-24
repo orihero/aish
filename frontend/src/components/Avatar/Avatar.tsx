@@ -10,7 +10,7 @@ type Props = {
     lastName?: string;
     backgroundColor?: string;
     textColor?: string;
-    textSize?: "twentyTwo" | "twentyEight";
+    textSize?: "twentyTwo" | "twentyEight" | 'sixteen';
 };
 
 const Avatar: FC<Props> = ({
@@ -44,7 +44,7 @@ const Avatar: FC<Props> = ({
             )}
             {!imageUrl && firstName && lastName && (
                 <Text
-                    text={`${firstName.slice(0, 1)}${lastName.slice(0, 1)}`}
+                    text={`${firstName.slice(0, 1)} ${lastName.slice(0, 1)}`}
                     textSize={textSize ? textSize : "twentyEight"}
                     color={textColor ? textColor : Colors.white}
                 />
