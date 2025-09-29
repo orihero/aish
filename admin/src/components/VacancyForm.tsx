@@ -227,7 +227,11 @@ export const VacancyForm = ({ onVacancyCreated }: VacancyFormProps) => {
         ...formData,
         requirements: formData.requirements.filter(req => req.trim() !== ''),
         responsibilities: formData.responsibilities.filter(resp => resp.trim() !== ''),
-        company: currentCompany.id,
+        company: {
+          _id: currentCompany.id,
+          name: currentCompany.name,
+          logo: currentCompany.logo
+        },
         employmentType: formData.employmentType as 'full-time' | 'part-time' | 'contract' | 'internship',
         workType: formData.workType as 'remote' | 'hybrid' | 'on-site',
         salary: {

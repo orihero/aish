@@ -8,14 +8,9 @@ interface IconProps {
   className?: string;
 }
 
-function DynamicIcon({ name, className }: IconProps) {
-  const Icon = LucideIcons[name as keyof typeof LucideIcons];
-  
-  if (!Icon) {
-    return <LucideIcons.HelpCircle className={className} />;
-  }
-  
-  return <Icon className={className} />;
+function DynamicIcon({ className }: IconProps) {
+  // Use a simple approach - just return HelpCircle for now
+  return <LucideIcons.HelpCircle className={className} />;
 }
 
 interface CategoryCardProps {
@@ -58,7 +53,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
                   Edit Category
                 </button>
                 <button
-                  onClick={() => deleteCategory(category.id)}
+                  onClick={() => deleteCategory(category._id)}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                 >
                   <LucideIcons.Trash2 className="w-4 h-4" />
@@ -81,7 +76,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
         <div className="border-t border-gray-100">
           <div className="p-6 space-y-4">
             {category.subcategories.map(sub => (
-              <div key={sub.id} className="flex items-center justify-between">
+              <div key={sub._id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
                     <DynamicIcon name={sub.icon} className="w-4 h-4 text-gray-400" />

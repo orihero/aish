@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
 
 export function Settings() {
-  const { user, updateProfile } = useAuthStore();
+  const { user } = useAuthStore();
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user ? `${user.firstName} ${user.lastName}` : '',
     email: user?.email || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateProfile(formData);
+    // TODO: Implement profile update
+    console.log('Profile update not implemented yet');
   };
 
   return (

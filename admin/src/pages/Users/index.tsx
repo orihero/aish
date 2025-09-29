@@ -65,9 +65,9 @@ export function Users() {
   const handleSubmit = async () => {
     try {
       if (editingUser) {
-        await updateUser(editingUser.id, formData);
+        await updateUser(editingUser.id, { ...formData, role: formData.role as 'employer' | 'employee' | 'admin', status: formData.status as 'active' | 'pending' | 'inactive' });
       } else {
-        await createUser(formData);
+        await createUser({ ...formData, role: formData.role as 'employer' | 'employee' | 'admin', status: formData.status as 'active' | 'pending' | 'inactive' });
       }
       setIsSlideOverOpen(false);
       setEditingUser(null);

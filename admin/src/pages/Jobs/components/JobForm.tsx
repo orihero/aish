@@ -1,4 +1,4 @@
-import { X, ArrowUpDown, HelpCircle } from 'lucide-react';
+import { X, HelpCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import type { Job } from '../../../stores/jobs.store';
 import { useCategoriesStore } from '../../../stores/categories.store';
@@ -51,7 +51,7 @@ export function JobForm({
 
   if (!isOpen) return null;
 
-  const selectedCategory = categories.find(c => c.id === formData.category);
+  const selectedCategory = categories.find(c => c._id === formData.category);
 
   return (
     <div className="fixed inset-0 overflow-hidden z-50">
@@ -119,7 +119,7 @@ export function JobForm({
                       >
                         <option value="">Select Category</option>
                         {categories.map(category => (
-                          <option key={category.id} value={category.id}>
+                          <option key={category._id} value={category._id}>
                             {category.title.find(t => t.language === 'en')?.value}
                           </option>
                         ))}
@@ -138,7 +138,7 @@ export function JobForm({
                         >
                           <option value="">Select Subcategory</option>
                           {selectedCategory.subcategories.map(sub => (
-                              <option key={sub.id} value={sub.id}>
+                              <option key={sub._id} value={sub._id}>
                                 {sub.title.find(t => t.language === 'en')?.value}
                               </option>
                             ))}

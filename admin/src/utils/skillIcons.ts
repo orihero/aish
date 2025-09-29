@@ -1,4 +1,4 @@
-import { ReactComponent as DefaultIcon } from '../assets/icons/default-skill.svg';
+// Default icon will be handled via URL
 
 // This is a temporary mapping. In the future, this could be fetched from an API or CDN
 export const skillIconMap: { [key: string]: string } = {

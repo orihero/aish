@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../lib/axios';
 import { useAuthStore } from './auth.store';
-import { AxiosError } from 'axios';
 
 interface ApiError {
   response?: {

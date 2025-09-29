@@ -9,7 +9,7 @@ import { JobCard } from './components/JobCard';
 import { JobForm } from './components/JobForm';
 
 type EmploymentType = 'full-time' | 'part-time' | 'contract';
-type WorkType = 'remote' | 'hybrid' | 'onsite';
+type WorkType = 'remote' | 'hybrid' | 'on-site';
 
 interface JobFormData {
   title: string;
@@ -51,7 +51,7 @@ export function Jobs() {
     subcategory: '',
     description: '',
     employmentType: 'full-time',
-    workType: 'onsite',
+    workType: 'on-site',
     salary: {
       min: 0,
       max: 0,
@@ -69,8 +69,7 @@ export function Jobs() {
     if (editingJob) {
       setFormData({
         title: editingJob.title,
-        category: editingJob.category,
-        subcategory: editingJob.subcategory || '',
+        category: typeof editingJob.category === 'string' ? editingJob.category : editingJob.category._id,
         description: editingJob.description,
         employmentType: editingJob.employmentType as EmploymentType,
         workType: editingJob.workType as WorkType,
@@ -88,7 +87,7 @@ export function Jobs() {
         subcategory: '',
         description: '',
         employmentType: 'full-time',
-        workType: 'onsite',
+        workType: 'on-site',
         salary: {
           min: 0,
           max: 0,
@@ -104,14 +103,14 @@ export function Jobs() {
       const formDataToSubmit = {
         ...formData,
         salary: {
-          min: formData.salary.min.toString(),
-          max: formData.salary.max.toString(),
+          min: Number(formData.salary.min),
+          max: Number(formData.salary.max),
           currency: formData.salary.currency
         }
       };
       
       if (editingJob) {
-        await updateJob(editingJob.id, formDataToSubmit);
+        await updateJob(editingJob._id, formDataToSubmit);
       } else {
         await createJob(formDataToSubmit);
       }
@@ -167,7 +166,7 @@ export function Jobs() {
           ) : (
             jobs.map(job => (
               <JobCard
-                key={job.id}
+                key={job._id}
                 job={job}
                 onEdit={(job) => {
                   setEditingJob(job);

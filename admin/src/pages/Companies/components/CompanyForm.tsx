@@ -151,8 +151,8 @@ export function CompanyForm({
                             <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                               {logoPreview ? (
                                 <img src={logoPreview} alt="Preview" className="w-full h-full object-cover" />
-                              ) : formData.logo instanceof File ? (
-                                <img src={URL.createObjectURL(formData.logo)} alt="Preview" className="w-full h-full object-cover" />
+                              ) : (formData.logo as any) instanceof File ? (
+                                <img src={URL.createObjectURL(formData.logo as unknown as File)} alt="Preview" className="w-full h-full object-cover" />
                               ) : formData.logo ? (
                                 <img src={formData.logo} alt="Preview" className="w-full h-full object-cover" />
                               ) : (

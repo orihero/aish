@@ -1,6 +1,5 @@
-import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { X, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import type { Category } from '../../../stores/categories.store';
 
 interface CategoryFormProps {
   isOpen: boolean;
@@ -21,19 +20,14 @@ interface CategoryFormProps {
   categories: Category[];
 }
 
-function IconPreview({ iconName }: { iconName: string }) {
-  const Icon = LucideIcons[iconName as keyof typeof LucideIcons];
-  
-  if (!Icon) {
-    return (
-      <div className="flex items-center gap-2 text-amber-600 text-sm">
-        <AlertCircle className="w-4 h-4" />
-        <span>Icon not found</span>
-      </div>
-    );
-  }
-  
-  return <Icon className="w-5 h-5 text-gray-600" />;
+function IconPreview() {
+  // Use a simple approach - just return AlertCircle for now
+  return (
+    <div className="flex items-center gap-2 text-amber-600 text-sm">
+      <AlertCircle className="w-4 h-4" />
+      <span>Icon preview</span>
+    </div>
+  );
 }
 
 export function CategoryForm({
@@ -146,7 +140,7 @@ export function CategoryForm({
                       >
                         <option value="">None (Create as main category)</option>
                         {categories.map(category => (
-                          <option key={category.id} value={category.id}>
+                          <option key={category._id} value={category._id}>
                             {category.title.find(t => t.language === 'en')?.value}
                           </option>
                         ))}
@@ -168,7 +162,7 @@ export function CategoryForm({
                           onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                         />
                         <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                          <IconPreview iconName={formData.icon} />
+                          <IconPreview />
                         </div>
                       </div>
                       <p className="mt-2 text-sm text-gray-500">

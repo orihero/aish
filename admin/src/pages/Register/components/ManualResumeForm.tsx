@@ -33,7 +33,8 @@ export function ManualResumeForm({ onSubmit }: ManualResumeFormProps) {
         startDate: '',
         endDate: '',
         summary: '',
-        highlights: []
+        highlights: [],
+        technologies: []
       }]
     });
   };

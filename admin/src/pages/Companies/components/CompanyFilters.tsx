@@ -1,4 +1,3 @@
-import { ArrowUpDown } from 'lucide-react';
 
 interface CompanyFiltersProps {
   filters: {

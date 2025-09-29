@@ -5,19 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { format, isValid } from "date-fns";
 import { ArrowLeft, Star, BarChart3, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
-interface EvaluationItem {
-  name: string;
-  score: number;
-  scoreBase: number;
-}
+// interface EvaluationItem {
+//   name: string;
+//   score: number;
+//   scoreBase: number;
+// }
 
-interface Evaluation {
-  name: string;
-  totalScore: number;
-  scoreBase: number;
-  items: EvaluationItem[];
-}
+// interface Evaluation {
+//   name: string;
+//   totalScore: number;
+//   scoreBase: number;
+//   items: EvaluationItem[];
+// }
 
+/*
 interface ApplicationEvaluation {
   _id: string;
   status: string;
@@ -49,6 +50,7 @@ interface ApplicationEvaluation {
   appliedAt: string;
   updatedAt: string;
 }
+*/
 
 export function ApplicationEvaluations() {
   const { applicationId } = useParams();
@@ -135,7 +137,7 @@ export function ApplicationEvaluations() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Detailed Evaluations</h2>
         
-        {application.evaluations?.map((evaluation, index) => (
+        {application.evaluations?.map((evaluation: any, index: number) => (
           <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">{evaluation.name}</h3>
@@ -146,7 +148,7 @@ export function ApplicationEvaluations() {
             </div>
             
             <div className="space-y-3">
-              {evaluation.items.map((item, itemIndex) => (
+              {evaluation.items.map((item: any, itemIndex: number) => (
                 <div key={itemIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-900">{item.name}</span>
                   <div className={`flex items-center gap-2 px-2 py-1 rounded ${getScoreColor(item.score)}`}>

@@ -1,4 +1,4 @@
-import { Building2, MapPin, Globe, Mail, Phone, Pencil, Trash2, Eye } from 'lucide-react';
+import { Building2, MapPin, Globe, Mail, Phone, Pencil, Trash2 } from 'lucide-react';
 import type { Company } from '../../../stores/companies.store';
 
 interface CompanyCardProps {

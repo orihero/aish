@@ -38,8 +38,8 @@ interface UsersState {
   createUser: (userData: Partial<User>) => Promise<void>;
   updateUser: (id: string, userData: Partial<User>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
-  setFilters: (filters: Partial<typeof UsersState['filters']>) => void;
-  setPagination: (pagination: Partial<typeof UsersState['pagination']>) => void;
+  setFilters: (filters: Partial<{ search: string; role: string; status: string }>) => void;
+  setPagination: (pagination: Partial<{ page: number; limit: number; total: number }>) => void;
   clearError: () => void;
 }
 

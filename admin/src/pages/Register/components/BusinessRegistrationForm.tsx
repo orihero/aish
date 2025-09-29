@@ -102,7 +102,6 @@ export function BusinessRegistrationForm({ onSubmit, isLoading, error, onClearEr
   const [currentStep, setCurrentStep] = useState<'account' | 'company'>('account');
   const [showPassword, setShowPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<BusinessRegistrationData>({
     firstName: '',
@@ -195,7 +194,7 @@ export function BusinessRegistrationForm({ onSubmit, isLoading, error, onClearEr
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoFile(file);
+      // setLogoFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target?.result as string);
@@ -205,7 +204,7 @@ export function BusinessRegistrationForm({ onSubmit, isLoading, error, onClearEr
   };
 
   const removeLogo = () => {
-    setLogoFile(null);
+    // setLogoFile(null);
     setLogoPreview(null);
   };
 

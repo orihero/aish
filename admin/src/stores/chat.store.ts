@@ -64,7 +64,7 @@ interface ChatState {
   continueVacancyCreationChat: (chatId: string, message: string, messageType?: string) => Promise<Chat>;
   finishVacancyCreation: (chatId: string) => Promise<{ chat: Chat; vacancy: any; message: string }>;
   // AI Content Generation Methods
-  generateContentFromDescription: (description: string, contentType: 'requirements' | 'responsibilities' | 'salary' | 'title', currency?: string) => Promise<string[] | string>;
+  generateContentFromDescription: (description: string, contentType: 'requirements' | 'responsibilities' | 'salary' | 'title', currency?: string) => Promise<{ content: any; detectedLanguage: any; languageName: any; }>;
   clearError: () => void;
 }
 

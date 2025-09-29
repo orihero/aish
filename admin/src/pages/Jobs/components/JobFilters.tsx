@@ -1,4 +1,3 @@
-import { ArrowUpDown } from 'lucide-react';
 import { useCategoriesStore } from '../../../stores/categories.store';
 import { useTranslation } from '../../../hooks/useTranslation';
 
@@ -35,14 +34,14 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
         </label>
         <div className="space-y-2">
           {categories.map(category => (
-            <label key={category.id} className="flex items-center">
+            <label key={category._id} className="flex items-center">
               <input
                 type="checkbox"
-                checked={filters.categories.includes(category.id)}
+                checked={filters.categories.includes(category._id)}
                 onChange={(e) => {
                   const newCategories = e.target.checked
-                    ? [...filters.categories, category.id]
-                    : filters.categories.filter(id => id !== category.id);
+                    ? [...filters.categories, category._id]
+                    : filters.categories.filter(id => id !== category._id);
                   onFilterChange('categories', newCategories);
                 }}
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
@@ -75,7 +74,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <span className="ml-2 text-sm text-gray-600">
-                {t(`jobs.employmentType.${type}`)}
+                {t(`jobs.employmentType.${type}` as any)}
               </span>
             </label>
           ))}
@@ -102,7 +101,7 @@ export function JobFilters({ filters, onFilterChange }: JobFiltersProps) {
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <span className="ml-2 text-sm text-gray-600">
-                {t(`jobs.workType.${type}`)}
+                {t(`jobs.workType.${type}` as any)}
               </span>
             </label>
           ))}

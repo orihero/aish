@@ -112,7 +112,7 @@ export const ApplicationChat = () => {
       // Return a context object with the snapshotted value
       return { previousChat };
     },
-    onError: (err, newMessage, context) => {
+    onError: (_, __, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousChat) {
         queryClient.setQueryData(['chat', chatId], context.previousChat);

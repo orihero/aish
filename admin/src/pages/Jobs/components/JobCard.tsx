@@ -2,7 +2,6 @@ import { Building2, Eye, Pencil, Trash2, Clock, FileText, CheckCircle, XCircle, 
 import { useTranslation } from '../../../hooks/useTranslation';
 import { useAuthStore } from '../../../stores/auth.store';
 import type { Job } from '../../../stores/jobs.store';
-import { format } from 'date-fns';
 
 interface JobCardProps {
   job: Job;
@@ -20,10 +19,6 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
     return `${currency}${min.toLocaleString()} - ${currency}${max.toLocaleString()}`;
   };
 
-  const getCategoryName = (category: Job['category']) => {
-    if (typeof category === 'string') return category;
-    return category.title;
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -51,8 +46,6 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Building2 className="w-4 h-4" />
                 <span>{job.company.name}</span>
-                <span className="text-gray-400">•</span>
-                <span>{job.company.size}</span>
               </div>
             </div>
             <div className={`px-3 py-1 rounded-full text-sm ${
@@ -77,11 +70,11 @@ export function JobCard({ job, onEdit, onDelete, onApply, showApplyButton }: Job
               </span>
               <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700">
                 <Users className="w-4 h-4" />
-                {job.applicationsCount || 0} {t('jobs.applicants')}
+                {job.applicationCount || 0} {t('jobs.applicants')}
               </span>
               <span className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-50 text-gray-700">
                 <Calendar className="w-4 h-4" />
-                {format(new Date(job.createdAt), 'MMM d, yyyy')}
+                Active
               </span>
             </div>
             <div className="flex items-center gap-4">

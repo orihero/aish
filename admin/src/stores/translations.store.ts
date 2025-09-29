@@ -18,6 +18,19 @@ export type TranslationKey =
   | 'common.view'
   | 'common.export'
   | 'common.add'
+  | 'jobs.employmentType.full-time'
+  | 'jobs.employmentType.part-time'
+  | 'jobs.employmentType.contract'
+  | 'jobs.employmentType.internship'
+  | 'jobs.workType.remote'
+  | 'jobs.workType.hybrid'
+  | 'jobs.workType.on-site'
+  | 'jobs.workType.onsite'
+  | 'jobs.applicants'
+  | 'applications.status.pending'
+  | 'applications.status.reviewed'
+  | 'applications.status.accepted'
+  | 'applications.status.rejected'
   | 'common.filters'
   | 'common.clearAll'
   | 'dashboard.welcome'
@@ -146,9 +159,16 @@ const translations: Record<string, Translations> = {
     'jobs.employmentType.full-time': 'Full Time',
     'jobs.employmentType.part-time': 'Part Time',
     'jobs.employmentType.contract': 'Contract',
+    'jobs.employmentType.internship': 'Internship',
     'jobs.workType.remote': 'Remote',
     'jobs.workType.hybrid': 'Hybrid',
     'jobs.workType.onsite': 'On-site',
+    'jobs.workType.on-site': 'On-site',
+    'jobs.applicants': 'applicants',
+    'applications.status.pending': 'Pending',
+    'applications.status.reviewed': 'Reviewed',
+    'applications.status.accepted': 'Accepted',
+    'applications.status.rejected': 'Rejected',
     'jobs.filters.categories': 'Categories',
     'jobs.filters.employmentType': 'Employment Type',
     'jobs.filters.workType': 'Work Type',
@@ -232,9 +252,16 @@ const translations: Record<string, Translations> = {
     'jobs.employmentType.full-time': 'Полный день',
     'jobs.employmentType.part-time': 'Частичная занятость',
     'jobs.employmentType.contract': 'Контракт',
+    'jobs.employmentType.internship': 'Стажировка',
     'jobs.workType.remote': 'Удаленно',
     'jobs.workType.hybrid': 'Гибрид',
     'jobs.workType.onsite': 'В офисе',
+    'jobs.workType.on-site': 'В офисе',
+    'jobs.applicants': 'кандидатов',
+    'applications.status.pending': 'В ожидании',
+    'applications.status.reviewed': 'Просмотрено',
+    'applications.status.accepted': 'Принято',
+    'applications.status.rejected': 'Отклонено',
     'jobs.filters.categories': 'Категории',
     'jobs.filters.employmentType': 'Тип занятости',
     'jobs.filters.workType': 'Формат работы',
@@ -318,9 +345,16 @@ const translations: Record<string, Translations> = {
     'jobs.employmentType.full-time': 'Повний день',
     'jobs.employmentType.part-time': 'Часткова зайнятість',
     'jobs.employmentType.contract': 'Контракт',
+    'jobs.employmentType.internship': 'Стажування',
     'jobs.workType.remote': 'Віддалено',
     'jobs.workType.hybrid': 'Гібрид',
     'jobs.workType.onsite': 'В офісі',
+    'jobs.workType.on-site': 'В офісі',
+    'jobs.applicants': 'кандидатів',
+    'applications.status.pending': 'В очікуванні',
+    'applications.status.reviewed': 'Переглянуто',
+    'applications.status.accepted': 'Прийнято',
+    'applications.status.rejected': 'Відхилено',
     'jobs.filters.categories': 'Категорії',
     'jobs.filters.employmentType': 'Тип зайнятості',
     'jobs.filters.workType': 'Формат роботи',
@@ -404,9 +438,16 @@ const translations: Record<string, Translations> = {
     'jobs.employmentType.full-time': 'To\'liq stavka',
     'jobs.employmentType.part-time': 'Yarim stavka',
     'jobs.employmentType.contract': 'Kontrakt',
+    'jobs.employmentType.internship': 'Stajirovka',
     'jobs.workType.remote': 'Masofaviy',
     'jobs.workType.hybrid': 'Gibrid',
     'jobs.workType.onsite': 'Ofisda',
+    'jobs.workType.on-site': 'Ofisda',
+    'jobs.applicants': 'nomzodlar',
+    'applications.status.pending': 'Kutilmoqda',
+    'applications.status.reviewed': 'Ko\'rib chiqildi',
+    'applications.status.accepted': 'Qabul qilindi',
+    'applications.status.rejected': 'Rad etildi',
     'jobs.filters.categories': 'Kategoriyalar',
     'jobs.filters.employmentType': 'Bandlik turi',
     'jobs.filters.workType': 'Ish formati',
@@ -441,7 +482,7 @@ const translations: Record<string, Translations> = {
   }
 };
 
-export const useTranslationsStore = create<TranslationsState>((set) => ({
+export const useTranslationsStore = create<TranslationsState>(() => ({
   t: (key: TranslationKey) => {
     const language = localStorage.getItem('language') || 'en';
     return translations[language]?.[key] || translations.en[key] || key;

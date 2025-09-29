@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../../stores/auth.store';
 import { FileText, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 
 interface Application {
@@ -11,7 +10,6 @@ interface Application {
 }
 
 export function Applications() {
-  const { user } = useAuthStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

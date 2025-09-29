@@ -16,7 +16,7 @@ export function Categories() {
     parentId: null as string | null
   });
 
-  const { categories, isLoading, error, getCategories, createCategory, updateCategory, clearError } = useCategoriesStore();
+  const { categories, error, getCategories, createCategory, updateCategory, clearError } = useCategoriesStore();
 
   useEffect(() => {
     getCategories();
@@ -32,7 +32,7 @@ export function Categories() {
       };
 
       if (editingCategory) {
-        await updateCategory(editingCategory.id, categoryData);
+        await updateCategory(editingCategory._id, categoryData);
       } else {
         await createCategory(categoryData);
       }
@@ -79,7 +79,7 @@ export function Categories() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {categories.map(category => (
-          <CategoryCard key={category.id} category={category} />
+          <CategoryCard key={category._id} category={category} />
         ))}
       </div>
 
@@ -92,7 +92,7 @@ export function Categories() {
         error={error}
         onClearError={clearError}
         isEditing={!!editingCategory}
-        categories={categories.filter(c => !formData.parentId || c.id !== formData.parentId)}
+        categories={categories.filter(c => !formData.parentId || c._id !== formData.parentId)}
       />
     </div>
   );

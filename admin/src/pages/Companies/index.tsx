@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Search, ArrowUpDown, Download, Plus } from 'lucide-react';
-import { useCompaniesStore } from '../../stores/companies.store';
+import { useCompaniesStore, type Company } from '../../stores/companies.store';
 import { CompanyFilters } from './components/CompanyFilters';
 import { CompanyCard } from './components/CompanyCard';
 import { CompanyForm } from './components/CompanyForm';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useAuthStore } from '../../stores/auth.store';
 
 export function Companies() {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
   const {
     companies,
     filters,
@@ -26,14 +24,14 @@ export function Companies() {
   } = useCompaniesStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCompany, setEditingCompany] = useState(null);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     logo: '',
     description: '',
     industry: '',
-    size: '',
-    founded: undefined,
+    size: '1-50' as '1-50' | '51-200' | '201-1000' | '1000-5000' | '5000+',
+    founded: undefined as number | undefined,
     website: '',
     location: {
       country: '',
@@ -50,7 +48,7 @@ export function Companies() {
       facebook: '',
       instagram: ''
     },
-    benefits: []
+    benefits: [] as string[]
   });
 
   useEffect(() => {
@@ -61,15 +59,26 @@ export function Companies() {
     if (editingCompany) {
       setFormData({
         name: editingCompany.name,
-        logo: editingCompany.logo,
+        logo: editingCompany.logo || '',
         description: editingCompany.description,
         industry: editingCompany.industry,
         size: editingCompany.size,
         founded: editingCompany.founded,
-        website: editingCompany.website,
-        location: editingCompany.location,
-        contact: editingCompany.contact,
-        social: editingCompany.social,
+        website: editingCompany.website || '',
+        location: {
+          ...editingCompany.location,
+          address: editingCompany.location.address || ''
+        },
+        contact: {
+          ...editingCompany.contact,
+          phone: editingCompany.contact.phone || ''
+        },
+        social: {
+          linkedin: editingCompany.social?.linkedin || '',
+          twitter: editingCompany.social?.twitter || '',
+          facebook: editingCompany.social?.facebook || '',
+          instagram: editingCompany.social?.instagram || ''
+        },
         benefits: editingCompany.benefits
       });
     } else {
@@ -78,7 +87,7 @@ export function Companies() {
         logo: '',
         description: '',
         industry: '',
-        size: '',
+        size: '1-50' as '1-50' | '51-200' | '201-1000' | '1000-5000' | '5000+',
         founded: undefined,
         website: '',
         location: {

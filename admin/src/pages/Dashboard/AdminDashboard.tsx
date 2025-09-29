@@ -30,7 +30,7 @@ export function AdminDashboard() {
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
-          change="+29%"
+          trend={{ value: "+29%", isPositive: true }}
           icon={<Users className="w-5 h-5 text-purple-600" />}
           iconBgColor="bg-purple-50"
           iconColor="text-purple-600"
@@ -38,7 +38,7 @@ export function AdminDashboard() {
         <StatCard
           title="Active Companies"
           value={stats.paidUsers}
-          change="+18%"
+          trend={{ value: "+18%", isPositive: true }}
           icon={<Building2 className="w-5 h-5 text-blue-600" />}
           iconBgColor="bg-blue-50"
           iconColor="text-blue-600"
@@ -46,7 +46,7 @@ export function AdminDashboard() {
         <StatCard
           title="Active Jobs"
           value={stats.activeUsers}
-          change="+42%"
+          trend={{ value: "+42%", isPositive: true }}
           icon={<Briefcase className="w-5 h-5 text-emerald-600" />}
           iconBgColor="bg-emerald-50"
           iconColor="text-emerald-600"
@@ -54,7 +54,7 @@ export function AdminDashboard() {
         <StatCard
           title="Applications"
           value={stats.pendingUsers}
-          change="+32%"
+          trend={{ value: "+32%", isPositive: true }}
           icon={<FileText className="w-5 h-5 text-amber-600" />}
           iconBgColor="bg-amber-50"
           iconColor="text-amber-600"
