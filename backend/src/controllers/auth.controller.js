@@ -5,6 +5,7 @@ import { sendResetPasswordEmail } from '../utils/email.js';
 import { Resume } from '../models/resume.model.js';
 import { Company } from '../models/company.model.js';
 import { Logger } from '../utils/logger.js';
+import { sendErrorResponse, ERROR_MESSAGES, HTTP_STATUS } from '../utils/errorHandler.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -38,7 +39,7 @@ export const register = async (req, res) => {
         existingPhone: existingUser.phone 
       });
       return res.status(400).json({ 
-        message: `A user with the email ${existingUser.email} already exists. Please try logging in instead.`
+        message: 'A user with this email or phone number already exists. Please try logging in instead.'
       });
     }
 
@@ -120,7 +121,7 @@ export const register = async (req, res) => {
     res.status(201).json(responseData);
   } catch (error) {
     Logger.error('❌ Registration error', error);
-    res.status(400).json({ message: error.message });
+    sendErrorResponse(res, error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR, HTTP_STATUS.BAD_REQUEST);
   }
 };
 
@@ -134,7 +135,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       Logger.warning('⚠️ Login failed - user not found', { email });
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return sendErrorResponse(res, ERROR_MESSAGES.INVALID_CREDENTIALS, HTTP_STATUS.UNAUTHORIZED);
     }
 
     Logger.debug('👤 User found, checking password', { userId: user._id, email: user.email });
@@ -142,7 +143,7 @@ export const login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       Logger.warning('⚠️ Login failed - invalid password', { userId: user._id, email: user.email });
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return sendErrorResponse(res, ERROR_MESSAGES.INVALID_CREDENTIALS, HTTP_STATUS.UNAUTHORIZED);
     }
 
     // Generate token
@@ -169,7 +170,7 @@ export const login = async (req, res) => {
     res.json(responseData);
   } catch (error) {
     Logger.error('❌ Login error', error);
-    res.status(400).json({ message: error.message });
+    sendErrorResponse(res, error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR, HTTP_STATUS.BAD_REQUEST);
   }
 };
 
@@ -295,7 +296,7 @@ export const registerWithResume = async (req, res) => {
         existingPhone: existingUser.phone 
       });
       return res.status(400).json({ 
-        message: `User already exists with this ${existingUser.email ? 'email' : 'phone number'}`
+        message: 'A user with this email or phone number already exists. Please try logging in instead.'
       });
     }
 
@@ -407,7 +408,7 @@ export const registerBusiness = async (req, res) => {
         existingPhone: existingUser.phone 
       });
       return res.status(400).json({ 
-        message: `A user with the email ${existingUser.email} already exists. Please try logging in instead.`
+        message: 'A user with this email or phone number already exists. Please try logging in instead.'
       });
     }
 

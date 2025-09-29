@@ -1,6 +1,8 @@
 import axios from "axios";
 import { Chat } from "../models/chat.model.js";
 import { Application } from "../models/application.model.js";
+import { Vacancy } from "../models/vacancy.model.js";
+import { Resume } from "../models/resume.model.js";
 import { Logger } from "../utils/logger.js";
 import {
   SCREENING_SYSTEM_PROMPT,
@@ -104,13 +106,22 @@ export async function startScreeningChat(application, vacancy, resume) {
       vacancyTitle: vacancy.title,
     });
 
+    // Get the latest application data with evaluation results
+    const latestApplication = await Application.findById(application._id);
+    
     // Check if candidate matches the position
     const matchResult = checkCandidateMatch(vacancy, resume);
     
-    Logger.info("🔍 Candidate match check", {
+    // Check evaluation score for AI rejection
+    const evaluationScore = latestApplication?.totalEvaluationScore || 0;
+    const isLowScore = evaluationScore < 30; // Reject if score is below 30
+    
+    Logger.info("🔍 Candidate match and evaluation check", {
       applicationId: application._id,
       isMatch: matchResult.isMatch,
       reason: matchResult.reason,
+      evaluationScore: evaluationScore,
+      isLowScore: isLowScore,
       vacancyTitle: vacancy.title,
       candidateSkills: resume.parsedData?.skills?.map(s => s.name) || []
     });
@@ -132,14 +143,19 @@ export async function startScreeningChat(application, vacancy, resume) {
       ],
     });
 
-    // If there's a mismatch, handle AI rejection
-    if (!matchResult.isMatch) {
-      Logger.info("❌ Candidate mismatch detected, setting AI rejection", {
+    // If there's a mismatch or low evaluation score, handle AI rejection
+    if (!matchResult.isMatch || isLowScore) {
+      const rejectionReason = !matchResult.isMatch ? matchResult.reason : `Low evaluation score: ${evaluationScore}/100`;
+      
+      Logger.info("❌ Candidate rejection detected", {
         applicationId: application._id,
-        reason: matchResult.reason
+        reason: rejectionReason,
+        isMatch: matchResult.isMatch,
+        isLowScore: isLowScore,
+        evaluationScore: evaluationScore
       });
 
-      // Add mismatch message to chat
+      // Add rejection message to chat
       chat.messages.push({
         role: "assistant",
         content: SCREENING_MISMATCH_MESSAGE,
@@ -160,7 +176,8 @@ export async function startScreeningChat(application, vacancy, resume) {
       Logger.success("🎯 AI rejection completed", {
         chatId: chat._id,
         applicationId: application._id,
-        status: "ai-rejected"
+        status: "ai-rejected",
+        reason: rejectionReason
       });
 
       return chat;
@@ -476,13 +493,13 @@ function extractEvaluationFromText(text) {
   }
 }
 
-async function evaluateCandidate(chat) {
+async function evaluateCandidateImmediately(application, vacancy, resume) {
   try {
-    Logger.info("📊 Starting candidate evaluation", {
-      chatId: chat._id,
-      messageCount: chat.messages.length,
-      model:
-        process.env.OPENROUTER_EVAL_MODEL || "meta-llama/llama-4-maverick:free",
+    Logger.info("📊 Starting immediate candidate evaluation", {
+      applicationId: application._id,
+      vacancyId: vacancy._id,
+      resumeId: resume._id,
+      model: process.env.OPENROUTER_EVAL_MODEL || "meta-llama/llama-4-maverick:free",
     });
 
     const response = await axios.post(
@@ -499,7 +516,143 @@ async function evaluateCandidate(chat) {
           },
           {
             role: "user",
-            content: EVALUATION_USER_PROMPT(chat.messages),
+            content: EVALUATION_USER_PROMPT([], vacancy, resume), // Empty chat messages for immediate evaluation
+          },
+        ],
+        temperature: parseFloat(
+          process.env.OPENROUTER_EVAL_TEMPERATURE || "0.3"
+        ),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": process.env.SITE_URL,
+          "X-Title": "Immediate Candidate Evaluation",
+        },
+      }
+    );
+
+    Logger.debug("🔍 Full AI response received for immediate evaluation", {
+      applicationId: application._id,
+      response: JSON.stringify(response.data, null, 2)
+    });
+
+    const evaluationResponse = response.data.choices[0].message.content;
+
+    Logger.success("✅ Immediate evaluation response received", {
+      applicationId: application._id,
+      responseLength: evaluationResponse ? evaluationResponse.length : 0,
+      usage: response.data.usage,
+    });
+
+    if (!evaluationResponse || !evaluationResponse.trim()) {
+      Logger.error("❌ Immediate evaluation response is empty", { applicationId: application._id });
+      throw new Error("AI evaluation returned empty response");
+    }
+
+    let evaluation;
+    try {
+      // Try to parse as JSON first
+      evaluation = JSON.parse(evaluationResponse);
+    } catch (jsonError) {
+      Logger.warn("⚠️ Response is not valid JSON, attempting to extract data", {
+        applicationId: application._id,
+        responsePreview: evaluationResponse.substring(0, 200)
+      });
+      
+      // Fallback: try to extract score and feedback from markdown/text response
+      evaluation = extractEvaluationFromText(evaluationResponse);
+    }
+
+    // Validate the new evaluation structure
+    if (!evaluation || !evaluation.evaluations || !Array.isArray(evaluation.evaluations)) {
+      Logger.error("❌ Invalid evaluation format", { 
+        applicationId: application._id, 
+        evaluation: evaluation 
+      });
+      throw new Error("AI evaluation returned invalid format");
+    }
+
+    // Calculate total evaluation score from all evaluations
+    // Handle scores that might be incorrectly formatted (e.g., 38/10 instead of 3.8/10)
+    const totalScore = evaluation.evaluations.reduce((sum, evaluationItem) => {
+      let score = evaluationItem.totalScore || 0;
+      const scoreBase = evaluationItem.scoreBase || 10;
+      
+      // If score is greater than scoreBase, it's likely incorrectly formatted
+      // Convert it to the proper scale (e.g., 38/10 becomes 3.8/10)
+      if (score > scoreBase) {
+        score = score / 10;
+      }
+      
+      // Convert to percentage (e.g., 3.8/10 = 38%)
+      const percentage = (score / scoreBase) * 100;
+      return sum + percentage;
+    }, 0) / evaluation.evaluations.length;
+
+    Logger.info("📊 Updating application with immediate evaluation results", {
+      applicationId: application._id,
+      totalScore: Math.round(totalScore),
+      evaluationCount: evaluation.evaluations.length,
+      hasSummary: !!evaluation.evaluationSummary,
+    });
+
+    // Update application with detailed evaluations
+    await Application.findByIdAndUpdate(application._id, {
+      evaluations: evaluation.evaluations,
+      evaluationSummary: evaluation.evaluationSummary || "",
+      totalEvaluationScore: Math.round(totalScore),
+      updatedAt: new Date()
+    });
+
+    Logger.success("🎉 Immediate candidate evaluation completed", {
+      applicationId: application._id,
+      finalScore: Math.round(totalScore),
+      evaluationCategories: evaluation.evaluations.map(e => e.name),
+    });
+  } catch (error) {
+    Logger.error("❌ Error in immediate candidate evaluation", error);
+    throw error;
+  }
+}
+
+async function evaluateCandidate(chat) {
+  try {
+    Logger.info("📊 Starting comprehensive candidate evaluation", {
+      chatId: chat._id,
+      messageCount: chat.messages.length,
+      model:
+        process.env.OPENROUTER_EVAL_MODEL || "meta-llama/llama-4-maverick:free",
+    });
+
+    // Get vacancy and resume data for comprehensive evaluation
+    const vacancy = await Vacancy.findById(chat.vacancy);
+    const resume = await Resume.findById(chat.resume);
+
+    if (!vacancy || !resume) {
+      Logger.error("❌ Missing vacancy or resume data for evaluation", {
+        chatId: chat._id,
+        vacancyId: chat.vacancy,
+        resumeId: chat.resume
+      });
+      throw new Error("Missing vacancy or resume data for evaluation");
+    }
+
+    const response = await axios.post(
+      process.env.OPENROUTER_API_URL ||
+        "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model:
+          process.env.OPENROUTER_EVAL_MODEL ||
+          "meta-llama/llama-4-maverick:free",
+        messages: [
+          {
+            role: "system",
+            content: EVALUATION_SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: EVALUATION_USER_PROMPT(chat.messages, vacancy, resume),
           },
         ],
         temperature: parseFloat(
@@ -547,8 +700,8 @@ async function evaluateCandidate(chat) {
       evaluation = extractEvaluationFromText(evaluationResponse);
     }
 
-    // Validate the evaluation object
-    if (!evaluation || typeof evaluation.score !== 'number' || typeof evaluation.feedback !== 'string') {
+    // Validate the new evaluation structure
+    if (!evaluation || !evaluation.evaluations || !Array.isArray(evaluation.evaluations)) {
       Logger.error("❌ Invalid evaluation format", { 
         chatId: chat._id, 
         evaluation: evaluation 
@@ -556,20 +709,41 @@ async function evaluateCandidate(chat) {
       throw new Error("AI evaluation returned invalid format");
     }
 
-    Logger.info("📊 Updating chat with evaluation results", {
+    // Calculate total evaluation score from all evaluations
+    // Handle scores that might be incorrectly formatted (e.g., 38/10 instead of 3.8/10)
+    const totalScore = evaluation.evaluations.reduce((sum, evaluationItem) => {
+      let score = evaluationItem.totalScore || 0;
+      const scoreBase = evaluationItem.scoreBase || 10;
+      
+      // If score is greater than scoreBase, it's likely incorrectly formatted
+      // Convert it to the proper scale (e.g., 38/10 becomes 3.8/10)
+      if (score > scoreBase) {
+        score = score / 10;
+      }
+      
+      // Convert to percentage (e.g., 3.8/10 = 38%)
+      const percentage = (score / scoreBase) * 100;
+      return sum + percentage;
+    }, 0) / evaluation.evaluations.length;
+
+    Logger.info("📊 Updating chat and application with comprehensive evaluation results", {
       chatId: chat._id,
-      score: evaluation.score,
-      hasFeedback: !!evaluation.feedback,
+      totalScore: Math.round(totalScore),
+      evaluationCount: evaluation.evaluations.length,
+      hasSummary: !!evaluation.evaluationSummary,
     });
 
     chat.status = "ai-reviewed";
-    chat.score = evaluation.score;
-    chat.feedback = evaluation.feedback;
+    chat.score = Math.round(totalScore);
+    chat.feedback = evaluation.evaluationSummary || "Comprehensive evaluation completed";
 
-    // Update application status to ai-reviewed
+    // Update application with detailed evaluations
     if (chat.application) {
       await Application.findByIdAndUpdate(chat.application, {
         status: "ai-reviewed",
+        evaluations: evaluation.evaluations,
+        evaluationSummary: evaluation.evaluationSummary || "",
+        totalEvaluationScore: Math.round(totalScore),
         updatedAt: new Date()
       });
     }
@@ -579,13 +753,17 @@ async function evaluateCandidate(chat) {
     });
     await chat.save();
 
-    Logger.success("🎉 Candidate evaluation completed", {
+    Logger.success("🎉 Comprehensive candidate evaluation completed", {
       chatId: chat._id,
-      finalScore: evaluation.score,
+      finalScore: Math.round(totalScore),
       status: "ai-reviewed",
+      evaluationCategories: evaluation.evaluations.map(e => e.name),
     });
   } catch (error) {
     Logger.error("❌ Error evaluating candidate", error);
     throw error;
   }
 }
+
+// Export the new function
+export { evaluateCandidateImmediately };

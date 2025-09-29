@@ -36,12 +36,12 @@ export const generateContent = async (req, res) => {
         break;
       
       case 'requirements':
-        systemPrompt = `You are an expert HR professional. Generate a list of job requirements based on the job description provided. ${languageInstruction} Return a JSON array of strings, each representing a requirement.`;
+        systemPrompt = `You are an expert HR professional. Generate a list of job requirements based on the job description provided. ${languageInstruction} Return ONLY a JSON array of strings, each representing a requirement. Do not use markdown formatting, code blocks, or any other formatting. Return pure JSON only.`;
         userPrompt = `Based on this job description, generate 5-8 specific job requirements:\n\n${description}`;
         break;
       
       case 'responsibilities':
-        systemPrompt = `You are an expert HR professional. Generate a list of job responsibilities based on the job description provided. ${languageInstruction} Return a JSON array of strings, each representing a responsibility.`;
+        systemPrompt = `You are an expert HR professional. Generate a list of job responsibilities based on the job description provided. ${languageInstruction} Return ONLY a JSON array of strings, each representing a responsibility. Do not use markdown formatting, code blocks, or any other formatting. Return pure JSON only.`;
         userPrompt = `Based on this job description, generate 5-8 specific job responsibilities:\n\n${description}`;
         break;
       
@@ -89,13 +89,21 @@ export const generateContent = async (req, res) => {
     // Process response based on content type
     if (contentType === 'requirements' || contentType === 'responsibilities') {
       try {
+        // Remove markdown code blocks if present
+        let cleanContent = content;
+        if (content.includes('```json')) {
+          cleanContent = content.replace(/```json\s*/, '').replace(/```\s*$/, '').trim();
+        } else if (content.includes('```')) {
+          cleanContent = content.replace(/```\s*/, '').replace(/```\s*$/, '').trim();
+        }
+        
         // Try to parse as JSON array
-        const parsed = JSON.parse(content);
+        const parsed = JSON.parse(cleanContent);
         if (Array.isArray(parsed)) {
           content = parsed;
         } else {
           // If not JSON, split by lines and clean up
-          content = content
+          content = cleanContent
             .split('\n')
             .map(line => line.replace(/^[-•*]\s*/, '').trim())
             .filter(line => line.length > 0)

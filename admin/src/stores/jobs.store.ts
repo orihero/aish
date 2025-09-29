@@ -43,6 +43,7 @@ export interface Job {
   status: 'active' | 'closed' | 'draft';
   isApplied?: boolean;
   applicationStatus?: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  applicationCount?: number;
 }
 
 interface JobsState {

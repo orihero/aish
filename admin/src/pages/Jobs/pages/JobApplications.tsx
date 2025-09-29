@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
 import { format, isValid } from "date-fns";
-import { MessageSquare, ArrowUpDown, Eye, CheckCircle, XCircle } from "lucide-react";
+import { MessageSquare, ArrowUpDown, Eye, CheckCircle, XCircle, Star, BarChart3 } from "lucide-react";
 
 interface Application {
   _id: string;
@@ -29,10 +29,23 @@ interface Application {
     email: string;
     phone?: string;
   };
-  status: "pending" | "reviewed" | "accepted" | "rejected";
+  status: "pending" | "reviewed" | "accepted" | "rejected" | "ai-rejected" | "ai-reviewed";
   chat: {
     _id: string;
   };
+  // New evaluation fields
+  evaluations?: Array<{
+    name: string;
+    totalScore: number;
+    scoreBase: number;
+    items: Array<{
+      name: string;
+      score: number;
+      scoreBase: number;
+    }>;
+  }>;
+  evaluationSummary?: string;
+  totalEvaluationScore?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -137,9 +150,24 @@ export function JobApplications() {
         return "bg-red-50 text-red-700";
       case "reviewed":
         return "bg-blue-50 text-blue-700";
+      case "ai-reviewed":
+        return "bg-purple-50 text-purple-700";
+      case "ai-rejected":
+        return "bg-orange-50 text-orange-700";
       default:
         return "bg-amber-50 text-amber-700";
     }
+  };
+
+  const getEvaluationScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const handleViewEvaluations = (application: Application) => {
+    // Navigate to detailed evaluation view
+    navigate(`/applications/${application._id}/evaluations`);
   };
 
   if (isLoading) {
@@ -176,6 +204,7 @@ export function JobApplications() {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">JOB</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">COMPANY</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">STATUS</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">EVALUATION</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">APPLIED</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">ACTIONS</th>
             </tr>
@@ -183,13 +212,13 @@ export function JobApplications() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : applications?.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                   No applications found
                 </td>
               </tr>
@@ -231,6 +260,27 @@ export function JobApplications() {
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
                     {application.status}
                   </span>
+                </td>
+                <td className="px-6 py-4">
+                  {application.totalEvaluationScore !== undefined ? (
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-1 ${getEvaluationScoreColor(application.totalEvaluationScore)}`}>
+                        <Star className="w-4 h-4" />
+                        <span className="font-medium">{application.totalEvaluationScore}/100</span>
+                      </div>
+                      {application.evaluations && application.evaluations.length > 0 && (
+                        <button
+                          onClick={() => handleViewEvaluations(application)}
+                          className="p-1 hover:bg-gray-100 rounded"
+                          title="View detailed evaluations"
+                        >
+                          <BarChart3 className="w-4 h-4 text-gray-500" />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Not evaluated</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-gray-500">
                   {formatDate(application.createdAt)}

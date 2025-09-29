@@ -1,6 +1,6 @@
 import { Application } from '../models/application.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
-import { startScreeningChat } from '../services/chat.service.js';
+import { startScreeningChat, evaluateCandidateImmediately } from '../services/chat.service.js';
 import { Resume } from '../models/resume.model.js';
 
 export const createApplication = async (req, res) => {
@@ -34,6 +34,17 @@ export const createApplication = async (req, res) => {
       resume: resumeId,
       job: jobId
     });
+
+    // Save application first to get the ID
+    await application.save();
+
+    // Perform immediate AI evaluation
+    try {
+      await evaluateCandidateImmediately(application, vacancy, resume);
+    } catch (evaluationError) {
+      console.error('AI evaluation failed:', evaluationError);
+      // Continue with application even if evaluation fails
+    }
 
     // Start screening chat with populated data
     const chat = await startScreeningChat(application, vacancy, resume);
@@ -82,6 +93,10 @@ export const getMyApplications = async (req, res) => {
       chat: {
         _id: app.chat?._id
       },
+      // Include evaluation data
+      evaluations: app.evaluations || [],
+      evaluationSummary: app.evaluationSummary || '',
+      totalEvaluationScore: app.totalEvaluationScore || 0,
       job: {
         _id: app.job._id,
         title: app.job.title,
@@ -130,7 +145,7 @@ export const getJobApplications = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view applications for this job' });
     }
 
-    // Get all applications for this job
+    // Get all applications for this job with evaluation data
     const applications = await Application.find({ job: jobId })
       .populate({
         path: 'resume',
@@ -141,7 +156,7 @@ export const getJobApplications = async (req, res) => {
         }
       })
       .populate('chat', '_id')
-      .sort({ appliedAt: -1 });
+      .sort({ totalEvaluationScore: -1, appliedAt: -1 }); // Sort by evaluation score first
 
     // Format applications to match the expected structure
     const formattedApplications = applications.map(app => ({
@@ -152,6 +167,10 @@ export const getJobApplications = async (req, res) => {
       chat: {
         _id: app.chat?._id
       },
+      // Include evaluation data
+      evaluations: app.evaluations || [],
+      evaluationSummary: app.evaluationSummary || '',
+      totalEvaluationScore: app.totalEvaluationScore || 0,
       job: {
         _id: vacancy._id,
         title: vacancy.title,
@@ -173,6 +192,65 @@ export const getJobApplications = async (req, res) => {
     res.json(formattedApplications);
   } catch (error) {
     console.error('Error fetching job applications:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getApplicationEvaluations = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await Application.findById(applicationId)
+      .populate('job', 'title description requirements responsibilities location workType creator')
+      .populate('resume', 'name title parsedData')
+      .populate('chat', 'messages status score feedback');
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Check if user is the job creator, applicant, or admin
+    const isJobCreator = application.job.creator.toString() === req.user._id.toString();
+    const isApplicant = application.user.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isJobCreator && !isApplicant && !isAdmin) {
+      return res.status(403).json({ message: 'Not authorized to view application evaluations' });
+    }
+
+    res.json({
+      _id: application._id,
+      status: application.status,
+      evaluations: application.evaluations || [],
+      evaluationSummary: application.evaluationSummary || '',
+      totalEvaluationScore: application.totalEvaluationScore || 0,
+      job: {
+        _id: application.job._id,
+        title: application.job.title,
+        description: application.job.description,
+        requirements: application.job.requirements,
+        responsibilities: application.job.responsibilities,
+        location: application.job.location,
+        workType: application.job.workType
+      },
+      resume: {
+        _id: application.resume._id,
+        name: application.resume.name,
+        title: application.resume.title,
+        parsedData: application.resume.parsedData
+      },
+      chat: application.chat ? {
+        _id: application.chat._id,
+        status: application.chat.status,
+        score: application.chat.score,
+        feedback: application.chat.feedback,
+        messages: application.chat.messages
+      } : null,
+      appliedAt: application.appliedAt,
+      updatedAt: application.updatedAt
+    });
+  } catch (error) {
+    console.error('Error fetching application evaluations:', error);
     res.status(500).json({ message: error.message });
   }
 };

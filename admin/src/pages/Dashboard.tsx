@@ -18,11 +18,12 @@ export function Dashboard() {
 
   useEffect(() => {
     if (user?.role === 'employer') {
+      console.log('User role is employer, fetching dashboard data...');
       getEmployerDashboard();
     }
-  }, [user?.role]);
+  }, [user?.role, getEmployerDashboard]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 shadow-lg rounded-lg border border-gray-100">
@@ -86,7 +87,7 @@ export function Dashboard() {
             ) : (
               jobs.map(job => (
                 <JobCard
-                  key={job.id}
+                  key={job._id}
                   job={job}
                   onEdit={() => { }}
                   onDelete={() => { }}
@@ -108,6 +109,7 @@ export function Dashboard() {
   }
 
   if (!company || !stats) {
+    console.log('Dashboard data:', { company, stats, isLoading });
     return (
       <div className="text-center py-12">
         <h2 className="text-lg font-medium text-gray-900">No Company Profile</h2>

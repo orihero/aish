@@ -8,6 +8,7 @@ import { ResumeUpload } from './Profile/components/ResumeUpload'
 import { ManualResumeForm } from './Register/components/ManualResumeForm'
 import { ResumePreview } from './Register/components/ResumePreview'
 import { BusinessRegistrationForm, BusinessRegistrationData } from './Register/components/BusinessRegistrationForm'
+import illustration from '../assets/images/auth-illustration.png'
 
 type Step = 'role' | 'upload' | 'manual' | 'preview' | 'account' | 'details' | 'resume' | 'business'
 
@@ -203,7 +204,7 @@ export function Register() {
     password: '',
     role: 'employee'
   })
-  const { register, registerBusiness, isLoading, error, clearError } = useAuthStore()
+  const { register, registerBusiness, isLoading } = useAuthStore()
   const { t } = useTranslation()
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [resumeFile, setResumeFile] = useState<{ url: string; filename: string } | undefined>(undefined);
@@ -231,10 +232,10 @@ export function Register() {
       const formData = new FormData();
       formData.append('cvFile', file);
 
-      const response = await api.post<{ 
-        success: boolean; 
-        data?: ResumeAnalysisResponse; 
-        fileUrl?: string; 
+      const response = await api.post<{
+        success: boolean;
+        data?: ResumeAnalysisResponse;
+        fileUrl?: string;
         fileName?: string;
         error?: string;
       }>('/resumes/analyze', formData, {
@@ -537,8 +538,8 @@ export function Register() {
         <BusinessRegistrationForm
           onSubmit={handleBusinessRegistration}
           isLoading={isLoading}
-          error={error}
-          onClearError={clearError}
+          error={null}
+          onClearError={() => {}}
         />
       );
     }
@@ -565,17 +566,6 @@ export function Register() {
           </p>
         </div>
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
-            {error}
-            <button
-              onClick={clearError}
-              className="float-right text-red-800 hover:text-red-900"
-            >
-              ×
-            </button>
-          </div>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -671,20 +661,15 @@ export function Register() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-purple-600 items-center justify-center">
-        <div className="max-w-md px-8">
-          <img
-            src="/illustrations/register.svg"
-            alt="Register illustration"
-            className="w-full h-auto"
-          />
-          <h2 className="mt-6 text-3xl font-bold text-white">
-            {t('common.welcome')}
-          </h2>
-          <p className="mt-2 text-purple-100">
-            Join our platform and start your journey with us
-          </p>
-        </div>
+      <div
+        className="hidden lg:flex lg:w-1/2 bg-purple-600 items-center justify-center relative"
+        style={{
+          backgroundImage: `url(${illustration})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
       </div>
 
       {/* Right side - Content */}

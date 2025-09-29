@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Facebook, Twitter, Github, Mail } from 'lucide-react'
 import { useTranslation } from '../hooks/useTranslation'
 import { useAuthStore } from '../stores/auth.store'
+import illustration from '../assets/images/auth-illustration.png'
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login, isLoading, error, clearError, user } = useAuthStore()
+  const { login, isLoading, user } = useAuthStore()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -28,20 +29,16 @@ export function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-purple-600 items-center justify-center">
-        <div className="max-w-md px-8">
-          <img
-            src="/illustrations/login.svg"
-            alt="Login illustration"
-            className="w-full h-auto"
-          />
-          <h2 className="mt-6 text-3xl font-bold text-white">
-            {t('common.welcome')}
-          </h2>
-          <p className="mt-2 text-purple-100">
-            Please sign-in to your account and start the adventure
-          </p>
-        </div>
+      <div
+        className="hidden lg:flex lg:w-1/2 bg-purple-600 items-center justify-center relative"
+        style={{
+          backgroundImage: `url(${illustration})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 "></div>
       </div>
 
       {/* Right side - Login form */}
@@ -56,17 +53,6 @@ export function Login() {
             </p>
           </div>
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
-              {error}
-              <button
-                onClick={clearError}
-                className="float-right text-red-800 hover:text-red-900"
-              >
-                ×
-              </button>
-            </div>
-          )}
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">

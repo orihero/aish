@@ -58,13 +58,16 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   getEmployerDashboard: async () => {
     try {
       set({ isLoading: true, error: null });
+      console.log('Fetching employer dashboard data...');
       const response = await api.get('/dashboard/employer');
+      console.log('Dashboard response:', response.data);
       set({
         company: response.data.company,
         stats: response.data.stats,
         isLoading: false
       });
     } catch (error: any) {
+      console.error('Dashboard fetch error:', error);
       set({
         error: error.response?.data?.message || 'Failed to fetch dashboard data',
         isLoading: false

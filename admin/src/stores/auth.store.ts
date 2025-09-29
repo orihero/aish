@@ -97,10 +97,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('token', data.token);
       set({ user: data.user, token: data.token, isLoading: false });
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'An error occurred',
-        isLoading: false
-      });
+      set({ isLoading: false });
+      // Error notifications are now handled globally by axios interceptor
     }
   },
 
@@ -111,10 +109,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('token', response.data.token);
       set({ user: response.data.user, token: response.data.token, isLoading: false });
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'An error occurred',
-        isLoading: false
-      });
+      set({ isLoading: false });
+      // Error notifications are now handled globally by axios interceptor
     }
   },
 
@@ -125,10 +121,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('token', response.data.token);
       set({ user: response.data.user, token: response.data.token, isLoading: false });
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'An error occurred',
-        isLoading: false
-      });
+      set({ isLoading: false });
+      // Error notifications are now handled globally by axios interceptor
     }
   },
 

@@ -1,6 +1,6 @@
 import { Company } from '../models/company.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
-import { Resume } from '../models/resume.model.js';
+import { Application } from '../models/application.model.js';
 
 export const getEmployerDashboard = async (req, res) => {
   try {
@@ -29,45 +29,39 @@ export const getEmployerDashboard = async (req, res) => {
       monthlyApplications: Array(12).fill(0) // For monthly chart
     };
 
-    // Get all applications across all resumes for company's vacancies
-    const resumes = await Resume.find({
-      'applications.vacancy': { $in: vacancies.map(v => v._id) }
-    }).populate('user', 'firstName lastName email');
+    // Get all applications for company's vacancies
+    const applications = await Application.find({
+      job: { $in: vacancies.map(v => v._id) }
+    }).populate('user', 'firstName lastName email').populate('resume');
 
     // Process applications
-    const applications = [];
-    resumes.forEach(resume => {
-      resume.applications.forEach(app => {
-        if (vacancies.some(v => v._id.equals(app.vacancy))) {
-          applications.push({
-            ...app.toObject(),
-            candidate: {
-              name: `${resume.user.firstName} ${resume.user.lastName}`,
-              email: resume.user.email
-            },
-            resumeId: resume._id
-          });
+    applications.forEach(app => {
+      // Update status counts
+      stats.applicationsByStatus[app.status]++;
+      stats.totalApplications++;
 
-          // Update status counts
-          stats.applicationsByStatus[app.status]++;
-          stats.totalApplications++;
-
-          // Update monthly stats
-          const month = new Date(app.appliedAt).getMonth();
-          stats.monthlyApplications[month]++;
-        }
-      });
+      // Update monthly stats
+      const month = new Date(app.appliedAt).getMonth();
+      stats.monthlyApplications[month]++;
     });
 
     // Get recent applications
     stats.recentApplications = applications
-      .sort((a, b) => b.appliedAt - a.appliedAt)
-      .slice(0, 5);
+      .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
+      .slice(0, 5)
+      .map(app => ({
+        candidate: {
+          name: `${app.user.firstName} ${app.user.lastName}`,
+          email: app.user.email
+        },
+        status: app.status,
+        appliedAt: app.appliedAt
+      }));
 
     // Calculate per-vacancy stats
     stats.vacancyStats = await Promise.all(vacancies.map(async vacancy => {
       const vacancyApplications = applications.filter(app => 
-        app.vacancy.equals(vacancy._id)
+        app.job.equals(vacancy._id)
       );
 
       return {

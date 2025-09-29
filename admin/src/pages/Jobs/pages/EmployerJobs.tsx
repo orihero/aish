@@ -2,22 +2,45 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Briefcase } from 'lucide-react';
 import { useJobsStore } from '../../../stores/jobs.store';
-import { useApplicationsStore } from '../../../stores/application.store';
 import { useTranslation } from '../../../hooks/useTranslation';
+import { api } from '../../../lib/axios';
 
 export function EmployerJobs() {
   const navigate = useNavigate();
   const { jobs, isLoading, error, getJobs } = useJobsStore();
-  const { applications, getApplications } = useApplicationsStore();
   const { t } = useTranslation();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [applicationCounts, setApplicationCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     getJobs();
-    getApplications();
-  }, []);
+    fetchApplicationCounts();
+  }, [getJobs]);
+
+  const fetchApplicationCounts = async () => {
+    try {
+      // Get all jobs first
+      const jobsResponse = await api.get('/vacancies/my');
+      const jobsData = jobsResponse.data;
+      
+      // Fetch application counts for each job
+      const counts: Record<string, number> = {};
+      for (const job of jobsData) {
+        try {
+          const applicationsResponse = await api.get(`/applications/job/${job._id}`);
+          counts[job._id] = applicationsResponse.data?.length || 0;
+        } catch (error) {
+          console.error(`Failed to fetch applications for job ${job._id}:`, error);
+          counts[job._id] = 0;
+        }
+      }
+      setApplicationCounts(counts);
+    } catch (error) {
+      console.error('Failed to fetch application counts:', error);
+    }
+  };
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -27,10 +50,7 @@ export function EmployerJobs() {
   });
 
   const getApplicationCount = (jobId: string) => {
-    if (!Array.isArray(applications)) {
-      return 0;
-    }
-    return applications.filter(app => app.job._id === jobId).length;
+    return applicationCounts[jobId] || 0;
   };
 
   if (isLoading) {
@@ -98,7 +118,7 @@ export function EmployerJobs() {
                     <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
                     <span className="text-sm text-gray-600">
                       {typeof job.category === 'object' 
-                        ? job.category.title.find(t => t.language === 'en')?.value || job.category.title[0]?.value
+                        ? job.category.title
                         : job.category}
                     </span>
                   </div>
@@ -118,7 +138,7 @@ export function EmployerJobs() {
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
                     <span className={`px-3 py-1 rounded-full text-sm bg-emerald-50 text-emerald-700`}>
-                      {t(`jobs.workType.${job.workType}`)}
+                      {job.workType === 'on-site' ? 'On-site' : job.workType === 'remote' ? 'Remote' : 'Hybrid'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

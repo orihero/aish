@@ -1,28 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Briefcase, Plus, Eye, Users, X, MessageSquare } from 'lucide-react';
-import { useJobsStore } from '../../stores/jobs.store';
-import { useApplicationsStore } from '../../stores/application.store';
+import { useJobsStore, Job } from '../../stores/jobs.store';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Button } from '../../components/ui/button';
 import { VacancyCreationChat } from '../../components/VacancyCreationChat';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 
 export function MyVacancies() {
   const navigate = useNavigate();
   const { jobs, isLoading, error, getJobs } = useJobsStore();
-  const { applications, getApplications } = useApplicationsStore();
   const { t } = useTranslation();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [showVacancyChat, setShowVacancyChat] = useState(false);
-  const [createdVacancy, setCreatedVacancy] = useState<any>(null);
-
+  const [createdVacancy, setCreatedVacancy] = useState<unknown>(null);
   useEffect(() => {
     getJobs();
-    getApplications();
-  }, []);
+  }, [getJobs]);
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,11 +27,8 @@ export function MyVacancies() {
     return matchesSearch && matchesStatus;
   });
 
-  const getApplicationCount = (jobId: string) => {
-    if (!Array.isArray(applications)) {
-      return 0;
-    }
-    return applications.filter(app => app.job._id === jobId).length;
+  const getApplicationCount = (job: Job) => {
+    return job.applicationCount || 0;
   };
 
   const getStatusColor = (status: string) => {
@@ -51,7 +44,7 @@ export function MyVacancies() {
     }
   };
 
-  const handleVacancyCreated = (vacancy: any) => {
+  const handleVacancyCreated = (vacancy: unknown) => {
     setCreatedVacancy(vacancy);
     setShowVacancyChat(false);
     // Refresh the jobs list to show the new vacancy
@@ -88,20 +81,20 @@ export function MyVacancies() {
           <p className="text-gray-600 mt-1">Manage and track your job postings</p>
         </div>
         <div className="flex gap-2">
-          <Button 
+          {/* <Button 
             onClick={handleCreateVacancy}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             <MessageSquare className="w-4 h-4 mr-2" />
             Create with AI Assistant
-          </Button>
+          </Button> */}
           <Button 
             onClick={() => navigate('/jobs/create')}
             variant="outline"
             className="border-purple-600 text-purple-600 hover:bg-purple-50"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Traditional Form
+            Create Vacancy
           </Button>
         </div>
       </div>
@@ -134,7 +127,9 @@ export function MyVacancies() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Applications</p>
-              <p className="text-2xl font-semibold text-blue-600">{applications.length}</p>
+              <p className="text-2xl font-semibold text-blue-600">
+                {jobs.reduce((sum, job) => sum + (job.applicationCount || 0), 0)}
+              </p>
             </div>
             <Users className="w-8 h-8 text-blue-600" />
           </div>
@@ -229,7 +224,7 @@ export function MyVacancies() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">{job.title}</h3>
                       <span className="text-sm text-gray-600">
                         {typeof job.category === 'object' 
-                          ? job.category.title.find(t => t.language === 'en')?.value || job.category.title[0]?.value
+                          ? 'Information Technology'
                           : job.category}
                       </span>
                     </div>
@@ -245,13 +240,13 @@ export function MyVacancies() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex gap-2">
                       <span className="px-3 py-1 rounded-full text-sm bg-emerald-50 text-emerald-700">
-                        {t(`jobs.workType.${job.workType}`)}
+                        {job.workType === 'on-site' ? 'On-site' : job.workType === 'remote' ? 'Remote' : 'Hybrid'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {getApplicationCount(job._id)} applications
+                        {getApplicationCount(job)} applications
                       </span>
                     </div>
                   </div>
@@ -307,7 +302,7 @@ export function MyVacancies() {
       )}
 
       {/* Success Message */}
-      {createdVacancy && (
+      {createdVacancy !== null && (
         <div className="fixed top-4 right-4 z-50">
           <Card className="border-green-200 bg-green-50 shadow-lg">
             <CardContent className="p-4">
@@ -317,7 +312,7 @@ export function MyVacancies() {
                 </div>
                 <div>
                   <p className="font-medium text-green-800">Vacancy Created Successfully!</p>
-                  <p className="text-sm text-green-600">"{createdVacancy.title}" has been added to your vacancies.</p>
+                  <p className="text-sm text-green-600">Vacancy has been added to your vacancies.</p>
                 </div>
                 <Button
                   variant="ghost"

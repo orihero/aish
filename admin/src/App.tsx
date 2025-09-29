@@ -8,6 +8,7 @@ import { EmployeeJobs } from './pages/Jobs/pages/EmployeeJobs';
 import { EmployerJobs } from './pages/Jobs/pages/EmployerJobs';
 import { JobApplications } from './pages/Jobs/pages/JobApplications';
 import { ApplicationChat } from './pages/Jobs/pages/ApplicationChat';
+import { ApplicationEvaluations } from './pages/Jobs/pages/ApplicationEvaluations';
 import { Companies } from './pages/Companies';
 import { EmployerCompany } from './pages/Companies/pages/EmployerCompany';
 import { Resumes } from './pages/Resumes';
@@ -15,6 +16,7 @@ import { ResumePreview } from './pages/Resumes/ResumePreview';
 import { Settings } from './pages/Settings';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PrivateRoute } from './components/PrivateRoute';
+import { NotificationContainer } from './components/NotificationContainer';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './hooks/useAuth';
 import { Profile } from './pages/Profile';
@@ -110,6 +112,11 @@ function App() {
                   <ApplicationChat />
                 </PrivateRoute>
               } />
+              <Route path="applications/:applicationId/evaluations" element={
+                <PrivateRoute>
+                  <ApplicationEvaluations />
+                </PrivateRoute>
+              } />
               <Route path="companies" element={
                 <PrivateRoute>
                   <Companies />
@@ -138,6 +145,7 @@ function App() {
               <Route path="profile" element={<Profile />} />
             </Route>
           </Routes>
+          <NotificationContainer />
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>

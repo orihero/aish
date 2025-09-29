@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import textract from 'textract';
-import { sendApplicationStatusNotification } from '../config/telegram.js';
+// import { sendApplicationStatusNotification } from '../config/telegram.js';
 import { Resume } from '../models/resume.model.js';
 import { User } from '../models/user.model.js';
 import { Vacancy } from '../models/vacancy.model.js';
@@ -422,7 +422,7 @@ export const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await resume.save();
 
-    await sendApplicationStatusNotification(application);
+    // await sendApplicationStatusNotification(application);
     res.json(resume);
   } catch (error) {
     res.status(400).json({ message: error.message });

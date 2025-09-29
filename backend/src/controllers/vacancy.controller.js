@@ -1,5 +1,5 @@
 import { Vacancy } from "../models/vacancy.model.js";
-import { sendNewJobNotification } from "../config/telegram.js";
+// import { sendNewJobNotification } from "../config/telegram.js";
 import { Company } from "../models/company.model.js";
 import { Application } from "../models/application.model.js";
 import { Logger } from "../utils/logger.js";
@@ -62,7 +62,7 @@ export const createVacancy = async (req, res) => {
     await vacancy.save();
     
     Logger.info('📢 Sending job notification', { vacancyId: vacancy._id });
-    await sendNewJobNotification(vacancy);
+    // await sendNewJobNotification(vacancy);
     
     Logger.success('🎉 Vacancy created successfully', { 
       vacancyId: vacancy._id, 
@@ -413,7 +413,7 @@ export const getMyVacancies = async (req, res) => {
       .limit(Number(limit))
       .sort(sortOptions);
 
-    // Check if user has applied to each vacancy
+    // Get application counts and check if user has applied to each vacancy
     const vacanciesWithAppliedStatus = await Promise.all(
       vacancies.map(async (vacancy) => {
         const application = await Application.findOne({
@@ -421,9 +421,15 @@ export const getMyVacancies = async (req, res) => {
           job: vacancy._id,
         });
 
+        // Get application count for this vacancy
+        const applicationCount = await Application.countDocuments({
+          job: vacancy._id,
+        });
+
         return {
           ...vacancy.toObject(),
           isApplied: !!application,
+          applicationCount,
         };
       })
     );
