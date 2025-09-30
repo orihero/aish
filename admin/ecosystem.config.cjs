@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'admin-vite',
-      script: 'npx',
-      args: 'vite --host 0.0.0.0',
+      script: 'serve',
+      args: '-s dist -l 8300',
       instances: 1,
       exec_mode: 'fork',
       env: {
